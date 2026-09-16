@@ -47,18 +47,26 @@ class QuesivoDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    // Mismo `select` del ShellHeader: solo el nombre interesa, así el
+    // Mismo `select` del ShellHeader: solo nombre/org interesan, así el
     // drawer no se reconstruye por otros cambios del AuthState.
     final userName = context.select<AuthCubit, String?>(
       (cubit) => cubit.state is AuthSuccess
           ? (cubit.state as AuthSuccess).user.name
           : null,
     );
+    final organizationName = context.select<AuthCubit, String?>(
+      (cubit) => cubit.state is AuthSuccess
+          ? (cubit.state as AuthSuccess).user.organizationName
+          : null,
+    );
 
-    // La organización real llega con el backend; el nombre del usuario es
-    // el placeholder del contexto multi-tenant (fallback localizado).
     final trimmedName = userName?.trim() ?? '';
     final displayName = trimmedName.isNotEmpty ? trimmedName : l10n.orgName;
+
+    final trimmedOrgName = organizationName?.trim() ?? '';
+    final displayOrgName = trimmedOrgName.isNotEmpty
+        ? trimmedOrgName
+        : l10n.orgName;
 
     return Drawer(
       width: double.infinity,
@@ -92,6 +100,7 @@ class QuesivoDrawer extends StatelessWidget {
               return _buildContent(
                 context,
                 displayName: displayName,
+                displayOrgName: displayOrgName,
                 currentLocation: currentLocation,
               );
             },
@@ -104,6 +113,7 @@ class QuesivoDrawer extends StatelessWidget {
   Widget _buildContent(
     BuildContext context, {
     required String displayName,
+    required String displayOrgName,
     required String currentLocation,
   }) {
     return Stack(
@@ -160,7 +170,10 @@ class QuesivoDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 28),
               // Identidad: avatar + nombre / quesera / rol.
-              DrawerIdentity(displayName: displayName),
+              DrawerIdentity(
+                displayName: displayName,
+                displayOrgName: displayOrgName,
+              ),
               const SizedBox(height: 24),
               // Módulos por categoría + logout al final del scroll —
               // la lista lleva su propio padding inferior.

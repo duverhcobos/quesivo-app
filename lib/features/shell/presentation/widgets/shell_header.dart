@@ -29,18 +29,28 @@ class ShellHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final size = MediaQuery.sizeOf(context);
 
-    // Solo el nombre interesa: `select` evita reconstruir el header por
+    // Solo nombre + org interesan: `select` evita reconstruir el header por
     // cualquier otro cambio del AuthState.
     final userName = context.select<AuthCubit, String?>(
       (cubit) => cubit.state is AuthSuccess
           ? (cubit.state as AuthSuccess).user.name
           : null,
     );
+    final organizationName = context.select<AuthCubit, String?>(
+      (cubit) => cubit.state is AuthSuccess
+          ? (cubit.state as AuthSuccess).user.organizationName
+          : null,
+    );
 
-    // La organización aún no viaja en el User: el nombre del usuario es el
-    // placeholder del contexto multi-tenant (fallback localizado si falta).
     final trimmedName = userName?.trim() ?? '';
     final displayName = trimmedName.isNotEmpty ? trimmedName : l10n.orgName;
+
+    // La organización real llega en el JWT/perfil (propuesta 36) — el
+    // placeholder localizado solo cubre respuestas legacy sin org.
+    final trimmedOrgName = organizationName?.trim() ?? '';
+    final displayOrgName = trimmedOrgName.isNotEmpty
+        ? trimmedOrgName
+        : l10n.orgName;
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
@@ -90,10 +100,7 @@ class ShellHeader extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            // La organización real llega con el backend; por
-                            // ahora el placeholder localizado del nombre de
-                            // la quesera.
-                            l10n.orgName,
+                            displayOrgName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

@@ -16,9 +16,14 @@ import '../user_initials_avatar.dart';
 /// la organización — el destino de perfil más cercano hoy; cuando exista
 /// una pantalla de perfil real, solo se repunta esta ruta).
 class DrawerIdentity extends StatelessWidget {
-  const DrawerIdentity({super.key, required this.displayName});
+  const DrawerIdentity({
+    super.key,
+    required this.displayName,
+    required this.displayOrgName,
+  });
 
   final String displayName;
+  final String displayOrgName;
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +72,7 @@ class DrawerIdentity extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        // Placeholder de la quesera — la org real
-                        // llega con el backend.
-                        l10n.orgName,
+                        displayOrgName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
