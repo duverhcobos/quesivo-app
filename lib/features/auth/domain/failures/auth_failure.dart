@@ -25,6 +25,21 @@ class EmailAlreadyInUseFailure extends AuthFailure {
     : super('Ya existe una cuenta con ese correo.');
 }
 
+/// Ocurre cuando la cuenta existe pero está suspendida (HTTP 403 del
+/// backend — §3.2: el backend lo evalúa tras verificar el password).
+class AccountSuspendedFailure extends AuthFailure {
+  const AccountSuspendedFailure()
+    : super(
+        'Tu cuenta está suspendida. Contacta al administrador de tu organización.',
+      );
+}
+
+/// Ocurre cuando el rate limit del backend rechaza el intento (HTTP 429).
+class TooManyAttemptsFailure extends AuthFailure {
+  const TooManyAttemptsFailure()
+    : super('Demasiados intentos. Espera un momento e inténtalo de nuevo.');
+}
+
 class NetworkFailure extends AuthFailure {
   const NetworkFailure() : super('No se pudo conectar al servidor.');
 }

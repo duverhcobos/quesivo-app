@@ -136,6 +136,40 @@ void main() {
       },
     );
 
+    test('retorna AccountSuspendedFailure ante RestApiException 403', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.loginWithEmailPassword(
+          email: tEmail,
+          password: tPassword,
+        ),
+      ).thenThrow(RestApiException(statusCode: 403, message: 'Suspended'));
+
+      final result = await repository.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
+      );
+
+      expect(result, const Left(AccountSuspendedFailure()));
+    });
+
+    test('retorna TooManyAttemptsFailure ante RestApiException 429', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.loginWithEmailPassword(
+          email: tEmail,
+          password: tPassword,
+        ),
+      ).thenThrow(RestApiException(statusCode: 429, message: 'Throttled'));
+
+      final result = await repository.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
+      );
+
+      expect(result, const Left(TooManyAttemptsFailure()));
+    });
+
     test('retorna ServerFailure con el mensaje del RestApiException', () async {
       mockConnected(true);
       when(

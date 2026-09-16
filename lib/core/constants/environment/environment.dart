@@ -47,9 +47,13 @@ class Environment {
   static String get urlAuth {
     switch (currentEnvironment) {
       case EnvType.prod:
-        return 'https://api.tu-empresa.com/v1'; // Reemplazar con URL Real de Producción
+        // Backend productivo desplegado — reemplazar por la URL real HTTPS.
+        // `API_URL` también puede sobreescribirla para pruebas puntuales.
+        return apiBaseUrl == 'http://10.0.2.2:3000'
+            ? 'https://api.quesivo.app'
+            : apiBaseUrl;
       case EnvType.stg:
-        return 'https://stg.tu-empresa.com/v1'; // Reemplazar con URL Real de Pruebas/Staging
+        return 'https://api-stg.quesivo.app'; // cuando exista el deploy de staging
       case EnvType.dev:
         // Backend real local (quesivo-api) — propuesta 36.
         return apiBaseUrl;

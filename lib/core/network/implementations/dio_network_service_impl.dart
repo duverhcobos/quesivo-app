@@ -34,16 +34,30 @@ class DioNetworkServiceImpl implements INetworkService {
   Never _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response!.statusCode ?? 500;
-      if (statusCode == 401 || statusCode == 400) {
+      if (statusCode == 401) {
         throw UnauthorizedException();
       }
       throw RestApiException(
         statusCode: statusCode,
-        message: e.response!.statusMessage ?? 'Error desconocido',
+        message:
+            _extractErrorMessage(e.response!.data) ??
+            e.response!.statusMessage ??
+            'Error desconocido',
       );
     } else {
       // Error de red (sin internet, timeout)
       throw ServerException();
     }
+  }
+
+  /// El body de error de NestJS es `{statusCode, message, error}` donde
+  /// `message` puede ser string (errores de dominio) o array de strings
+  /// (validación de DTOs) — se toma el primero para mostrar en UI.
+  String? _extractErrorMessage(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    final message = data['message'];
+    if (message is String) return message;
+    if (message is List && message.isNotEmpty) return message.first.toString();
+    return null;
   }
 }

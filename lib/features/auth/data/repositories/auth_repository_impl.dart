@@ -59,6 +59,14 @@ class AuthRepositoryImpl implements IAuthRepository {
       );
       return Left(InvalidCredentialsFailure());
     } on RestApiException catch (e, stackTrace) {
+      // Contrato real (api/auth/002): 403 = cuenta suspendida, 429 =
+      // rate limit — ambos merecen mensaje propio, no el crudo del body.
+      if (e.statusCode == 403) {
+        return const Left(AccountSuspendedFailure());
+      }
+      if (e.statusCode == 429) {
+        return const Left(TooManyAttemptsFailure());
+      }
       logger.error(
         'Error de API al hacer login',
         error: e,
