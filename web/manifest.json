@@ -1,0 +1,35 @@
+{
+    "name": "Quesivo",
+    "short_name": "Quesivo",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#07275C",
+    "theme_color": "#07275C",
+    "description": "Quesivo — app móvil del sistema de gestión para queseras.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

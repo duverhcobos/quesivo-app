@@ -1,0 +1,41 @@
+{
+    // Configuraciones de Perfiles para la Arquitectura S.O.L.I.D.
+    // Usa el panel inferior derecho de VS Code para cambiar rápidamente entre Entornos.
+    //
+    // 🔒 SEGURIDAD: los tokens NUNCA se escriben en este archivo (está versionado
+    // en git). Se leen de variables de entorno del sistema operativo:
+    //   API_TOKEN_DEV, API_TOKEN_STG, API_TOKEN_PROD
+    // Windows (PowerShell, una sola vez por máquina):
+    //   [Environment]::SetEnvironmentVariable('API_TOKEN_DEV', 'tu-token', 'User')
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Solid DEV (Entorno Local)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=ENV=dev",
+                "--dart-define=API_TOKEN=${env:API_TOKEN_DEV}"
+            ]
+        },
+        {
+            "name": "Solid STG (Servidor Pruebas)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=ENV=stg",
+                "--dart-define=API_TOKEN=${env:API_TOKEN_STG}"
+            ]
+        },
+        {
+            "name": "Solid PROD (Modo Release)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release", // Simula entorno real optimizado compilado
+            "args": [
+                "--dart-define=ENV=prod",
+                "--dart-define=API_TOKEN=${env:API_TOKEN_PROD}"
+            ]
+        }
+    ]
+}
