@@ -1,0 +1,4 @@
+{
+  "ENV": "stg",
+  "API_URL": "https://quesivo-api.onrender.com"
+}
