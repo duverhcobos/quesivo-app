@@ -60,9 +60,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendResetLinkButton => 'Send link';
 
   @override
-  String get splashLoadingMessage => 'Preparing your creamery...';
-
-  @override
   String get logoutTooltip => 'Log out';
 
   @override
@@ -219,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Generate settlements and keep sales, expenses and inventory under control.';
 
   @override
-  String get welcomeTitle => 'Welcome';
+  String get welcomeTitle => 'Welcome to Quesivo';
 
   @override
   String get welcomeDescription =>

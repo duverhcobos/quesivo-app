@@ -196,12 +196,6 @@ abstract class AppLocalizations {
   /// **'Enviar enlace'**
   String get sendResetLinkButton;
 
-  /// No description provided for @splashLoadingMessage.
-  ///
-  /// In es, this message translates to:
-  /// **'Preparando tu quesera...'**
-  String get splashLoadingMessage;
-
   /// No description provided for @logoutTooltip.
   ///
   /// In es, this message translates to:
@@ -511,7 +505,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeTitle.
   ///
   /// In es, this message translates to:
-  /// **'Bienvenido'**
+  /// **'Bienvenido a Quesivo'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeDescription.

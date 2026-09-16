@@ -60,9 +60,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendResetLinkButton => 'Enviar link';
 
   @override
-  String get splashLoadingMessage => 'Preparando sua queijaria...';
-
-  @override
   String get logoutTooltip => 'Sair';
 
   @override
@@ -219,7 +216,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Gere liquidações e mantenha vendas, despesas e estoque sob controle.';
 
   @override
-  String get welcomeTitle => 'Bem-vindo';
+  String get welcomeTitle => 'Bem-vindo ao Quesivo';
 
   @override
   String get welcomeDescription =>
