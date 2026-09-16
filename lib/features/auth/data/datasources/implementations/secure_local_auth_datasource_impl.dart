@@ -25,6 +25,9 @@ class SecureLocalAuthDataSourceImpl implements ILocalAuthDataSource {
       id: user.id,
       email: user.email,
       name: user.name,
+      organizationId: user.organizationId,
+      organizationName: user.organizationName,
+      roles: user.roles,
     );
     final jsonString = jsonEncode(profileOnly.toJson());
     await secureStorage.write(key: _userKey, value: jsonString);
@@ -55,6 +58,9 @@ class SecureLocalAuthDataSourceImpl implements ILocalAuthDataSource {
         id: profile.id,
         email: profile.email,
         name: profile.name,
+        organizationId: profile.organizationId,
+        organizationName: profile.organizationName,
+        roles: profile.roles,
         token: token,
         refreshToken: refreshToken,
       );

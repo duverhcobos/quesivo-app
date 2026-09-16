@@ -19,8 +19,10 @@ El código fuente de toda la aplicación consume las constantes generadas en esa
 ## 2. Cómo compilar y ejecutar (Vía Terminal)
 Si estás operando o diagnosticando la aplicación desde la terminal, jamás ejecutes un simple `flutter run`. Dependiendo hacia qué base de datos quieras apuntar, debes inyectar el entorno explícitamente:
 
-- **Desarrollo (Apuntando a APIs Falsas/Locales):**
-  `flutter run --dart-define=ENV=dev --dart-define=API_TOKEN=<tu-token-dev>`
+- **Desarrollo (backend quesivo-api local):**
+  `flutter run --dart-define=ENV=dev`
+  - Emulador Android: sin más — `API_URL` default `http://10.0.2.2:3000` apunta al localhost del host.
+  - Dispositivo físico: `--dart-define=API_URL=http://<ip-lan-del-pc>:3000` (el backend debe escuchar en `0.0.0.0` o la LAN).
 
 - **Pruebas y QA (Staging):**
   `flutter run --dart-define=ENV=stg --dart-define=API_TOKEN=<tu-token-stg>`

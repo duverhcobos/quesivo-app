@@ -14,14 +14,34 @@ class User extends Equatable {
   final String? token;
   final String? refreshToken;
 
+  /// Tenant del usuario — `organization_id`/`organization.name` del esquema
+  /// F0 (propuesta 36). Null solo en respuestas legacy sin org.
+  final String? organizationId;
+  final String? organizationName;
+
+  /// Roles del usuario en su organización (`ADMIN`/`OPERADOR` en F0).
+  final List<String> roles;
+
   const User({
     required this.id,
     required this.email,
     required this.name,
     this.token,
     this.refreshToken,
+    this.organizationId,
+    this.organizationName,
+    this.roles = const [],
   });
 
   @override
-  List<Object?> get props => [id, email, name, token, refreshToken];
+  List<Object?> get props => [
+    id,
+    email,
+    name,
+    token,
+    refreshToken,
+    organizationId,
+    organizationName,
+    roles,
+  ];
 }

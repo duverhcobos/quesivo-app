@@ -17,6 +17,15 @@ class Environment {
     defaultValue: 'token_vacio_por_defecto',
   );
 
+  /// URL del backend quesivo-api por entorno. En dev se puede sobreescribir
+  /// con `--dart-define=API_URL=http://<ip-lan>:3000` (dispositivo físico);
+  /// el default `10.0.2.2` es localhost del host visto desde el emulador
+  /// Android.
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://10.0.2.2:3000',
+  );
+
   /// Versión de la app mostrada en UI (pie del drawer) — mantener sincronizada
   /// con `version:` de pubspec.yaml (Dart no puede leer el pubspec en runtime).
   static const String appVersion = '0.1.0';
@@ -42,8 +51,8 @@ class Environment {
       case EnvType.stg:
         return 'https://stg.tu-empresa.com/v1'; // Reemplazar con URL Real de Pruebas/Staging
       case EnvType.dev:
-        // Mantenemos DummyJSON puro y vivo exclusivamente para entorno local
-        return 'https://dummyjson.com';
+        // Backend real local (quesivo-api) — propuesta 36.
+        return apiBaseUrl;
     }
   }
 }

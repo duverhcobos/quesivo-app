@@ -19,21 +19,11 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
     required String email,
     required String password,
   }) async {
-    // El backend real (stg/prod) espera un email real en el body de login.
-    // El truco de convertirlo en "username" es EXCLUSIVO de DummyJSON (dev),
-    // que exige nombres de usuario puros (ej. 'emilys') y no acepta '@'.
-    // Fuera de `dev` este bloque nunca se ejecuta, evitando que un backend
-    // real reciba un payload con forma incorrecta.
-    final body = Environment.currentEnvironment == EnvType.dev
-        ? {
-            'username': email.contains('@') ? email.split('@')[0] : email,
-            'password': password,
-          }
-        : {'email': email, 'password': password};
-
+    // Backend real en todos los entornos (propuesta 36) — contrato
+    // documentacion/api/auth/002-post-login.md.
     final responseData = await networkService.post<Map<String, dynamic>>(
       '/auth/login',
-      data: body,
+      data: {'email': email, 'password': password},
     );
 
     // Mapeamos el JSON dinámico devuelto al Modelo y fin.
@@ -66,15 +56,9 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
     required String email,
     required String password,
   }) async {
-    // ⚠️ MOCK EXCLUSIVO DE DESARROLLO: DummyJSON no expone /auth/register.
-    // En stg/prod se llama al endpoint real del backend Quesera
-    // (planeaciones/001 §3.1: organización + usuario admin en una
-    // transacción atómica — el nombre de la quesera viaja en el payload).
-    if (Environment.currentEnvironment == EnvType.dev) {
-      await Future.delayed(const Duration(seconds: 1));
-      return UserModel(id: '3', email: email, name: name);
-    }
-
+    // Backend real en todos los entornos (propuesta 36) — contrato
+    // documentacion/api/auth/001-post-register.md: organización + usuario
+    // admin en una transacción atómica.
     final responseData = await networkService.post<Map<String, dynamic>>(
       '/auth/register',
       data: {
