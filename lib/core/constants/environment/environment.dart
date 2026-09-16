@@ -53,7 +53,11 @@ class Environment {
             ? 'https://api.quesivo.app'
             : apiBaseUrl;
       case EnvType.stg:
-        return 'https://api-stg.quesivo.app'; // cuando exista el deploy de staging
+        // Backend real desplegado en Render (free tier) — puede tardar unos
+        // segundos en responder tras inactividad (cold start).
+        return apiBaseUrl == 'http://10.0.2.2:3000'
+            ? 'https://quesivo-api.onrender.com'
+            : apiBaseUrl;
       case EnvType.dev:
         // Backend real local (quesivo-api) — propuesta 36.
         return apiBaseUrl;
