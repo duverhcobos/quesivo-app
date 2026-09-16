@@ -44,23 +44,10 @@ class Environment {
   }
 
   /// Retorna la URL de Autenticación dinámica.
-  static String get urlAuth {
-    switch (currentEnvironment) {
-      case EnvType.prod:
-        // Backend productivo desplegado — reemplazar por la URL real HTTPS.
-        // `API_URL` también puede sobreescribirla para pruebas puntuales.
-        return apiBaseUrl == 'http://10.0.2.2:3000'
-            ? 'https://api.quesivo.app'
-            : apiBaseUrl;
-      case EnvType.stg:
-        // Backend real desplegado en Render (free tier) — puede tardar unos
-        // segundos en responder tras inactividad (cold start).
-        return apiBaseUrl == 'http://10.0.2.2:3000'
-            ? 'https://quesivo-api.onrender.com'
-            : apiBaseUrl;
-      case EnvType.dev:
-        // Backend real local (quesivo-api) — propuesta 36.
-        return apiBaseUrl;
-    }
-  }
+  ///
+  /// La URL real de cada entorno (stg/prod) NO vive en el código — se
+  /// inyecta siempre vía `--dart-define=API_URL=...` (ver `.vscode/launch.json`).
+  /// Así cambiar de backend (redeploy, nuevo proveedor) no requiere tocar ni
+  /// recompilar el código fuente, solo el perfil de lanzamiento/CI.
+  static String get urlAuth => apiBaseUrl;
 }
