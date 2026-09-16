@@ -60,7 +60,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendResetLinkButton => 'Send link';
 
   @override
-  String get splashLoadingMessage => 'Building secure session...';
+  String get splashLoadingMessage => 'Preparing your creamery...';
 
   @override
   String get logoutTooltip => 'Log out';

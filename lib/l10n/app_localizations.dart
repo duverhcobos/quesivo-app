@@ -199,7 +199,7 @@ abstract class AppLocalizations {
   /// No description provided for @splashLoadingMessage.
   ///
   /// In es, this message translates to:
-  /// **'Construyendo Sesión Segura...'**
+  /// **'Preparando tu quesera...'**
   String get splashLoadingMessage;
 
   /// No description provided for @logoutTooltip.
