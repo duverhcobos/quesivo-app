@@ -38,6 +38,7 @@ flutter:
   generate: true
   assets:
     - assets/images/
+    - shorebird.yaml
 
 # Launcher icons — isotipo Quesivo. Legacy/iOS: fondo blanco (no alpha).
 # Adaptive Android: foreground transparente con safe-zone 60% + bg blanco.

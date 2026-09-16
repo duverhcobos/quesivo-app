@@ -1,4 +1,4 @@
-package com.example.quesivo
+package com.quesivo.app
 
 import io.flutter.embedding.android.FlutterActivity
 
