@@ -34,4 +34,11 @@ abstract class IRemoteAuthDataSource {
   /// BD. El Bearer lo inyecta AuthInterceptor; un 401 dispara el refresh
   /// automático del RefreshTokenInterceptor antes de llegar acá.
   Future<UserModel> getMe();
+
+  /// Revoca la sesión server-side en `POST /auth/logout`
+  /// (`documentacion/api/auth/004-post-logout.md`). Endpoint público desde
+  /// la propuesta backend 047: el refreshToken enviado ES la credencial a
+  /// revocar. Un 401 significa "token ya muerto" — no dispara refresh
+  /// (la ruta está exenta en RefreshTokenInterceptor).
+  Future<void> logout(String refreshToken);
 }

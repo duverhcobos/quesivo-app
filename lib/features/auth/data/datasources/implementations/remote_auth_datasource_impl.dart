@@ -114,4 +114,14 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
     );
     return UserModel.fromJson(responseData);
   }
+
+  @override
+  Future<void> logout(String refreshToken) async {
+    // Real en todos los entornos (propuesta 42) — endpoint público desde
+    // la propuesta backend 047: el body es la credencial a revocar.
+    await networkService.post<void>(
+      '/auth/logout',
+      data: {'refreshToken': refreshToken},
+    );
+  }
 }

@@ -133,6 +133,25 @@ void main() {
     verifyNever(() => local.clearSession());
   });
 
+  test(
+    'un 401 de /auth/logout se propaga sin intentar refresh ni limpiar',
+    () async {
+      // El 401 de logout significa "token ya muerto" — refrescar acá
+      // rotaría el refresh token y dejaría una sesión huérfana.
+      var notified = false;
+      notifier.stream.listen((_) => notified = true);
+
+      interceptor.onError(_err401(path: '/auth/logout'), handler);
+      await Future<void>.delayed(Duration.zero);
+
+      verifyNever(() => local.getRefreshToken());
+      verifyNever(() => refreshDio.post(any(), data: any(named: 'data')));
+      verifyNever(() => local.clearSession());
+      expect(notified, isFalse);
+      verify(() => handler.next(any())).called(1); // el error propaga tal cual
+    },
+  );
+
   test('dos 401 concurrentes disparan un solo refresh', () async {
     when(() => local.getRefreshToken()).thenAnswer((_) async => 'old-refresh');
     when(

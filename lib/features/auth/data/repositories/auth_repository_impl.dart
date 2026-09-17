@@ -237,6 +237,26 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<AuthFailure, void>> logout() async {
+    // 1. Best-effort: revocar la sesión server-side ANTES de borrar el
+    //    refresh token local. Cualquier fallo acá (offline, 5xx, 401 =
+    //    "token ya muerto", storage ilegible) se loguea y se sigue —
+    //    el usuario no debe quedar atrapado en la app por un error de red.
+    try {
+      final refreshToken = await localDataSource.getRefreshToken();
+      if (refreshToken != null &&
+          refreshToken.isNotEmpty &&
+          await networkInfo.isConnected) {
+        await remoteDataSource.logout(refreshToken);
+      }
+    } catch (e, stackTrace) {
+      logger.warning(
+        'Logout remoto falló; se cierra la sesión local igual',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+
+    // 2. El cierre local es lo único obligatorio.
     try {
       await localDataSource.clearSession();
       return const Right(null);

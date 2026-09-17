@@ -443,9 +443,41 @@ void main() {
   });
 
   group('logout', () {
+    test('revoca la sesión remota y limpia la local', () async {
+      when(
+        () => mockLocalDataSource.getRefreshToken(),
+      ).thenAnswer((_) async => 'refresh');
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.logout('refresh'),
+      ).thenAnswer((_) async {});
+      when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+
+      final result = await repository.logout();
+
+      expect(result, const Right(null));
+      // El orden es el contrato: leer el token, revocarlo en el servidor
+      // y recién después borrarlo localmente — si clearSession fuera
+      // primero, la revocación remota se omitiría silenciosamente.
+      // (verifyInOrder verifica cada llamada y su orden — no mezclar con
+      // verify(): una llamada verificada ya no entra al matching.)
+      verifyInOrder([
+        () => mockLocalDataSource.getRefreshToken(),
+        () => mockRemoteDataSource.logout('refresh'),
+        () => mockLocalDataSource.clearSession(),
+      ]);
+    });
+
     test(
-      'retorna Right(null) y delega en clearSession del datasource local',
+      'si falla el logout remoto igual limpia local y retorna Right',
       () async {
+        when(
+          () => mockLocalDataSource.getRefreshToken(),
+        ).thenAnswer((_) async => 'refresh');
+        mockConnected(true);
+        when(
+          () => mockRemoteDataSource.logout('refresh'),
+        ).thenThrow(Exception('500 del servidor'));
         when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
 
         final result = await repository.logout();
@@ -455,7 +487,37 @@ void main() {
       },
     );
 
+    test('sin refresh token local omite la llamada remota', () async {
+      when(
+        () => mockLocalDataSource.getRefreshToken(),
+      ).thenAnswer((_) async => null);
+      when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+
+      final result = await repository.logout();
+
+      expect(result, const Right(null));
+      verifyNever(() => mockRemoteDataSource.logout(any()));
+      verify(() => mockLocalDataSource.clearSession()).called(1);
+    });
+
+    test('sin conexión omite la llamada remota pero cierra sesión', () async {
+      when(
+        () => mockLocalDataSource.getRefreshToken(),
+      ).thenAnswer((_) async => 'refresh');
+      mockConnected(false);
+      when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+
+      final result = await repository.logout();
+
+      expect(result, const Right(null));
+      verifyNever(() => mockRemoteDataSource.logout(any()));
+      verify(() => mockLocalDataSource.clearSession()).called(1);
+    });
+
     test('retorna CacheFailure si falla el borrado de sesión', () async {
+      when(
+        () => mockLocalDataSource.getRefreshToken(),
+      ).thenAnswer((_) async => null);
       when(
         () => mockLocalDataSource.clearSession(),
       ).thenThrow(Exception('storage bloqueado'));
@@ -464,6 +526,22 @@ void main() {
 
       expect(result, const Left(CacheFailure('No se pudo cerrar la sesión.')));
     });
+
+    test(
+      'si getRefreshToken lanza igual limpia local y retorna Right',
+      () async {
+        when(
+          () => mockLocalDataSource.getRefreshToken(),
+        ).thenThrow(Exception('storage ilegible'));
+        when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+
+        final result = await repository.logout();
+
+        expect(result, const Right(null));
+        verifyNever(() => mockRemoteDataSource.logout(any()));
+        verify(() => mockLocalDataSource.clearSession()).called(1);
+      },
+    );
   });
 
   group('forgotPassword', () {

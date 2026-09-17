@@ -46,6 +46,15 @@ class RefreshTokenInterceptor extends Interceptor {
 
   static const String _refreshPath = '/auth/refresh';
 
+  /// Endpoints exentos del flujo de refresh ante un 401:
+  /// - `/auth/refresh`: un 401 es "sesión irrecuperable" — no hay nada
+  ///   que refrescar.
+  /// - `/auth/logout`: un 401 es "el token ya estaba muerto" — justo el
+  ///   objetivo del logout. Refrescar acá rotaría el refresh token y
+  ///   crearía una sesión nueva huérfana en el servidor mientras el
+  ///   usuario se está yendo (propuesta 42).
+  static const Set<String> _refreshExemptPaths = {_refreshPath, '/auth/logout'};
+
   /// Marca en `RequestOptions.extra` de que el request ya fue reintentado
   /// tras un refresh. Si vuelve a dar 401 se propaga el error en vez de
   /// re-entrar al flujo (guard anti-loop).
@@ -54,18 +63,15 @@ class RefreshTokenInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final isUnauthorized = err.response?.statusCode == 401;
-    final isRefreshCallItself = err.requestOptions.path == _refreshPath;
+    final isExemptPath = _refreshExemptPaths.contains(err.requestOptions.path);
     final alreadyRetried = err.requestOptions.extra[_retriedFlag] == true;
     final hadAuthHeader = err.requestOptions.headers['Authorization'] != null;
 
     // Solo entra al flujo de refresh un 401 de petición autenticada aún no
     // reintentada. Un 401 sin Authorization (ej. login con credenciales
-    // inválidas) no tiene sesión que refrescar; el 401 del propio
-    // /auth/refresh o de un retry se propaga tal cual (sin loops).
-    if (!isUnauthorized ||
-        isRefreshCallItself ||
-        alreadyRetried ||
-        !hadAuthHeader) {
+    // inválidas) no tiene sesión que refrescar; el 401 de una ruta exenta
+    // o de un retry se propaga tal cual (sin loops ni rotaciones falsas).
+    if (!isUnauthorized || isExemptPath || alreadyRetried || !hadAuthHeader) {
       return super.onError(err, handler);
     }
 
