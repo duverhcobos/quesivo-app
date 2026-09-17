@@ -1,8 +1,11 @@
 // lib/core/di/setup_di.dart
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
 
+import '../device/i_device_info_service.dart';
+import '../device/device_info_service_impl.dart';
 import '../network/api/auth_api_service.dart'; // Importamos tu AuthApiService
 import '../network/interfaces/i_network_service.dart';
 import '../network/interceptors/auth_interceptor.dart';
@@ -117,9 +120,15 @@ void setupDI() {
   locator.registerLazySingleton<INetworkInfo>(
     () => NetworkInfoImpl(locator<InternetConnectionChecker>()),
   );
+  locator.registerLazySingleton<IDeviceInfoService>(
+    () => DeviceInfoServiceImpl(DeviceInfoPlugin()),
+  );
   locator.registerLazySingleton<IRemoteAuthDataSource>(
     // EL DATASOURCE AHORA ES ÚNICO Y GENÉRICO
-    () => RemoteAuthDataSourceImpl(locator<INetworkService>()),
+    () => RemoteAuthDataSourceImpl(
+      locator<INetworkService>(),
+      locator<IDeviceInfoService>(),
+    ),
   );
   locator.registerLazySingleton<ILocalAuthDataSource>(
     () => SecureLocalAuthDataSourceImpl(locator<FlutterSecureStorage>()),

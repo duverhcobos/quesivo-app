@@ -28,7 +28,7 @@ class Environment {
 
   /// Versión de la app mostrada en UI (pie del drawer) — mantener sincronizada
   /// con `version:` de pubspec.yaml (Dart no puede leer el pubspec en runtime).
-  static const String appVersion = '0.1.0';
+  static const String appVersion = '0.2.0';
 
   static EnvType get currentEnvironment {
     switch (_env) {

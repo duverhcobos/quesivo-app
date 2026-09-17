@@ -1,13 +1,15 @@
 name: quesivo
 description: "Quesivo — app móvil del sistema de gestión para queseras (SaaS multi-tenant)."
 publish_to: 'none'
-version: 0.1.0
+version: 0.2.0+2
 
 environment:
   sdk: ^3.8.1
 
 dependencies:
+  android_id: ^0.5.2+1
   dartz: ^0.10.1
+  device_info_plus: ^13.2.0
   dio: ^5.9.2
   equatable: ^2.0.8
   flutter:

@@ -1,5 +1,6 @@
 // lib/features/auth/data/datasources/remote_auth_datasource_impl.dart
 import '../../../../../core/constants/environment/environment.dart';
+import '../../../../../core/device/i_device_info_service.dart';
 import '../../../../../core/network/interfaces/i_network_service.dart';
 import '../../models/user_model.dart';
 import '../interfaces/i_remote_auth_datasource.dart';
@@ -11,8 +12,9 @@ import '../interfaces/i_remote_auth_datasource.dart';
 /// el proveedor de red, esta clase NUNCA cambiará.
 class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
   final INetworkService networkService;
+  final IDeviceInfoService deviceInfoService;
 
-  RemoteAuthDataSourceImpl(this.networkService);
+  RemoteAuthDataSourceImpl(this.networkService, this.deviceInfoService);
 
   @override
   Future<UserModel> loginWithEmailPassword({
@@ -23,7 +25,14 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
     // documentacion/api/auth/002-post-login.md.
     final responseData = await networkService.post<Map<String, dynamic>>(
       '/auth/login',
-      data: {'email': email, 'password': password},
+      data: {
+        'email': email,
+        'password': password,
+        // Metadatos del dispositivo para la sesión (propuesta 43) —
+        // opcionales server-side; sin ellos el logout no agrupa por device.
+        'deviceId': await deviceInfoService.getDeviceId(),
+        'deviceName': await deviceInfoService.getDeviceName(),
+      },
     );
 
     // Mapeamos el JSON dinámico devuelto al Modelo y fin.
@@ -66,6 +75,8 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
         'name': name,
         'email': email,
         'password': password,
+        'deviceId': await deviceInfoService.getDeviceId(),
+        'deviceName': await deviceInfoService.getDeviceName(),
       },
     );
     return UserModel.fromJson(responseData);
