@@ -22,6 +22,11 @@ class User extends Equatable {
   /// Roles del usuario en su organización (`ADMIN`/`OPERADOR` en F0).
   final List<String> roles;
 
+  /// Estado de la cuenta según `GET /auth/me`: `active`,
+  /// `pending_verification` o `suspended`. Null en respuestas que no lo
+  /// traen (login/register no lo incluyen) — nunca asumirlo "active".
+  final String? status;
+
   const User({
     required this.id,
     required this.email,
@@ -31,6 +36,7 @@ class User extends Equatable {
     this.organizationId,
     this.organizationName,
     this.roles = const [],
+    this.status,
   });
 
   @override
@@ -43,5 +49,6 @@ class User extends Equatable {
     organizationId,
     organizationName,
     roles,
+    status,
   ];
 }

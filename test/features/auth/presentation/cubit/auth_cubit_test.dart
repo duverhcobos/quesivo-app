@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:quesivo/core/session/session_expired_notifier.dart';
 import 'package:quesivo/features/auth/domain/entities/user.dart';
 import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
 import 'package:quesivo/features/auth/domain/use_cases/check_auth_status_use_case.dart';
@@ -22,12 +25,16 @@ class MockCheckAuthStatusUseCase extends Mock
 
 class MockLogoutUseCase extends Mock implements LogoutUseCase {}
 
+class MockSessionExpiredNotifier extends Mock
+    implements SessionExpiredNotifier {}
+
 void main() {
   late AuthCubit cubit;
   late MockLoginUseCase mockLoginUseCase;
   late MockLoginWithGoogleUseCase mockLoginWithGoogleUseCase;
   late MockCheckAuthStatusUseCase mockCheckAuthStatusUseCase;
   late MockLogoutUseCase mockLogoutUseCase;
+  late MockSessionExpiredNotifier mockSessionExpiredNotifier;
 
   const tEmail = 'test@test.com';
   const tPassword = 'password123';
@@ -38,12 +45,17 @@ void main() {
     mockLoginWithGoogleUseCase = MockLoginWithGoogleUseCase();
     mockCheckAuthStatusUseCase = MockCheckAuthStatusUseCase();
     mockLogoutUseCase = MockLogoutUseCase();
+    mockSessionExpiredNotifier = MockSessionExpiredNotifier();
+    when(
+      () => mockSessionExpiredNotifier.stream,
+    ).thenAnswer((_) => const Stream<void>.empty());
 
     cubit = AuthCubit(
       mockLoginUseCase,
       mockLoginWithGoogleUseCase,
       mockCheckAuthStatusUseCase,
       mockLogoutUseCase,
+      mockSessionExpiredNotifier,
     );
   });
 
@@ -169,5 +181,38 @@ void main() {
     seed: () => const AuthSuccess(tUser),
     act: (cubit) => cubit.logout(),
     expect: () => [const AuthError('No se pudo cerrar la sesión.')],
+  );
+
+  test(
+    'emite AuthInitial cuando el refresh token muere estando autenticado',
+    () async {
+      when(
+        () => mockLoginUseCase(email: tEmail, password: tPassword),
+      ).thenAnswer((_) async => const Right(tUser));
+
+      // Notifier REAL: el evento "sesión muerta" es el disparador que se
+      // prueba (interceptor -> cubit -> AuthInitial), no tiene sentido
+      // mockearlo porque no tiene dependencias.
+      final notifier = SessionExpiredNotifier();
+      final c = AuthCubit(
+        mockLoginUseCase,
+        mockLoginWithGoogleUseCase,
+        mockCheckAuthStatusUseCase,
+        mockLogoutUseCase,
+        notifier,
+      );
+      addTearDown(() async {
+        await c.close();
+        notifier.dispose();
+      });
+
+      await c.login(tEmail, tPassword);
+      expect(c.state, const AuthSuccess(tUser));
+
+      notifier.notifySessionExpired();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(c.state, isA<AuthInitial>());
+    },
   );
 }

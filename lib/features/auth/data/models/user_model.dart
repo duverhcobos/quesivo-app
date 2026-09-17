@@ -19,6 +19,7 @@ class UserModel extends User {
     super.organizationId,
     super.organizationName,
     super.roles,
+    super.status,
   });
 
   /// Factory Data constructor — shape real de AuthResponseDto.
@@ -34,6 +35,7 @@ class UserModel extends User {
       roles:
           (json['roles'] as List?)?.map((e) => e as String).toList() ??
           const [],
+      status: json['status'],
     );
   }
 
@@ -47,6 +49,7 @@ class UserModel extends User {
       'organizationId': organizationId,
       'organizationName': organizationName,
       'roles': roles,
+      'status': status,
     };
   }
 }

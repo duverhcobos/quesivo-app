@@ -242,7 +242,50 @@ void main() {
   });
 
   group('checkAuthStatus', () {
-    test('retorna Right(user) si hay una sesión local guardada', () async {
+    const tFreshModel = UserModel(
+      id: '1',
+      email: tEmail,
+      name: 'John Doe',
+      organizationId: 'org-1',
+      organizationName: 'Quesera Test',
+      roles: ['ADMIN'],
+      status: 'active',
+    );
+
+    setUp(() {
+      when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      when(
+        () => mockRemoteDataSource.getMe(),
+      ).thenAnswer((_) async => tFreshModel);
+      when(
+        () => mockLocalDataSource.saveUserSession(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockLocalDataSource.getToken(),
+      ).thenAnswer((_) async => 'token');
+      when(
+        () => mockLocalDataSource.getRefreshToken(),
+      ).thenAnswer((_) async => 'refresh');
+    });
+
+    test('retorna perfil fresco y refresca el cache local', () async {
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => tUserModel);
+
+      final result = await repository.checkAuthStatus();
+
+      result.fold((_) => fail('debía ser Right'), (user) {
+        expect(user.name, 'John Doe');
+        expect(user.organizationName, 'Quesera Test');
+        expect(user.status, 'active');
+        expect(user.token, tUserModel.token); // tokens se conservan
+      });
+      verify(() => mockLocalDataSource.saveUserSession(any())).called(1);
+    });
+
+    test('retorna sesión local sin conectividad (sin llamar remoto)', () async {
+      when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
       when(
         () => mockLocalDataSource.getUserSession(),
       ).thenAnswer((_) async => tUserModel);
@@ -250,7 +293,48 @@ void main() {
       final result = await repository.checkAuthStatus();
 
       expect(result, const Right(tUserModel));
+      verifyNever(() => mockRemoteDataSource.getMe());
     });
+
+    test(
+      'retorna sesión local si /auth/me da error transitorio (5xx)',
+      () async {
+        when(
+          () => mockLocalDataSource.getUserSession(),
+        ).thenAnswer((_) async => tUserModel);
+        when(
+          () => mockRemoteDataSource.getMe(),
+        ).thenThrow(RestApiException(statusCode: 500, message: 'server error'));
+
+        final result = await repository.checkAuthStatus();
+
+        expect(result, const Right(tUserModel));
+      },
+    );
+
+    test(
+      'status suspended limpia sesión y devuelve AccountSuspendedFailure',
+      () async {
+        when(
+          () => mockLocalDataSource.getUserSession(),
+        ).thenAnswer((_) async => tUserModel);
+        when(() => mockRemoteDataSource.getMe()).thenAnswer(
+          (_) async => const UserModel(
+            id: '1',
+            email: tEmail,
+            name: 'John Doe',
+            status: 'suspended',
+          ),
+        );
+        when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+
+        final result = await repository.checkAuthStatus();
+
+        expect(result, const Left(AccountSuspendedFailure()));
+        verify(() => mockLocalDataSource.clearSession()).called(1);
+        verifyNever(() => mockLocalDataSource.saveUserSession(any()));
+      },
+    );
 
     test('retorna NoSessionFailure si no hay sesión guardada', () async {
       when(
@@ -260,6 +344,7 @@ void main() {
       final result = await repository.checkAuthStatus();
 
       expect(result, const Left(NoSessionFailure()));
+      verifyNever(() => mockRemoteDataSource.getMe());
     });
 
     test('retorna ServerFailure si falla la lectura local', () async {
@@ -271,6 +356,90 @@ void main() {
 
       expect(result, const Left(ServerFailure('Error leyendo sesión local')));
     });
+
+    test('usa los tokens EN VIVO post-getMe (rotación transparente)', () async {
+      // Simula: access token vencido → el interceptor refrescó y guardó
+      // T2/RT2 durante getMe. getToken/getRefreshToken devuelven los nuevos.
+      when(() => mockLocalDataSource.getUserSession()).thenAnswer(
+        (_) async => tUserModel,
+      ); // snapshot con 'token'/'refresh' viejos
+      when(() => mockRemoteDataSource.getMe()).thenAnswer((_) async {
+        when(
+          () => mockLocalDataSource.getToken(),
+        ).thenAnswer((_) async => 'token-ROTATED');
+        when(
+          () => mockLocalDataSource.getRefreshToken(),
+        ).thenAnswer((_) async => 'refresh-ROTATED');
+        return tFreshModel;
+      });
+
+      final result = await repository.checkAuthStatus();
+
+      result.fold((_) => fail('debía ser Right'), (user) {
+        expect(user.token, 'token-ROTATED');
+        expect(user.refreshToken, 'refresh-ROTATED');
+      });
+      // saveUserSession persiste perfil + tokens: deben ser los rotados,
+      // nunca el snapshot pre-refresh.
+      final saved =
+          verify(
+                () => mockLocalDataSource.saveUserSession(captureAny()),
+              ).captured.single
+              as UserModel;
+      expect(saved.refreshToken, 'refresh-ROTATED');
+    });
+
+    test('401 de /auth/me con sesión aún en storage = transitorio', () async {
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => tUserModel);
+      when(
+        () => mockRemoteDataSource.getMe(),
+      ).thenThrow(UnauthorizedException());
+
+      final result = await repository.checkAuthStatus();
+
+      expect(result, const Right(tUserModel));
+    });
+
+    test('401 de /auth/me con storage ya limpio = sesión muerta', () async {
+      var cleared = false;
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => cleared ? null : tUserModel);
+      when(() => mockRemoteDataSource.getMe()).thenAnswer((_) async {
+        cleared = true; // el interceptor limpió durante el 401
+        throw UnauthorizedException();
+      });
+
+      final result = await repository.checkAuthStatus();
+
+      expect(result, const Left(NoSessionFailure()));
+    });
+
+    test(
+      'suspended devuelve AccountSuspendedFailure aunque clearSession falle',
+      () async {
+        when(
+          () => mockLocalDataSource.getUserSession(),
+        ).thenAnswer((_) async => tUserModel);
+        when(() => mockRemoteDataSource.getMe()).thenAnswer(
+          (_) async => const UserModel(
+            id: '1',
+            email: tEmail,
+            name: 'John Doe',
+            status: 'suspended',
+          ),
+        );
+        when(
+          () => mockLocalDataSource.clearSession(),
+        ).thenThrow(Exception('storage roto'));
+
+        final result = await repository.checkAuthStatus();
+
+        expect(result, const Left(AccountSuspendedFailure()));
+      },
+    );
   });
 
   group('logout', () {

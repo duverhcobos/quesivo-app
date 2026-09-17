@@ -28,4 +28,10 @@ abstract class IRemoteAuthDataSource {
 
   /// Envía la nueva contraseña + token a `POST /auth/reset-password`.
   Future<void> resetPassword({required String token, required String password});
+
+  /// Perfil fresco del usuario autenticado desde `GET /auth/me`
+  /// (`documentacion/api/auth/005-get-me.md`). Incluye `status` leído de
+  /// BD. El Bearer lo inyecta AuthInterceptor; un 401 dispara el refresh
+  /// automático del RefreshTokenInterceptor antes de llegar acá.
+  Future<UserModel> getMe();
 }

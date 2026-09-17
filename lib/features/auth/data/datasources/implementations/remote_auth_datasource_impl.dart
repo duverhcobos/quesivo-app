@@ -103,4 +103,15 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
       data: {'token': token, 'password': password},
     );
   }
+
+  @override
+  Future<UserModel> getMe() async {
+    // Contrato real (documentacion/api/auth/005-get-me.md): identidad
+    // resuelta del JWT — sin body ni params. Real en todos los entornos
+    // (en dev apunta al backend local/Render igual que login).
+    final responseData = await networkService.get<Map<String, dynamic>>(
+      '/auth/me',
+    );
+    return UserModel.fromJson(responseData);
+  }
 }

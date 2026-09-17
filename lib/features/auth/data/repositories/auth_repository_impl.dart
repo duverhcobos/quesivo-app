@@ -7,6 +7,7 @@ import '../../domain/repositories/i_auth_repository.dart';
 import '../datasources/interfaces/i_remote_auth_datasource.dart';
 import '../datasources/interfaces/i_local_auth_datasource.dart';
 import '../exceptions/auth_exceptions.dart';
+import '../models/user_model.dart';
 
 import '../../../../core/network/interfaces/i_network_info.dart';
 import '../../../../core/logging/interfaces/i_logger_service.dart';
@@ -145,20 +146,92 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<AuthFailure, User>> checkAuthStatus() async {
+    late final UserModel local;
     try {
-      final userModel = await localDataSource.getUserSession();
-      if (userModel != null) {
-        return Right(userModel);
-      } else {
+      final session = await localDataSource.getUserSession();
+      if (session == null) {
         return const Left(NoSessionFailure()); // No session found
       }
+      local = session;
     } catch (e, stackTrace) {
       logger.warning(
         'Error leyendo sesión local de flutter_secure_storage',
         error: e,
         stackTrace: stackTrace,
       );
-      return Left(ServerFailure('Error leyendo sesión local'));
+      return const Left(ServerFailure('Error leyendo sesión local'));
+    }
+
+    // Hay sesión local: sin conectividad se degrada a ella (la app entra
+    // igual; el próximo request autenticado ejercita refresh o expira).
+    if (!await networkInfo.isConnected) {
+      return Right(local);
+    }
+
+    // Validación remota: perfil fresco + status real de la cuenta
+    // (documentacion/api/auth/005-get-me.md).
+    try {
+      final fresh = await remoteDataSource.getMe();
+
+      // 'suspended' llega con 200: la cuenta murió del lado del servidor
+      // aunque los tokens sigan vivos — sesión inválida igual.
+      if (fresh.status == 'suspended') {
+        // La cuenta murió del lado del servidor: reportar suspensión
+        // aunque el borrado local falle (si lanza, igual hay que
+        // desloguear — peor caso queda un cache huérfano que se limpia
+        // en el próximo 401).
+        try {
+          await localDataSource.clearSession();
+        } catch (_) {}
+        return const Left(AccountSuspendedFailure());
+      }
+
+      // Merge: perfil fresco del servidor + tokens EN VIVO del storage.
+      // CRÍTICO: re-leerlos DESPUÉS de getMe — si el access token venía
+      // vencido, el RefreshTokenInterceptor ya rotó y persistió tokens
+      // nuevos; usar local.token/local.refreshToken acá pisaría esos
+      // valores con los revocados (y reusar un refresh token rotado hace
+      // que el backend revoque TODAS las sesiones — ver doc 003).
+      final liveToken = await localDataSource.getToken();
+      final liveRefreshToken = await localDataSource.getRefreshToken();
+      final merged = UserModel(
+        id: fresh.id,
+        email: fresh.email,
+        name: fresh.name,
+        token: liveToken,
+        refreshToken: liveRefreshToken,
+        organizationId: fresh.organizationId,
+        organizationName: fresh.organizationName,
+        roles: fresh.roles,
+        status: fresh.status,
+      );
+      await localDataSource.saveUserSession(merged);
+      return Right(merged);
+    } on UnauthorizedException {
+      // Puede ser sesión muerta de verdad (refresh 401 → interceptor
+      // limpió storage + notificó) O un refresh transitorio fallido que
+      // propagó el 401 original con la sesión intacta. Se distingue
+      // re-leyendo el storage:
+      final stillThere = await localDataSource.getUserSession();
+      if (stillThere == null) {
+        return const Left(NoSessionFailure());
+      }
+      return Right(local); // transitorio — conservar sesión
+    } on RestApiException catch (e, stackTrace) {
+      // 5xx, rate limit, etc.: transitorio — conservar sesión local.
+      logger.warning(
+        'GET /auth/me falló; se conserva la sesión cacheada',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Right(local);
+    } catch (e, stackTrace) {
+      logger.warning(
+        'Error inesperado validando sesión; se conserva la cacheada',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Right(local);
     }
   }
 

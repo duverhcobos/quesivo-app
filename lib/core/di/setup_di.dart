@@ -10,6 +10,7 @@ import '../network/interceptors/refresh_token_interceptor.dart';
 import '../network/implementations/dio_network_service_impl.dart';
 import '../routes/app_router.dart';
 import '../routes/auth_guard.dart';
+import '../session/session_expired_notifier.dart';
 
 import '../logging/interfaces/i_logger_service.dart';
 import '../logging/implementations/debug_logger_service_impl.dart';
@@ -52,11 +53,19 @@ void setupDI() {
 
     // Inyectamos nuestros interceptores de Arquitectura Limpia
     dio.interceptors.add(AuthInterceptor(locator<ILocalAuthDataSource>()));
+    // Dio "limpio" de refresh: misma config que el principal (timeouts
+    // 30s, cert auto-firmado solo en dev LAN, logging dev) pero SIN
+    // AuthInterceptor/RefreshTokenInterceptor — esos se agregan solo
+    // sobre `dio` acá, así que no hay recursión. Instancia única: una
+    // por app alcanza, no una por refresh.
+    final refreshDio = AuthApiService().dio;
     dio.interceptors.add(
       RefreshTokenInterceptor(
         locator<ILocalAuthDataSource>(),
+        locator<SessionExpiredNotifier>(),
         () =>
             dio, // Closure: para cuando se use ya existe la instancia completa.
+        () => refreshDio,
       ),
     );
 
@@ -78,6 +87,13 @@ void setupDI() {
   // Storage
   locator.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
+  );
+
+  // Evento "sesión irrecuperable": emitido por RefreshTokenInterceptor,
+  // consumido por AuthCubit.
+  locator.registerLazySingleton<SessionExpiredNotifier>(
+    () => SessionExpiredNotifier(),
+    dispose: (notifier) => notifier.dispose(),
   );
 
   // El flag "onboarding ya visto" (IOnboardingStatusStore) NO se registra acá:
@@ -150,6 +166,7 @@ void setupDI() {
       locator<LoginWithGoogleUseCase>(),
       locator<CheckAuthStatusUseCase>(),
       locator<LogoutUseCase>(),
+      locator<SessionExpiredNotifier>(),
     ),
   );
 

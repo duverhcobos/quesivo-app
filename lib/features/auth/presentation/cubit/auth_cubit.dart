@@ -1,6 +1,9 @@
 // lib/features/auth/presentation/cubit/auth_cubit.dart
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/session/session_expired_notifier.dart';
 import '../../domain/use_cases/login_use_case.dart';
 import '../../domain/use_cases/login_with_google_use_case.dart';
 import '../../domain/use_cases/check_auth_status_use_case.dart';
@@ -18,6 +21,9 @@ class AuthCubit extends Cubit<AuthState> {
   final LoginWithGoogleUseCase _loginWithGoogleUseCase;
   final CheckAuthStatusUseCase _checkAuthStatusUseCase;
   final LogoutUseCase _logoutUseCase;
+  final SessionExpiredNotifier _sessionExpiredNotifier;
+
+  late final StreamSubscription<void> _sessionExpiredSub;
 
   // Inyectado y testeable.
   AuthCubit(
@@ -25,9 +31,23 @@ class AuthCubit extends Cubit<AuthState> {
     this._loginWithGoogleUseCase,
     this._checkAuthStatusUseCase,
     this._logoutUseCase,
-  ) : super(
-        const AuthLoading(),
-      ); // La app arranca siempre en estado MISTERIO (Cargando)
+    this._sessionExpiredNotifier,
+  ) : super(const AuthLoading()) {
+    // La capa de red avisa cuando el refresh token murió (revocado,
+    // expirado o reuso detectado): si el usuario estaba adentro de la
+    // app, pasarlo a AuthInitial para que AuthGuard lo mande a welcome.
+    _sessionExpiredSub = _sessionExpiredNotifier.stream.listen((_) {
+      // isClosed: un evento puede llegar entre close() y la cancelación
+      // efectiva de la suscripción — emitir ahí lanzaría StateError.
+      if (!isClosed && state is AuthSuccess) emit(const AuthInitial());
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _sessionExpiredSub.cancel();
+    return super.close();
+  }
 
   Future<void> checkSession() async {
     emit(const AuthLoading());
