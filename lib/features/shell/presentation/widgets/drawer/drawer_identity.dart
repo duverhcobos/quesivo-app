@@ -4,7 +4,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../../core/routes/auth_guard.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../user_initials_avatar.dart';
+import '../../../../../core/widgets/user_initials_avatar.dart';
 
 /// Tarjeta de identidad del `QuesivoDrawer` — el único bloque navy sólido
 /// del menú: `UserInitialAvatar` (mismo avatar de iniciales del header) +

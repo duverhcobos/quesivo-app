@@ -5,13 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/routes/auth_guard.dart';
+import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/login_cubit.dart';
 import '../cubit/login_state.dart';
 import 'auth_divider.dart';
 import 'auth_prompt.dart';
 import 'google_auth_button.dart';
-import 'quesivo_primary_button.dart';
 
 /// Bloque inferior del login: botón primario (§primary_button) o spinner
 /// mientras submit está `inProgress`, divisor (§social_divider), botón

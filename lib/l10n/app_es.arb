@@ -113,5 +113,18 @@
         "type": "String"
       }
     }
-  }
+  },
+  "usersSubtitle": "Gestiona quiénes acceden a tu quesera.",
+  "newUserButton": "Nuevo usuario",
+  "roleOperator": "Operario",
+  "roleCollector": "Recolector",
+  "roleProducer": "Productor",
+  "memberStatusActive": "Activo",
+  "memberStatusSuspended": "Suspendido",
+  "memberActionsTooltip": "Opciones del usuario",
+  "suspendUserAction": "Suspender usuario",
+  "reactivateUserAction": "Reactivar usuario",
+  "resetPasswordAction": "Restablecer contraseña",
+  "emptyUsersTitle": "Todavía no hay usuarios",
+  "emptyUsersHint": "Los usuarios que crees para tu quesera aparecerán acá."
 }

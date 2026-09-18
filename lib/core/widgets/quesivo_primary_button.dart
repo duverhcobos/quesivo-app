@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../theme/app_colors.dart';
 
-/// Pill amarillo 64px/18/w700 de las pantallas de autenticación
-/// (§primary_button) con estado disabled atenuado.
+/// Pill amarillo 64px/18/w700 de marca (§primary_button) — botón primario
+/// compartido por auth y los módulos, con estado disabled atenuado.
 ///
 /// `onPressed` en `null` deja el botón deshabilitado (amarillo/navy
 /// atenuados al 45%/50%).

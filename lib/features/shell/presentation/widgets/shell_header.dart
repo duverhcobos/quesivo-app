@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/user_initials_avatar.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
 import 'drawer/drawer_brand_decoration.dart';
-import 'user_initials_avatar.dart';
 
 /// Banda navy de identidad del shell post-auth
 /// (propuesta 33-header-v2).

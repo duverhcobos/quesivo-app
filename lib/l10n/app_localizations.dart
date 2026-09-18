@@ -741,6 +741,84 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'v{version}'**
   String appVersion(String version);
+
+  /// No description provided for @usersSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestiona quiénes acceden a tu quesera.'**
+  String get usersSubtitle;
+
+  /// No description provided for @newUserButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo usuario'**
+  String get newUserButton;
+
+  /// No description provided for @roleOperator.
+  ///
+  /// In es, this message translates to:
+  /// **'Operario'**
+  String get roleOperator;
+
+  /// No description provided for @roleCollector.
+  ///
+  /// In es, this message translates to:
+  /// **'Recolector'**
+  String get roleCollector;
+
+  /// No description provided for @roleProducer.
+  ///
+  /// In es, this message translates to:
+  /// **'Productor'**
+  String get roleProducer;
+
+  /// No description provided for @memberStatusActive.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo'**
+  String get memberStatusActive;
+
+  /// No description provided for @memberStatusSuspended.
+  ///
+  /// In es, this message translates to:
+  /// **'Suspendido'**
+  String get memberStatusSuspended;
+
+  /// No description provided for @memberActionsTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Opciones del usuario'**
+  String get memberActionsTooltip;
+
+  /// No description provided for @suspendUserAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Suspender usuario'**
+  String get suspendUserAction;
+
+  /// No description provided for @reactivateUserAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Reactivar usuario'**
+  String get reactivateUserAction;
+
+  /// No description provided for @resetPasswordAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Restablecer contraseña'**
+  String get resetPasswordAction;
+
+  /// No description provided for @emptyUsersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hay usuarios'**
+  String get emptyUsersTitle;
+
+  /// No description provided for @emptyUsersHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Los usuarios que crees para tu quesera aparecerán acá.'**
+  String get emptyUsersHint;
 }
 
 class _AppLocalizationsDelegate

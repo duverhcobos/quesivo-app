@@ -339,4 +339,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String appVersion(String version) {
     return 'v$version';
   }
+
+  @override
+  String get usersSubtitle => 'Manage who can access your cheese factory.';
+
+  @override
+  String get newUserButton => 'New user';
+
+  @override
+  String get roleOperator => 'Operator';
+
+  @override
+  String get roleCollector => 'Collector';
+
+  @override
+  String get roleProducer => 'Producer';
+
+  @override
+  String get memberStatusActive => 'Active';
+
+  @override
+  String get memberStatusSuspended => 'Suspended';
+
+  @override
+  String get memberActionsTooltip => 'User options';
+
+  @override
+  String get suspendUserAction => 'Suspend user';
+
+  @override
+  String get reactivateUserAction => 'Reactivate user';
+
+  @override
+  String get resetPasswordAction => 'Reset password';
+
+  @override
+  String get emptyUsersTitle => 'No users yet';
+
+  @override
+  String get emptyUsersHint =>
+      'Users you create for your cheese factory will appear here.';
 }

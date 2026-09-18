@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../theme/app_colors.dart';
 
-/// Avatar de iniciales del shell — círculo `quesivoYellow` con las
+/// Avatar de iniciales compartido — círculo `quesivoYellow` con las
 /// iniciales del usuario en navy (máx. 2 letras mayúsculas de las dos
 /// primeras palabras, '?' si vacío). Lo comparten `ShellHeader`
-/// (44px/15 con anillo) y `DrawerIdentity` (56px/18) para que ambos
-/// muestren la misma identidad. Cuando el backend traiga foto, el
-/// contenido se reemplaza por `CircleAvatar`/imagen dentro del mismo
-/// círculo.
+/// (44px/15 con anillo), `DrawerIdentity` (56px/18) y `OrgMemberCard`
+/// (46px/16) para que todos muestren la misma identidad. Cuando el
+/// backend traiga foto, el contenido se reemplaza por
+/// `CircleAvatar`/imagen dentro del mismo círculo.
 class UserInitialAvatar extends StatelessWidget {
   const UserInitialAvatar({
     super.key,

@@ -114,5 +114,18 @@
         "type": "String"
       }
     }
-  }
+  },
+  "usersSubtitle": "Gerencie quem pode acessar sua queijaria.",
+  "newUserButton": "Novo usuário",
+  "roleOperator": "Operador",
+  "roleCollector": "Coletor",
+  "roleProducer": "Produtor",
+  "memberStatusActive": "Ativo",
+  "memberStatusSuspended": "Suspenso",
+  "memberActionsTooltip": "Opções do usuário",
+  "suspendUserAction": "Suspender usuário",
+  "reactivateUserAction": "Reativar usuário",
+  "resetPasswordAction": "Redefinir senha",
+  "emptyUsersTitle": "Ainda não há usuários",
+  "emptyUsersHint": "Os usuários que você criar para sua queijaria aparecerão aqui."
 }

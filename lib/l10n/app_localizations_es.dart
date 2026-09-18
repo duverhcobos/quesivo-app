@@ -339,4 +339,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String appVersion(String version) {
     return 'v$version';
   }
+
+  @override
+  String get usersSubtitle => 'Gestiona quiénes acceden a tu quesera.';
+
+  @override
+  String get newUserButton => 'Nuevo usuario';
+
+  @override
+  String get roleOperator => 'Operario';
+
+  @override
+  String get roleCollector => 'Recolector';
+
+  @override
+  String get roleProducer => 'Productor';
+
+  @override
+  String get memberStatusActive => 'Activo';
+
+  @override
+  String get memberStatusSuspended => 'Suspendido';
+
+  @override
+  String get memberActionsTooltip => 'Opciones del usuario';
+
+  @override
+  String get suspendUserAction => 'Suspender usuario';
+
+  @override
+  String get reactivateUserAction => 'Reactivar usuario';
+
+  @override
+  String get resetPasswordAction => 'Restablecer contraseña';
+
+  @override
+  String get emptyUsersTitle => 'Todavía no hay usuarios';
+
+  @override
+  String get emptyUsersHint =>
+      'Los usuarios que crees para tu quesera aparecerán acá.';
 }

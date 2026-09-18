@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quesivo/core/theme/app_colors.dart';
-import 'package:quesivo/features/shell/presentation/widgets/user_initials_avatar.dart';
+import 'package:quesivo/core/widgets/user_initials_avatar.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 

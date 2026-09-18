@@ -339,4 +339,44 @@ class AppLocalizationsPt extends AppLocalizations {
   String appVersion(String version) {
     return 'v$version';
   }
+
+  @override
+  String get usersSubtitle => 'Gerencie quem pode acessar sua queijaria.';
+
+  @override
+  String get newUserButton => 'Novo usuário';
+
+  @override
+  String get roleOperator => 'Operador';
+
+  @override
+  String get roleCollector => 'Coletor';
+
+  @override
+  String get roleProducer => 'Produtor';
+
+  @override
+  String get memberStatusActive => 'Ativo';
+
+  @override
+  String get memberStatusSuspended => 'Suspenso';
+
+  @override
+  String get memberActionsTooltip => 'Opções do usuário';
+
+  @override
+  String get suspendUserAction => 'Suspender usuário';
+
+  @override
+  String get reactivateUserAction => 'Reativar usuário';
+
+  @override
+  String get resetPasswordAction => 'Redefinir senha';
+
+  @override
+  String get emptyUsersTitle => 'Ainda não há usuários';
+
+  @override
+  String get emptyUsersHint =>
+      'Os usuários que você criar para sua queijaria aparecerão aqui.';
 }

@@ -19,6 +19,7 @@ import '../di/setup_di.dart';
 import '../../features/home/presentation/screens/home_tab.dart';
 import '../../features/shell/presentation/screens/module_placeholder_screen.dart';
 import '../../features/shell/presentation/widgets/main_layout.dart';
+import '../../features/users/presentation/screens/users_screen.dart';
 import 'go_router_refresh_stream.dart';
 import 'custom_transitions.dart';
 import 'auth_guard.dart';
@@ -166,10 +167,7 @@ class AppRouter {
                     pageBuilder: (context, state) => CustomTransitions.fade(
                       context: context,
                       state: state,
-                      child: ModulePlaceholderScreen(
-                        icon: Icons.group_outlined,
-                        label: AppLocalizations.of(context)!.orgUsersItem,
-                      ),
+                      child: const UsersScreen(),
                     ),
                   ),
                 ],

@@ -7,10 +7,10 @@ import 'package:quesivo/l10n/app_localizations.dart';
 import '../../../../core/constants/environment/environment.dart';
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../cubit/forgot_password_cubit.dart';
 import '../cubit/forgot_password_state.dart';
 import 'forgot_password_info_card.dart';
-import 'quesivo_primary_button.dart';
 
 /// Bloque inferior del forgot password: pill "Enviar enlace"
 /// (§primary_button) o spinner mientras submit está `inProgress`; tras un

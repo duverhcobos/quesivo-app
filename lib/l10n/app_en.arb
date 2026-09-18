@@ -114,5 +114,18 @@
         "type": "String"
       }
     }
-  }
+  },
+  "usersSubtitle": "Manage who can access your cheese factory.",
+  "newUserButton": "New user",
+  "roleOperator": "Operator",
+  "roleCollector": "Collector",
+  "roleProducer": "Producer",
+  "memberStatusActive": "Active",
+  "memberStatusSuspended": "Suspended",
+  "memberActionsTooltip": "User options",
+  "suspendUserAction": "Suspend user",
+  "reactivateUserAction": "Reactivate user",
+  "resetPasswordAction": "Reset password",
+  "emptyUsersTitle": "No users yet",
+  "emptyUsersHint": "Users you create for your cheese factory will appear here."
 }

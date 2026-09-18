@@ -6,9 +6,9 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../cubit/reset_password_cubit.dart';
 import '../cubit/reset_password_state.dart';
-import 'quesivo_primary_button.dart';
 
 /// Bloque inferior del reset password: pill "Actualizar contraseña"
 /// (§primary_button) o spinner mientras el submit está `inProgress`;
