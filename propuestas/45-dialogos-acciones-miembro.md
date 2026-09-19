@@ -25,7 +25,7 @@ refresh.
 ```
      Confirmación (AlertDialog)              Sheet de reset
  ╭───────────────────────────╮      ╭──────────────────────────╮
- │           ( ⊘ )           │      │           ────            │
+ │           ( ⊘ )           │      │      ────          (✕)   │
  │                           │      │  Restablecer contraseña   │
  │   ¿Suspender a Pedro R.?  │      │  Nueva contraseña         │
  │                           │      │  temporal para Pedro —    │
@@ -33,12 +33,15 @@ refresh.
  │  organización hasta que   │      │  ┌──────────────────────┐ │
  │  lo reactives.            │      │  │ 🔒 Nueva contraseña  │ │
  │                           │      │  └──────────────────────┘ │
- │    [Cancelar] [Suspender] │      │  ┌──────────────────────┐ │
- ╰───────────────────────────╯      │  │ Actualizar contraseña│ │
-   icono en círculo teñido:         │  └──────────────────────┘ │
-   rojo suspende / verde reactiva   │          Cancelar         │
-   CTA: rojo suspender /            ╰──────────────────────────╯
-   amarillo reactivar              same container que §44
+ │ [Cancelar]  [Suspender]   │      │  La contraseña debe tener:│
+ ╰───────────────────────────╯      │  ○/✓ 4 requisitos vivos   │
+   icono en círculo teñido:         │                           │
+   rojo suspende / verde reactiva   │ [Cancelar][Actualizar cnt]│
+   par 1:1 ghost + CTA de acento    ╰──────────────────────────╯
+   (rojo suspender / amarillo       mismo contenedor que §44 +
+    reactivar) — misma piel del     convenciones 1.9.x: zona fija
+    par del sheet                   handle+✕, checklist, par 1:1,
+                                    tope en el hero navy
 ```
 
 ## Resumen de cambios
@@ -50,7 +53,9 @@ refresh.
 | `lib/features/users/presentation/widgets/reset_password_sheet.dart` | **nuevo** — sheet de password temporal |
 | `lib/features/users/presentation/widgets/member_actions_menu.dart` | recibe `member` + callbacks, abre los diálogos |
 | `lib/features/users/presentation/widgets/org_member_card.dart` | pasa `member` completo + callbacks al menú |
-| `lib/features/users/presentation/screens/users_screen.dart` | handlers `_setMemberStatus` / `_resetMemberPassword` |
+| `lib/features/users/presentation/screens/users_screen.dart` | handlers `_setMemberStatus` / `_resetMemberPassword` + getter `_sheetTopInset` |
+| `lib/features/users/presentation/widgets/new_user_sheet.dart` | FittedBox scaleDown en el ghost del par (consistencia con el fix del sheet de reset) |
+| `lib/core/widgets/quesivo_primary_button.dart` | label envuelto en `FittedBox(scaleDown)`+`maxLines:1` — los pares 1:1 no envuelven a 2 líneas con labels largos |
 | `lib/l10n/app_{es,en,pt}.arb` | 8 keys nuevas + `flutter gen-l10n` |
 | `test/.../member_status_dialog_test.dart` | **nuevo** |
 | `test/.../reset_password_sheet_test.dart` | **nuevo** |
@@ -157,17 +162,28 @@ class MemberStatusDialog extends StatelessWidget {
           color: AppColors.quesivoTextSecondary,
         ),
       ),
+      // Botones hug-content centrados: OverflowBar los pone lado a lado
+      // cuando entran (la mayoría de teléfonos) y los apila a ancho
+      // completo cuando el diálogo es muy angosto — nunca envuelve el
+      // label a 2 líneas (un Row+Expanded lo forzaría en ~110dp).
       actionsAlignment: MainAxisAlignment.center,
+      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(
-            l10n.cancelAction,
-            style: const TextStyle(
-              color: AppColors.quesivoTextSecondary,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.quesivoIconSurface,
+            foregroundColor: AppColors.quesivoNavy,
+            elevation: 0,
+            minimumSize: const Size(0, 56),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            shape: const StadiumBorder(),
+            textStyle: const TextStyle(
+              fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
+          child: Text(l10n.cancelAction),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
@@ -179,10 +195,17 @@ class MemberStatusDialog extends StatelessWidget {
                 ? AppColors.quesivoWhite
                 : AppColors.quesivoNavy,
             elevation: 0,
+            minimumSize: const Size(0, 56),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             shape: const StadiumBorder(),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           child: Text(
             suspending ? l10n.suspendUserAction : l10n.reactivateUserAction,
+            maxLines: 1,
           ),
         ),
       ],
@@ -191,24 +214,38 @@ class MemberStatusDialog extends StatelessWidget {
 }
 ```
 
+Nota de diseño (ajustada tras revisión): el diálogo **no** usa el par
+`Row`+`Expanded` 1:1 del sheet — un diálogo angosto (~310dp) partiría
+cada botón en ~110dp y "Suspender usuario" envolvería a 2 líneas. Los
+`actions` de `AlertDialog` van en un `OverflowBar`: dos botones planos
+hug-content quedan lado a lado centrados cuando entran y se apilan a
+ancho completo cuando no — comportamiento nativo, sin hacks.
+
 ## 3. `reset_password_sheet.dart` (archivo nuevo)
 
 **Ruta:** `lib/features/users/presentation/widgets/reset_password_sheet.dart`
+
+Mismo contenedor que `NewUserSheet` con todas las convenciones 1.9.x:
+zona fija (handle + ✕ `QuesivoCloseButton`), `topInset` topeando en el
+hero navy, checklist vivo bajo el campo y par de acciones 1:1.
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/password_requirements_checklist.dart';
+import '../../../../core/widgets/quesivo_close_button.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
 import '../../domain/entities/org_member.dart';
 
 /// Sheet de reset de contraseña por admin (§45) — mini-form con un solo
-/// campo, mismo contenedor que `NewUserSheet` (§44). Devuelve el
-/// password ingresado o `null` al cancelar — la integración de
-/// `PATCH /auth/users/:id/password` lo manda al backend tal cual
-/// (el reset además levanta el lockout del email, doc 010).
+/// campo, mismo contenedor y convenciones que `NewUserSheet` (§44 +
+/// fixes 1.9.x). Devuelve el password ingresado o `null` al cancelar —
+/// la integración de `PATCH /auth/users/:id/password` lo manda al
+/// backend tal cual (el reset además levanta el lockout del email,
+/// doc 010).
 ///
 /// La política espeja el VO del backend (min 8, mayúscula, minúscula,
 /// dígito) — igual que en NewUserSheet; la propuesta de integración
@@ -220,7 +257,14 @@ class ResetPasswordSheet extends StatefulWidget {
 
   /// Abre el sheet y devuelve la contraseña nueva, o `null` si se
   /// canceló.
-  static Future<String?> show(BuildContext context, OrgMember member) {
+  ///
+  /// [topInset]: borde inferior del hero navy — tope del sheet con el
+  /// teclado abierto (mismo patrón que NewUserSheet.show).
+  static Future<String?> show(
+    BuildContext context,
+    OrgMember member, {
+    double topInset = 0,
+  }) {
     return showModalBottomSheet<String>(
       context: context,
       // Modal sobre el navigator RAÍZ — cubre el QuesivoNavBar del shell
@@ -230,6 +274,9 @@ class ResetPasswordSheet extends StatefulWidget {
       backgroundColor: AppColors.quesivoWhite,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height - topInset,
       ),
       builder: (_) => ResetPasswordSheet(member: member),
     );
@@ -266,69 +313,139 @@ class _ResetPasswordSheetState extends State<ResetPasswordSheet> {
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(context).bottom,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.quesivoBorder,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.resetPasswordAction,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.quesivoNavy,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              l10n.resetPasswordSheetHint(widget.member.name),
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.quesivoTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Visible a propósito — igual que en la creación: el admin la
-            // inventa y se la dicta al usuario.
-            QuesivoTextField(
-              hintText: l10n.newPasswordPlaceholder,
-              prefixIcon: Icons.lock_outline,
-              errorText: _passwordError ? l10n.invalidTempPasswordError : null,
-              onChanged: (v) => setState(() {
-                _password = v;
-                _passwordError = false;
-              }),
-            ),
-            const SizedBox(height: 24),
-            QuesivoPrimaryButton(
-              label: l10n.updatePasswordButton,
-              onPressed: _submit,
-            ),
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  l10n.cancelAction,
-                  style: const TextStyle(
-                    color: AppColors.quesivoTextSecondary,
-                    fontWeight: FontWeight.w600,
+      // Zona fija (handle + ✕) + scroll del form — idéntico a
+      // NewUserSheet: Flexible, no Expanded, mide al contenido.
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 16, 8),
+            child: SizedBox(
+              height: 40,
+              child: Stack(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.quesivoBorder,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
+                  const Align(
+                    alignment: Alignment.centerRight,
+                    child: QuesivoCloseButton(),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    l10n.resetPasswordAction,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.quesivoNavy,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.resetPasswordSheetHint(widget.member.name),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.quesivoTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Visible a propósito — igual que en la creación: el
+                  // admin la inventa y se la dicta al usuario.
+                  QuesivoTextField(
+                    hintText: l10n.newPasswordPlaceholder,
+                    prefixIcon: Icons.lock_outline,
+                    errorText: _passwordError
+                        ? l10n.invalidTempPasswordError
+                        : null,
+                    onChanged: (v) => setState(() {
+                      _password = v;
+                      _passwordError = false;
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                  PasswordRequirementsChecklist(
+                    title: l10n.passwordReqTitle,
+                    items: [
+                      PasswordRequirementItem(
+                        met: _password.length >= 8,
+                        label: l10n.passwordReqMinLength,
+                      ),
+                      PasswordRequirementItem(
+                        met: _hasUpper.hasMatch(_password),
+                        label: l10n.passwordReqUppercase,
+                      ),
+                      PasswordRequirementItem(
+                        met: _hasLower.hasMatch(_password),
+                        label: l10n.passwordReqLowercase,
+                      ),
+                      PasswordRequirementItem(
+                        met: _hasDigit.hasMatch(_password),
+                        label: l10n.passwordReqDigit,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Par 1:1 — misma piel que NewUserSheet: ghost a la
+                  // izquierda, primario amarillo a la derecha. Los
+                  // labels van en FittedBox(scaleDown)+maxLines:1 —
+                  // "Actualizar contraseña" no entra en la mitad a 18px
+                  // y escala en vez de envolver (el FittedBox del
+                  // primario vive dentro de QuesivoPrimaryButton).
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.quesivoIconSurface,
+                            foregroundColor: AppColors.quesivoNavy,
+                            elevation: 0,
+                            minimumSize: const Size(0, 64),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            shape: const StadiumBorder(),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(l10n.cancelAction, maxLines: 1),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: QuesivoPrimaryButton(
+                          label: l10n.updatePasswordButton,
+                          onPressed: _submit,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -377,6 +494,7 @@ class MemberActionsMenu extends StatelessWidget {
     required this.member,
     required this.onStatusToggle,
     required this.onPasswordReset,
+    this.sheetTopInset = 0,
   });
 
   final OrgMember member;
@@ -386,6 +504,10 @@ class MemberActionsMenu extends StatelessWidget {
 
   /// Recibe el password ingresado si el admin completó el sheet.
   final ValueChanged<String> onPasswordReset;
+
+  /// Tope del `ResetPasswordSheet` (borde inferior del hero navy) —
+  /// lo mide la pantalla y viaja por la card hasta acá.
+  final double sheetTopInset;
 
   Future<void> _onSelected(BuildContext context, String value) async {
     switch (value) {
@@ -398,7 +520,11 @@ class MemberActionsMenu extends StatelessWidget {
               : MemberStatus.active,
         );
       case 'password':
-        final password = await ResetPasswordSheet.show(context, member);
+        final password = await ResetPasswordSheet.show(
+          context,
+          member,
+          topInset: sheetTopInset,
+        );
         if (password == null || !context.mounted) return;
         onPasswordReset(password);
     }
@@ -443,11 +569,15 @@ class OrgMemberCard extends StatelessWidget {
     required this.member,
     required this.onStatusToggle,
     required this.onPasswordReset,
+    this.sheetTopInset = 0,
   });
 
   final OrgMember member;
   final ValueChanged<MemberStatus> onStatusToggle;
   final ValueChanged<String> onPasswordReset;
+
+  /// Tope del `ResetPasswordSheet` — lo mide la pantalla sobre el hero.
+  final double sheetTopInset;
 ```
 
 y en el Row:
@@ -457,6 +587,7 @@ y en el Row:
             member: member,
             onStatusToggle: onStatusToggle,
             onPasswordReset: onPasswordReset,
+            sheetTopInset: sheetTopInset,
           ),
 ```
 
@@ -464,7 +595,32 @@ y en el Row:
 
 **Ruta:** `lib/features/users/presentation/screens/users_screen.dart`
 
-En `_UsersScreenState`, junto a `_openNewUserSheet`:
+En `_UsersScreenState`: la medición del hero que hoy está inline en
+`_openNewUserSheet` se extrae a un getter compartido — el mismo tope lo
+usan el sheet de creación y el de reset:
+
+```dart
+  /// Borde inferior del hero navy medido en vivo — tope de los sheets
+  /// modales (creación §44, reset §45) con el teclado abierto.
+  double get _sheetTopInset {
+    final heroContext = _heroKey.currentContext;
+    if (heroContext == null) return 0;
+    final box = heroContext.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return 0;
+    return box.localToGlobal(Offset.zero).dy + box.size.height;
+  }
+```
+
+`_openNewUserSheet` queda en una línea de medición:
+
+```dart
+  void _openNewUserSheet() => NewUserSheet.show(
+        context,
+        topInset: _sheetTopInset,
+      );
+```
+
+Y junto a él los handlers de §45:
 
 ```dart
   /// §45 — flip de estado en el dataset local tras confirmar el
@@ -509,6 +665,7 @@ Y en el `itemBuilder` del `ListView.separated`:
                         onStatusToggle: (s) => _setMemberStatus(member, s),
                         onPasswordReset: (pw) =>
                             _resetMemberPassword(member, pw),
+                        sheetTopInset: _sheetTopInset,
                       );
 ```
 
@@ -577,22 +734,26 @@ Agregar los dos callbacks requeridos (`onStatusToggle: (_) {}`,
       member_actions:
         purpose: "Propuesta §45 — diálogos reales de las acciones ⋮. Solo UI: el status flippea en el dataset local y el reset solo da feedback; PATCH /auth/users/:id/status y /password los reemplazan al integrar."
         status_dialog:
-          widget: "MemberStatusDialog — primer AlertDialog de la app: fondo quesivoWhite r20, icono en CircleAvatar teñido 12% (error/success según la acción), título 18 w800 navy centrado con {name}, mensaje 14 secondary centrado, acciones centradas"
-          suspend_variant: "icono block_outlined + CircleAvatar quesivoError — CTA ElevatedButton pill fondo quesivoError/texto blanco (destructiva, mismo criterio que el ítem del menú y logout del drawer)"
-          reactivate_variant: "icono check_circle_outline + CircleAvatar quesivoSuccess — CTA pill quesivoYellow/navy"
+          widget: "MemberStatusDialog — primer AlertDialog de la app: fondo quesivoWhite r20, icono en CircleAvatar teñido 12% (error/success según la acción), título 18 w800 navy centrado con {name}, mensaje 14 secondary centrado"
+          actions: "par 1:1 (misma convención del sheet, 1.9.13): ghost iconSurface/navy 'Cancelar' + CTA de acento — 56px StadiumBorder; OverflowBar los apila en pantallas muy angostas"
+          suspend_variant: "icono block_outlined + CircleAvatar quesivoError — CTA fondo quesivoError/texto blanco (destructiva, mismo criterio que el ítem del menú y logout del drawer)"
+          reactivate_variant: "icono check_circle_outline + CircleAvatar quesivoSuccess — CTA quesivoYellow/navy"
         reset_password_sheet:
-          widget: "ResetPasswordSheet — mismo contenedor que NewUserSheet (handle, r28, isScrollControlled): título l10n resetPasswordAction 20 w800 navy, hint con {name} (resetPasswordSheetHint), un QuesivoTextField 'Nueva contraseña' visible (el admin la dicta), CTA 'Actualizar contraseña' + Cancelar"
+          widget: "ResetPasswordSheet — mismo contenedor y convenciones que NewUserSheet: zona fija handle+✕ QuesivoCloseButton, topInset al hero navy, Flexible+scroll del form, checklist vivo bajo el campo, par 1:1 ghost+primario"
+          field: "un QuesivoTextField 'Nueva contraseña' visible (el admin la dicta) con hint resetPasswordSheetHint {name}"
           result: "devuelve el password por Navigator.pop — validación idéntica a la creación (min 8, mayúscula, minúscula, dígito)"
         pending_backend_rules: "SELF_SUSPENSION y LAST_ADMIN (doc 009) se mapean a mensajes en el diálogo al integrar — la UI de muestra no conoce 'yo' ni el conteo de admins"
 ```
 
 - Changelog `1.10.0` (page `users_screen`, `completed`): "Diálogos de
   acciones del miembro (propuesta 45): MemberStatusDialog (primer
-  AlertDialog de la app — variante destructiva roja para suspender,
-  neutra amarilla para reactivar) y ResetPasswordSheet (mini-form con la
-  piel del sheet de creación). Solo UI: suspender/reactivar flippea el
-  chip del card en el dataset local; el reset solo da feedback. El menú
-  ⋮ deja de mostrar 'Próximamente'. OrgMember gana copyWith."
+  AlertDialog de la app — par de acciones 1:1, variante destructiva roja
+  para suspender, neutra amarilla para reactivar) y ResetPasswordSheet
+  (mini-form con todas las convenciones del sheet de creación: zona fija
+  handle+✕, tope en hero, checklist vivo, par 1:1). Solo UI:
+  suspender/reactivar flippea el chip del card en el dataset local; el
+  reset solo da feedback. El menú ⋮ deja de mostrar 'Próximamente'.
+  OrgMember gana copyWith."
 
 ---
 

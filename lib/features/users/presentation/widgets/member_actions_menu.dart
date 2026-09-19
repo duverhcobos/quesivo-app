@@ -3,21 +3,61 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/org_member.dart';
+import 'member_status_dialog.dart';
+import 'reset_password_sheet.dart';
 
-/// Menú ⋮ de acciones por fila del listado de Usuarios — visual por
-/// ahora: cada opción muestra `moduleComingSoon`. Los diálogos de
-/// suspender/reactivar y restablecer contraseña llegan con su propuesta.
+/// Menú ⋮ de acciones por fila (§45): "Suspender/Reactivar" abre
+/// `MemberStatusDialog` y "Restablecer contraseña" abre
+/// `ResetPasswordSheet`. Los resultados suben por callback — la
+/// pantalla decide la mutación local hoy y el PATCH mañana.
 /// "Suspender usuario" se tiñe `quesivoError` (acción destructiva —
 /// mismo criterio que logout en el drawer).
 class MemberActionsMenu extends StatelessWidget {
-  const MemberActionsMenu({super.key, required this.status});
+  const MemberActionsMenu({
+    super.key,
+    required this.member,
+    required this.onStatusToggle,
+    required this.onPasswordReset,
+    this.sheetTopInset = 0,
+  });
 
-  final MemberStatus status;
+  final OrgMember member;
+
+  /// Recibe el nuevo `MemberStatus` si el admin confirmó el diálogo.
+  final ValueChanged<MemberStatus> onStatusToggle;
+
+  /// Recibe el password ingresado si el admin completó el sheet.
+  final ValueChanged<String> onPasswordReset;
+
+  /// Tope del `ResetPasswordSheet` (borde inferior del hero navy) —
+  /// lo mide la pantalla y viaja por la card hasta acá.
+  final double sheetTopInset;
+
+  Future<void> _onSelected(BuildContext context, String value) async {
+    switch (value) {
+      case 'status':
+        final confirmed = await MemberStatusDialog.show(context, member);
+        if (!confirmed || !context.mounted) return;
+        onStatusToggle(
+          member.status == MemberStatus.active
+              ? MemberStatus.suspended
+              : MemberStatus.active,
+        );
+      case 'password':
+        final password = await ResetPasswordSheet.show(
+          context,
+          member,
+          topInset: sheetTopInset,
+        );
+        if (password == null || !context.mounted) return;
+        onPasswordReset(password);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final suspended = status == MemberStatus.suspended;
+    final suspended = member.status == MemberStatus.suspended;
 
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert, color: AppColors.quesivoTextSecondary),
@@ -36,9 +76,7 @@ class MemberActionsMenu extends StatelessWidget {
       ),
       // Cae justo debajo del ⋮ en vez de cubrir el contenido de la card.
       offset: const Offset(0, 8),
-      onSelected: (_) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.moduleComingSoon))),
+      onSelected: (value) => _onSelected(context, value),
       itemBuilder: (context) => [
         PopupMenuItem<String>(
           value: 'status',
@@ -52,14 +90,18 @@ class MemberActionsMenu extends StatelessWidget {
                     : AppColors.quesivoError,
               ),
               const SizedBox(width: 12),
-              Text(
-                suspended ? l10n.reactivateUserAction : l10n.suspendUserAction,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: suspended
-                      ? AppColors.quesivoSuccess
-                      : AppColors.quesivoError,
+              Expanded(
+                child: Text(
+                  suspended
+                      ? l10n.reactivateUserAction
+                      : l10n.suspendUserAction,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: suspended
+                        ? AppColors.quesivoSuccess
+                        : AppColors.quesivoError,
+                  ),
                 ),
               ),
             ],
@@ -75,12 +117,14 @@ class MemberActionsMenu extends StatelessWidget {
                 color: AppColors.quesivoDarkText,
               ),
               const SizedBox(width: 12),
-              Text(
-                l10n.resetPasswordAction,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.quesivoDarkText,
+              Expanded(
+                child: Text(
+                  l10n.resetPasswordAction,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.quesivoDarkText,
+                  ),
                 ),
               ),
             ],

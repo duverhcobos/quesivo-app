@@ -437,4 +437,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get memberCreatedFeedback =>
       'User created — share the temporary password';
+
+  @override
+  String suspendMemberTitle(String name) {
+    return 'Suspend $name?';
+  }
+
+  @override
+  String get suspendMemberMessage =>
+      'They will lose access to this organization until you reactivate them.';
+
+  @override
+  String reactivateMemberTitle(String name) {
+    return 'Reactivate $name?';
+  }
+
+  @override
+  String get reactivateMemberMessage =>
+      'They will regain access to this organization.';
+
+  @override
+  String get memberSuspendedFeedback => 'Membership suspended';
+
+  @override
+  String get memberReactivatedFeedback => 'Membership reactivated';
+
+  @override
+  String resetPasswordSheetHint(String name) {
+    return 'New temporary password for $name — they will sign in with it.';
+  }
+
+  @override
+  String passwordResetFeedback(String name) {
+    return 'Password reset — share it with $name';
+  }
 }

@@ -9,7 +9,7 @@ El detalle de convenciones, arquitectura y workflows de este proyecto vive en sk
 - **Framework:** Flutter (SDK `^3.8.1`), Clean Architecture + S.O.L.I.D.
 - **Nunca editar archivos fuente directamente** para implementar funcionalidad o lógica de negocio: ver skill `code-proposals` antes de escribir/modificar código (excepción: correcciones triviales de un solo archivo).
 - **OS de desarrollo**: Windows / PowerShell.
-- **Producto: Quesivo — app móvil** (Android/iOS), único cliente del MVP del backend Quesera, para el rol Administrador (decisión en `../planeaciones/003-decision-plataforma-frontend-movil.md`). App real camino a producción, no un repositorio de prueba/plantilla. Todo cambio se trata con el mismo rigor que código productivo — ver skill `environments-secrets` **siempre** que se toquen entornos, URLs, tokens o certificados.
+- **Producto: Quesivo — app móvil** (Android/iOS), único cliente del MVP del backend Quesera — la UI del MVP cubre roles `ADMIN` y `OPERATOR` (decisiones en `../planeaciones/003-decision-plataforma-frontend-movil.md` y `../planeaciones/004-decision-identidad-global-membresias.md`); el modelo backend soporta 4 roles y multi-org vía `memberships`. App real camino a producción, no un repositorio de prueba/plantilla. Todo cambio se trata con el mismo rigor que código productivo — ver skill `environments-secrets` **siempre** que se toquen entornos, URLs, tokens o certificados.
 
 ## Índice de skills
 

@@ -437,4 +437,38 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get memberCreatedFeedback =>
       'Usuário criado — compartilhe a senha temporária';
+
+  @override
+  String suspendMemberTitle(String name) {
+    return 'Suspender $name?';
+  }
+
+  @override
+  String get suspendMemberMessage =>
+      'Perderá o acesso a esta organização até que você o reative.';
+
+  @override
+  String reactivateMemberTitle(String name) {
+    return 'Reativar $name?';
+  }
+
+  @override
+  String get reactivateMemberMessage =>
+      'Recuperará o acesso a esta organização.';
+
+  @override
+  String get memberSuspendedFeedback => 'Associação suspensa';
+
+  @override
+  String get memberReactivatedFeedback => 'Associação reativada';
+
+  @override
+  String resetPasswordSheetHint(String name) {
+    return 'Nova senha temporária para $name — entrará com ela.';
+  }
+
+  @override
+  String passwordResetFeedback(String name) {
+    return 'Senha redefinida — compartilhe com $name';
+  }
 }

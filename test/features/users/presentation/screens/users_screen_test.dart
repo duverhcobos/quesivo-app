@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/presentation/screens/users_screen.dart';
 import 'package:quesivo/features/users/presentation/widgets/new_user_sheet.dart';
 import 'package:quesivo/features/users/presentation/widgets/org_member_card.dart';
@@ -163,6 +164,45 @@ void main() {
           .member
           .name,
       'Usuario Nuevo',
+    );
+  });
+
+  testWidgets('suspender desde el menú cambia el chip de la card', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+
+    // La primera card del dataset (Ana Pérez, índice 0) ya viene
+    // suspendida — se usa la segunda (Ana Gómez, activa), la primera
+    // cuyo ⋮ ofrece "Suspender usuario".
+    final card = find.byType(OrgMemberCard).at(1);
+    final menuButton = find.descendant(
+      of: card,
+      matching: find.byIcon(Icons.more_vert),
+    );
+    await tester.ensureVisible(menuButton);
+    await tester.pumpAndSettle();
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
+
+    // Ítem del menú → abre la confirmación (AlertDialog §45).
+    await tester.tap(find.text('Suspender usuario'));
+    await tester.pumpAndSettle();
+    expect(find.text('¿Suspender a Ana Gómez?'), findsOneWidget);
+
+    // CTA del diálogo → confirma, flippea el status en el dataset local.
+    await tester.tap(find.text('Suspender usuario'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Membresía suspendida'), findsOneWidget);
+    expect(
+      find.descendant(of: card, matching: find.text('Suspendido')),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<OrgMemberCard>(card).member.status,
+      MemberStatus.suspended,
     );
   });
 }

@@ -272,7 +272,10 @@ class _NewUserSheetState extends State<NewUserSheet> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          child: Text(l10n.cancelAction),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(l10n.cancelAction, maxLines: 1),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),

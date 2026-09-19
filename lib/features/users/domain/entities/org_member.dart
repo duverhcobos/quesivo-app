@@ -25,6 +25,25 @@ class OrgMember extends Equatable {
     required this.organizationId,
   });
 
+  /// Copia inmutable con overrides — la UI la usa para flippear
+  /// `status` en el dataset local; la integración la usará con el ítem
+  /// que devuelve PATCH /auth/users/:id/status.
+  OrgMember copyWith({
+    String? id,
+    String? email,
+    String? name,
+    UserRole? role,
+    MemberStatus? status,
+    String? organizationId,
+  }) => OrgMember(
+    id: id ?? this.id,
+    email: email ?? this.email,
+    name: name ?? this.name,
+    role: role ?? this.role,
+    status: status ?? this.status,
+    organizationId: organizationId ?? this.organizationId,
+  );
+
   @override
   List<Object?> get props => [id, email, name, role, status, organizationId];
 }

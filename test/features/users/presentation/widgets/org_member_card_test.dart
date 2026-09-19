@@ -24,7 +24,15 @@ void main() {
   );
 
   testWidgets('renderiza nombre, email y chips de rol/estado', (tester) async {
-    await tester.pumpWidget(_wrap(const OrgMemberCard(member: member)));
+    await tester.pumpWidget(
+      _wrap(
+        OrgMemberCard(
+          member: member,
+          onStatusToggle: (_) {},
+          onPasswordReset: (_) {},
+        ),
+      ),
+    );
     expect(find.text('Ana Pérez'), findsOneWidget);
     expect(find.text('ana@mail.com'), findsOneWidget);
     expect(find.text('Administrador'), findsOneWidget);
@@ -34,8 +42,8 @@ void main() {
   testWidgets('miembro suspendido muestra chip Suspendido', (tester) async {
     await tester.pumpWidget(
       _wrap(
-        const OrgMemberCard(
-          member: OrgMember(
+        OrgMemberCard(
+          member: const OrgMember(
             id: '2',
             email: 'p@mail.com',
             name: 'Pedro',
@@ -43,6 +51,8 @@ void main() {
             status: MemberStatus.suspended,
             organizationId: 'org',
           ),
+          onStatusToggle: (_) {},
+          onPasswordReset: (_) {},
         ),
       ),
     );

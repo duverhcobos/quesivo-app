@@ -20,8 +20,9 @@ import 'sample_org_members.dart';
 /// Pantalla principal del módulo Usuarios (`/home/usuarios` — hija del
 /// branch Inicio). Solo UI: el listado se pinta con
 /// `generateSampleOrgMembers()` hasta la propuesta que integre
-/// `GET /auth/users`; las acciones de fila son placeholders visuales;
-/// el botón de creación abre `NewUserSheet` (§44).
+/// `GET /auth/users`; las acciones de fila mutan el dataset local (§45
+/// — solo UI, el PATCH llega con la integración); el FAB de creación
+/// abre `NewUserSheet` (§44).
 ///
 /// Rediseño §38: cabecera navy del módulo. §39: hero edge-to-edge
 /// detrás del ShellHeader. §41/§42: hero mínimo sin back/subtítulo.
@@ -130,6 +131,20 @@ class _UsersScreenState extends State<UsersScreen> {
     _resetPagination();
   }
 
+  /// Borde inferior del hero navy medido en vivo — tope de los sheets
+  /// modales (creación §44, reset §45) con el teclado abierto.
+  double get _sheetTopInset {
+    final heroContext = _heroKey.currentContext;
+    if (heroContext == null) return 0;
+    final box = heroContext.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return 0;
+    // El hero arranca en y=0 del body → su alto ES la coordenada del
+    // borde inferior. `size` solo necesita el layout propio del hero;
+    // `localToGlobal` recorre ancestors y crashea cuando el itemBuilder
+    // del ListView lo lee durante el layout de la sliver.
+    return box.size.height;
+  }
+
   /// §44 — abre el sheet de creación; al volver con un miembro lo
   /// inserta al tope del dataset local (stats + listado se actualizan
   /// solos) y muestra feedback. La integración reemplaza el insert por
@@ -138,11 +153,7 @@ class _UsersScreenState extends State<UsersScreen> {
     // El hero arranca en y=0 de la pantalla → su alto ES la coordenada del
     // borde inferior de la tarjeta navy; el sheet no crece más arriba de
     // ahí ni siquiera cuando el teclado lo empuja (scrollea dentro).
-    final heroBox = _heroKey.currentContext?.findRenderObject() as RenderBox?;
-    final created = await NewUserSheet.show(
-      context,
-      topInset: heroBox?.size.height ?? context.shellHeaderHeight,
-    );
+    final created = await NewUserSheet.show(context, topInset: _sheetTopInset);
     if (created == null || !mounted) return;
     setState(() => _allMembers.insert(0, created));
     if (_scrollController.hasClients) {
@@ -156,6 +167,34 @@ class _UsersScreenState extends State<UsersScreen> {
       SnackBar(
         content: Text(AppLocalizations.of(context)!.memberCreatedFeedback),
       ),
+    );
+  }
+
+  /// §45 — flip de estado en el dataset local tras confirmar el
+  /// diálogo. La integración lo reemplaza por
+  /// `PATCH /auth/users/:id/status` + merge del ítem devuelto.
+  void _setMemberStatus(OrgMember member, MemberStatus status) {
+    final index = _allMembers.indexWhere((m) => m.id == member.id);
+    if (index == -1) return;
+    setState(() => _allMembers[index] = member.copyWith(status: status));
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          status == MemberStatus.suspended
+              ? l10n.memberSuspendedFeedback
+              : l10n.memberReactivatedFeedback,
+        ),
+      ),
+    );
+  }
+
+  /// §45 — feedback del reset. La integración manda el password a
+  /// `PATCH /auth/users/:id/password` (que además levanta el lockout).
+  void _resetMemberPassword(OrgMember member, String password) {
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.passwordResetFeedback(member.name))),
     );
   }
 
@@ -262,7 +301,14 @@ class _UsersScreenState extends State<UsersScreen> {
                           if (index >= visible.length) {
                             return const UsersListFooterLoader();
                           }
-                          return OrgMemberCard(member: visible[index]);
+                          final member = visible[index];
+                          return OrgMemberCard(
+                            member: member,
+                            onStatusToggle: (s) => _setMemberStatus(member, s),
+                            onPasswordReset: (pw) =>
+                                _resetMemberPassword(member, pw),
+                            sheetTopInset: _sheetTopInset,
+                          );
                         },
                       ),
               ),

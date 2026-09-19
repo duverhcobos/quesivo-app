@@ -154,5 +154,41 @@
   "invalidMemberNameError": "Enter the full name",
   "invalidTempPasswordError": "At least 8 characters, one uppercase, one lowercase and one digit",
   "createUserButton": "Create user",
-  "memberCreatedFeedback": "User created — share the temporary password"
+  "memberCreatedFeedback": "User created — share the temporary password",
+  "suspendMemberTitle": "Suspend {name}?",
+  "@suspendMemberTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "suspendMemberMessage": "They will lose access to this organization until you reactivate them.",
+  "reactivateMemberTitle": "Reactivate {name}?",
+  "@reactivateMemberTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reactivateMemberMessage": "They will regain access to this organization.",
+  "memberSuspendedFeedback": "Membership suspended",
+  "memberReactivatedFeedback": "Membership reactivated",
+  "resetPasswordSheetHint": "New temporary password for {name} — they will sign in with it.",
+  "@resetPasswordSheetHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordResetFeedback": "Password reset — share it with {name}",
+  "@passwordResetFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

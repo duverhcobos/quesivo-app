@@ -45,7 +45,10 @@ class QuesivoPrimaryButton extends StatelessWidget {
         shape: const StadiumBorder(),
         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
       ),
-      child: Text(label),
+      // scaleDown: en pares 1:1 (sheets) un label largo como
+      // "Actualizar contraseña" no entra en la mitad a 18px — escala en
+      // vez de envolver a 2 líneas y romper la simetría del par.
+      child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
     );
     return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
   }

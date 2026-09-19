@@ -897,6 +897,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Usuario creado — compartile la contraseña temporal'**
   String get memberCreatedFeedback;
+
+  /// No description provided for @suspendMemberTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Suspender a {name}?'**
+  String suspendMemberTitle(String name);
+
+  /// No description provided for @suspendMemberMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Perderá el acceso a esta organización hasta que lo reactives.'**
+  String get suspendMemberMessage;
+
+  /// No description provided for @reactivateMemberTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Reactivar a {name}?'**
+  String reactivateMemberTitle(String name);
+
+  /// No description provided for @reactivateMemberMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Recuperará el acceso a esta organización.'**
+  String get reactivateMemberMessage;
+
+  /// No description provided for @memberSuspendedFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Membresía suspendida'**
+  String get memberSuspendedFeedback;
+
+  /// No description provided for @memberReactivatedFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Membresía reactivada'**
+  String get memberReactivatedFeedback;
+
+  /// No description provided for @resetPasswordSheetHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva contraseña temporal para {name} — ingresará con ella.'**
+  String resetPasswordSheetHint(String name);
+
+  /// No description provided for @passwordResetFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña restablecida — compartila con {name}'**
+  String passwordResetFeedback(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -9,11 +9,22 @@ import 'member_status_chip.dart';
 
 /// Card de un miembro de la organización en el listado de Usuarios:
 /// avatar de iniciales + nombre + email + chips de rol/estado + menú de
-/// acciones ⋮ (visual — los diálogos llegan con su propuesta).
+/// acciones ⋮ que abre `MemberStatusDialog` / `ResetPasswordSheet` (§45).
 class OrgMemberCard extends StatelessWidget {
-  const OrgMemberCard({super.key, required this.member});
+  const OrgMemberCard({
+    super.key,
+    required this.member,
+    required this.onStatusToggle,
+    required this.onPasswordReset,
+    this.sheetTopInset = 0,
+  });
 
   final OrgMember member;
+  final ValueChanged<MemberStatus> onStatusToggle;
+  final ValueChanged<String> onPasswordReset;
+
+  /// Tope del `ResetPasswordSheet` — lo mide la pantalla sobre el hero.
+  final double sheetTopInset;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +83,12 @@ class OrgMemberCard extends StatelessWidget {
               ],
             ),
           ),
-          MemberActionsMenu(status: member.status),
+          MemberActionsMenu(
+            member: member,
+            onStatusToggle: onStatusToggle,
+            onPasswordReset: onPasswordReset,
+            sheetTopInset: sheetTopInset,
+          ),
         ],
       ),
     );

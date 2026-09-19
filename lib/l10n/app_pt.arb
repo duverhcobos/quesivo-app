@@ -154,5 +154,41 @@
   "invalidMemberNameError": "Digite o nome completo",
   "invalidTempPasswordError": "Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número",
   "createUserButton": "Criar usuário",
-  "memberCreatedFeedback": "Usuário criado — compartilhe a senha temporária"
+  "memberCreatedFeedback": "Usuário criado — compartilhe a senha temporária",
+  "suspendMemberTitle": "Suspender {name}?",
+  "@suspendMemberTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "suspendMemberMessage": "Perderá o acesso a esta organização até que você o reative.",
+  "reactivateMemberTitle": "Reativar {name}?",
+  "@reactivateMemberTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reactivateMemberMessage": "Recuperará o acesso a esta organização.",
+  "memberSuspendedFeedback": "Associação suspensa",
+  "memberReactivatedFeedback": "Associação reativada",
+  "resetPasswordSheetHint": "Nova senha temporária para {name} — entrará com ela.",
+  "@resetPasswordSheetHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordResetFeedback": "Senha redefinida — compartilhe com {name}",
+  "@passwordResetFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
