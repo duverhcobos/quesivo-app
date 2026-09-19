@@ -84,9 +84,9 @@ class NewUserSheet extends StatefulWidget {
 
 class _NewUserSheetState extends State<NewUserSheet> {
   /// Pausa de confirmación antes de cerrar: el usuario ve el check del
-  /// botón + la línea verde de éxito dentro del sheet (feedback en
-  /// físico — el pop inmediato tras el 201 se sentía abrupto).
-  static const _successDismissDelay = Duration(milliseconds: 900);
+  /// botón dentro del sheet (feedback en físico — el pop inmediato tras
+  /// el 201 se sentía abrupto; ~500ms por feedback del usuario).
+  static const _successDismissDelay = Duration(milliseconds: 500);
 
   String _name = '';
   String _email = '';
@@ -208,7 +208,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
                     );
                     return;
                   }
-                  // Pausa de confirmación ~900ms: el check del botón
+                  // Pausa de confirmación ~500ms: el check del botón
                   // queda visible antes de devolver el miembro REAL
                   // del backend (uuid + linked) por pop.
                   final member = state.createdMember;

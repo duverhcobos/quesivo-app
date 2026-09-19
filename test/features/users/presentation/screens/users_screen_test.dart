@@ -235,7 +235,7 @@ void main() {
     ).called(1);
 
     // El backend respondió 201 — el sheet muestra la confirmación
-    // ~900ms y luego popea el OrgMember real.
+    // ~500ms y luego popea el OrgMember real.
     stateController.add(
       const CreateUserState(
         status: FormzSubmissionStatus.success,

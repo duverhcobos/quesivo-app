@@ -254,7 +254,7 @@ void main() {
   );
 
   testWidgets(
-    'estado success muestra check ~900ms y luego popea el miembro real',
+    'estado success muestra check ~500ms y luego popea el miembro real',
     (tester) async {
       useTallSurface(tester);
       await tester.pumpWidget(buildApp());
@@ -266,7 +266,7 @@ void main() {
 
       // El backend respondió 201 — el cubit emite success con el
       // OrgMember real (uuid, linked). El sheet NO popea de inmediato:
-      // hay una pausa de confirmación visible (~900ms) antes del pop.
+      // hay una pausa de confirmación visible (~500ms) antes del pop.
       stateController.add(
         const CreateUserState(
           status: FormzSubmissionStatus.success,
