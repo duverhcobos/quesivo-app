@@ -68,7 +68,7 @@
   "onboardingSlide2Description": "Track prices, advances and settlements for each producer without paperwork.",
   "onboardingSlide3Title": "Payments made simple",
   "onboardingSlide3Description": "Generate settlements and keep sales, expenses and inventory under control.",
-  "welcomeTitle": "Welcome to Quesivo",
+  "welcomeTitle": "Welcome",
   "welcomeDescription": "Manage your cheese factory simply: control production, inventory, suppliers, and payments from one place.",
   "welcomeSignIn": "Sign In",
   "welcomeSignUp": "Sign Up",
@@ -146,5 +146,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newUserSheetHint": "The user will sign in with this temporary password — share it with them.",
+  "tempPasswordPlaceholder": "Temporary password",
+  "roleFieldLabel": "Role in the organization",
+  "roleRequiredError": "Choose a role",
+  "invalidMemberNameError": "Enter the full name",
+  "invalidTempPasswordError": "At least 8 characters, one uppercase, one lowercase and one digit",
+  "createUserButton": "Create user",
+  "memberCreatedFeedback": "User created — share the temporary password"
 }

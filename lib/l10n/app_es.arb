@@ -67,7 +67,7 @@
   "onboardingSlide2Description": "Lleva precios, adelantos y liquidaciones de cada productor sin papeleo.",
   "onboardingSlide3Title": "Pagos sin complicaciones",
   "onboardingSlide3Description": "Genera liquidaciones y mantén el control de ventas, gastos e inventario.",
-  "welcomeTitle": "Bienvenido a Quesivo",
+  "welcomeTitle": "Bienvenido",
   "welcomeDescription": "Gestiona tu quesera de forma simple: controla producción, inventario, proveedores y pagos desde un solo lugar.",
   "welcomeSignIn": "Iniciar Sesión",
   "welcomeSignUp": "Registrarse",
@@ -145,5 +145,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newUserSheetHint": "El usuario ingresará con esta contraseña temporal — compartila con él.",
+  "tempPasswordPlaceholder": "Contraseña temporal",
+  "roleFieldLabel": "Rol en la organización",
+  "roleRequiredError": "Elegí un rol",
+  "invalidMemberNameError": "Ingresá el nombre completo",
+  "invalidTempPasswordError": "Mínimo 8 caracteres, una mayúscula, una minúscula y un número",
+  "createUserButton": "Crear usuario",
+  "memberCreatedFeedback": "Usuario creado — compartile la contraseña temporal"
 }

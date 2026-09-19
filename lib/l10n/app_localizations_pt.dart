@@ -216,7 +216,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Gere liquidações e mantenha vendas, despesas e estoque sob controle.';
 
   @override
-  String get welcomeTitle => 'Bem-vindo ao Quesivo';
+  String get welcomeTitle => 'Bem-vindo';
 
   @override
   String get welcomeDescription =>
@@ -410,4 +410,31 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get newUserSheetHint =>
+      'O usuário entrará com esta senha temporária — compartilhe-a com ele.';
+
+  @override
+  String get tempPasswordPlaceholder => 'Senha temporária';
+
+  @override
+  String get roleFieldLabel => 'Função na organização';
+
+  @override
+  String get roleRequiredError => 'Escolha uma função';
+
+  @override
+  String get invalidMemberNameError => 'Digite o nome completo';
+
+  @override
+  String get invalidTempPasswordError =>
+      'Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número';
+
+  @override
+  String get createUserButton => 'Criar usuário';
+
+  @override
+  String get memberCreatedFeedback =>
+      'Usuário criado — compartilhe a senha temporária';
 }

@@ -9,6 +9,7 @@ import '../../../shell/presentation/widgets/shell_insets.dart';
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
 import '../widgets/member_stats_row.dart';
+import '../widgets/new_user_sheet.dart';
 import '../widgets/org_member_card.dart';
 import '../widgets/role_filter_chips.dart';
 import '../widgets/users_empty_state.dart';
@@ -19,8 +20,8 @@ import 'sample_org_members.dart';
 /// Pantalla principal del módulo Usuarios (`/home/usuarios` — hija del
 /// branch Inicio). Solo UI: el listado se pinta con
 /// `generateSampleOrgMembers()` hasta la propuesta que integre
-/// `GET /auth/users`; "Nuevo usuario" y las acciones de fila son
-/// placeholders visuales.
+/// `GET /auth/users`; las acciones de fila son placeholders visuales;
+/// el botón de creación abre `NewUserSheet` (§44).
 ///
 /// Rediseño §38: cabecera navy del módulo. §39: hero edge-to-edge
 /// detrás del ShellHeader. §41/§42: hero mínimo sin back/subtítulo,
@@ -124,6 +125,28 @@ class _UsersScreenState extends State<UsersScreen> {
     _resetPagination();
   }
 
+  /// §44 — abre el sheet de creación; al volver con un miembro lo
+  /// inserta al tope del dataset local (stats + listado se actualizan
+  /// solos) y muestra feedback. La integración reemplaza el insert por
+  /// `POST /auth/users` + refresh de la página.
+  Future<void> _openNewUserSheet() async {
+    final created = await NewUserSheet.show(context);
+    if (created == null || !mounted) return;
+    setState(() => _allMembers.insert(0, created));
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.memberCreatedFeedback),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -164,11 +187,7 @@ class _UsersScreenState extends State<UsersScreen> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(l10n.moduleComingSoon)),
-                              );
-                            },
+                            onPressed: _openNewUserSheet,
                             tooltip: l10n.newUserButton,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(

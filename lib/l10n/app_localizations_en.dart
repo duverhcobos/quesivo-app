@@ -216,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Generate settlements and keep sales, expenses and inventory under control.';
 
   @override
-  String get welcomeTitle => 'Welcome to Quesivo';
+  String get welcomeTitle => 'Welcome';
 
   @override
   String get welcomeDescription =>
@@ -410,4 +410,31 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get newUserSheetHint =>
+      'The user will sign in with this temporary password — share it with them.';
+
+  @override
+  String get tempPasswordPlaceholder => 'Temporary password';
+
+  @override
+  String get roleFieldLabel => 'Role in the organization';
+
+  @override
+  String get roleRequiredError => 'Choose a role';
+
+  @override
+  String get invalidMemberNameError => 'Enter the full name';
+
+  @override
+  String get invalidTempPasswordError =>
+      'At least 8 characters, one uppercase, one lowercase and one digit';
+
+  @override
+  String get createUserButton => 'Create user';
+
+  @override
+  String get memberCreatedFeedback =>
+      'User created — share the temporary password';
 }

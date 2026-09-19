@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/widgets/quesivo_text_field.dart';
 import '../cubit/reset_password_cubit.dart';
 import '../cubit/reset_password_state.dart';
 import 'password_requirements_checklist.dart';
-import 'quesivo_auth_field.dart';
 
 /// Campos del formulario de restablecimiento de contraseña
 /// (§password_form): nueva contraseña + checklist vivo de requisitos +
@@ -26,7 +26,7 @@ class ResetPasswordFormFields extends StatelessWidget {
         // --- Nueva contraseña (§password_form.new_password) ---
         BlocBuilder<ResetPasswordCubit, ResetPasswordState>(
           buildWhen: (p, c) => p.password != c.password,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.newPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
@@ -52,7 +52,7 @@ class ResetPasswordFormFields extends StatelessWidget {
         // --- Confirmar contraseña (§password_form.confirm_password) ---
         BlocBuilder<ResetPasswordCubit, ResetPasswordState>(
           buildWhen: (p, c) => p.confirmPassword != c.confirmPassword,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.confirmPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,

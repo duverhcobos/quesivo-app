@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/widgets/quesivo_text_field.dart';
 import '../cubit/forgot_password_cubit.dart';
 import '../cubit/forgot_password_state.dart';
-import 'quesivo_auth_field.dart';
 
 /// Campo email del formulario de recuperación de contraseña (§email_form).
 ///
@@ -20,7 +20,7 @@ class ForgotPasswordForm extends StatelessWidget {
     // --- Campo email (§email_form) ---
     return BlocBuilder<ForgotPasswordCubit, ForgotPasswordState>(
       buildWhen: (p, c) => p.email != c.email,
-      builder: (context, state) => QuesivoAuthField(
+      builder: (context, state) => QuesivoTextField(
         hintText: l10n.registerEmailPlaceholder,
         prefixIcon: Icons.mail_outline,
         keyboardType: TextInputType.emailAddress,

@@ -5,9 +5,9 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_text_field.dart';
 import '../cubit/login_cubit.dart';
 import '../cubit/login_state.dart';
-import 'quesivo_auth_field.dart';
 
 /// Campos del formulario de login (§login_form, gap 16) más el link
 /// "¿Olvidaste tu contraseña?" (§forgot_password, alineado a la derecha).
@@ -27,7 +27,7 @@ class LoginFormFields extends StatelessWidget {
         // --- Email (§login_form.email) ---
         BlocBuilder<LoginCubit, LoginState>(
           buildWhen: (p, c) => p.email != c.email,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.registerEmailPlaceholder,
             prefixIcon: Icons.mail_outline,
             keyboardType: TextInputType.emailAddress,
@@ -42,7 +42,7 @@ class LoginFormFields extends StatelessWidget {
         // --- Password (§login_form.password) ---
         BlocBuilder<LoginCubit, LoginState>(
           buildWhen: (p, c) => p.password != c.password,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.registerPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,

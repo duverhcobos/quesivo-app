@@ -5,51 +5,44 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/user_role.dart';
 import 'user_role_ui.dart';
 
-/// Fila de chips horizontales para filtrar el listado por rol — "Todos"
-/// (`selected == null`) + los 4 roles del catálogo, mismos íconos de
-/// dominio que `MemberRoleChip` (§38) para que el vocabulario visual sea
-/// el mismo en el chip de fila y en el filtro.
-class RoleFilterChips extends StatelessWidget {
-  const RoleFilterChips({
+/// Selector de rol del sheet de creación (§44) — los 4 roles del catálogo
+/// como chips seleccionables con la misma piel que `RoleFilterChips`
+/// (seleccionado navy/blanco, sin seleccionar iconSurface/navy), en Wrap
+/// porque 4 chips no siempre entran en una sola fila dentro del sheet.
+///
+/// Sin "Todos" ni default: el rol es obligatorio y se elige explícito —
+/// preseleccionar uno generaría membresías equivocadas por descuido.
+class RoleSelectorChips extends StatelessWidget {
+  const RoleSelectorChips({
     super.key,
     required this.selected,
     required this.onChanged,
   });
 
-  /// `null` = "Todos".
   final UserRole? selected;
-  final ValueChanged<UserRole?> onChanged;
+  final ValueChanged<UserRole> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final options = <(UserRole?, String, IconData?)>[
-      (null, l10n.roleFilterAll, null),
-      for (final role in UserRole.values) (role, role.label(l10n), role.icon),
-    ];
-
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: options.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final (role, label, icon) = options[index];
-          return _RoleFilterChip(
-            label: label,
-            icon: icon,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final role in UserRole.values)
+          _RoleSelectorChip(
+            label: role.label(l10n),
+            icon: role.icon,
             isSelected: role == selected,
             onTap: () => onChanged(role),
-          );
-        },
-      ),
+          ),
+      ],
     );
   }
 }
 
-class _RoleFilterChip extends StatelessWidget {
-  const _RoleFilterChip({
+class _RoleSelectorChip extends StatelessWidget {
+  const _RoleSelectorChip({
     required this.label,
     required this.icon,
     required this.isSelected,
@@ -57,7 +50,7 @@ class _RoleFilterChip extends StatelessWidget {
   });
 
   final String label;
-  final IconData? icon;
+  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -71,14 +64,12 @@ class _RoleFilterChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[
-                Icon(icon, size: 14, color: fg),
-                const SizedBox(width: 6),
-              ],
+              Icon(icon, size: 15, color: fg),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(

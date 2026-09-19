@@ -68,7 +68,7 @@
   "onboardingSlide2Description": "Controle preços, adiantamentos e liquidações de cada produtor sem papelada.",
   "onboardingSlide3Title": "Pagamentos sem complicações",
   "onboardingSlide3Description": "Gere liquidações e mantenha vendas, despesas e estoque sob controle.",
-  "welcomeTitle": "Bem-vindo ao Quesivo",
+  "welcomeTitle": "Bem-vindo",
   "welcomeDescription": "Gerencie sua queijaria de forma simples: controle produção, estoque, fornecedores e pagamentos em um só lugar.",
   "welcomeSignIn": "Entrar",
   "welcomeSignUp": "Cadastrar",
@@ -146,5 +146,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newUserSheetHint": "O usuário entrará com esta senha temporária — compartilhe-a com ele.",
+  "tempPasswordPlaceholder": "Senha temporária",
+  "roleFieldLabel": "Função na organização",
+  "roleRequiredError": "Escolha uma função",
+  "invalidMemberNameError": "Digite o nome completo",
+  "invalidTempPasswordError": "Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número",
+  "createUserButton": "Criar usuário",
+  "memberCreatedFeedback": "Usuário criado — compartilhe a senha temporária"
 }

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/widgets/quesivo_text_field.dart';
 import '../cubit/register_cubit.dart';
 import '../cubit/register_state.dart';
 import 'password_requirements_checklist.dart';
-import 'quesivo_auth_field.dart';
 
 /// Los 5 campos del formulario de registro (§register_form, gap 16) más el
 /// checklist vivo de requisitos entre password y confirmación.
@@ -25,7 +25,7 @@ class RegisterFormFields extends StatelessWidget {
         // (organización = tenant principal del SaaS).
         BlocBuilder<RegisterCubit, RegisterState>(
           buildWhen: (p, c) => p.organizationName != c.organizationName,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.orgNamePlaceholder,
             prefixIcon: Icons.storefront_outlined,
             onChanged: (v) =>
@@ -38,7 +38,7 @@ class RegisterFormFields extends StatelessWidget {
         const SizedBox(height: 16),
         BlocBuilder<RegisterCubit, RegisterState>(
           buildWhen: (p, c) => p.fullName != c.fullName,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.fullNamePlaceholder,
             prefixIcon: Icons.person_outline,
             onChanged: (v) => context.read<RegisterCubit>().fullNameChanged(v),
@@ -50,7 +50,7 @@ class RegisterFormFields extends StatelessWidget {
         const SizedBox(height: 16),
         BlocBuilder<RegisterCubit, RegisterState>(
           buildWhen: (p, c) => p.email != c.email,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.registerEmailPlaceholder,
             prefixIcon: Icons.mail_outline,
             keyboardType: TextInputType.emailAddress,
@@ -63,7 +63,7 @@ class RegisterFormFields extends StatelessWidget {
         const SizedBox(height: 16),
         BlocBuilder<RegisterCubit, RegisterState>(
           buildWhen: (p, c) => p.password != c.password,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.registerPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
@@ -88,7 +88,7 @@ class RegisterFormFields extends StatelessWidget {
         const SizedBox(height: 16),
         BlocBuilder<RegisterCubit, RegisterState>(
           buildWhen: (p, c) => p.confirmPassword != c.confirmPassword,
-          builder: (context, state) => QuesivoAuthField(
+          builder: (context, state) => QuesivoTextField(
             hintText: l10n.confirmPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,

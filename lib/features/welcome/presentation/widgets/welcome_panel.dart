@@ -36,34 +36,39 @@ class WelcomePanel extends StatelessWidget {
             horizontal: MediaQuery.sizeOf(context).width * 0.08,
             vertical: MediaQuery.sizeOf(context).height * 0.035,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                  color: AppColors.quesivoWhite,
+          // SingleChildScrollView: en pantallas bajas o con fuente de
+          // accesibilidad grande el contenido scrollea en vez de
+          // desbordar el Expanded (overflow de 3.7px visto en físico).
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0,
+                    color: AppColors.quesivoWhite,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                description,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                  color: AppColors.quesivoWhite.withValues(alpha: 0.95),
+                const SizedBox(height: 20),
+                Text(
+                  description,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    height: 1.45,
+                    color: AppColors.quesivoWhite.withValues(alpha: 0.95),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              actions,
-            ],
+                const SizedBox(height: 30),
+                actions,
+              ],
+            ),
           ),
         ),
       ),

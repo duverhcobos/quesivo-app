@@ -505,7 +505,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeTitle.
   ///
   /// In es, this message translates to:
-  /// **'Bienvenido a Quesivo'**
+  /// **'Bienvenido'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeDescription.
@@ -849,6 +849,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =1{{count} activo} other{{count} activos}}'**
   String activeMembersCount(int count);
+
+  /// No description provided for @newUserSheetHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El usuario ingresará con esta contraseña temporal — compartila con él.'**
+  String get newUserSheetHint;
+
+  /// No description provided for @tempPasswordPlaceholder.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña temporal'**
+  String get tempPasswordPlaceholder;
+
+  /// No description provided for @roleFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Rol en la organización'**
+  String get roleFieldLabel;
+
+  /// No description provided for @roleRequiredError.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegí un rol'**
+  String get roleRequiredError;
+
+  /// No description provided for @invalidMemberNameError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresá el nombre completo'**
+  String get invalidMemberNameError;
+
+  /// No description provided for @invalidTempPasswordError.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 8 caracteres, una mayúscula, una minúscula y un número'**
+  String get invalidTempPasswordError;
+
+  /// No description provided for @createUserButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear usuario'**
+  String get createUserButton;
+
+  /// No description provided for @memberCreatedFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuario creado — compartile la contraseña temporal'**
+  String get memberCreatedFeedback;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quesivo/features/users/presentation/screens/users_screen.dart';
+import 'package:quesivo/features/users/presentation/widgets/new_user_sheet.dart';
 import 'package:quesivo/features/users/presentation/widgets/org_member_card.dart';
 import 'package:quesivo/features/users/presentation/widgets/role_filter_chips.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
@@ -103,5 +104,65 @@ void main() {
     // 13 miembros son Productor, menos que la página inicial de 15 —
     // la cuenta visible baja.
     expect(find.byType(OrgMemberCard), findsNWidgets(13));
+  });
+
+  testWidgets('el botón de acción abre el sheet de creación', (tester) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+
+    await tester.tap(find.byIcon(Icons.person_add_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Crear usuario'), findsOneWidget);
+  });
+
+  testWidgets('crear desde el sheet agrega el miembro al tope del listado', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+
+    await tester.tap(find.byIcon(Icons.person_add_outlined));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Nombre completo'),
+      'Usuario Nuevo',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Correo electrónico'),
+      'nuevo@mail.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Contraseña temporal'),
+      'Temporal1',
+    );
+    // "Operario" también aparece en RoleFilterChips y en los
+    // MemberRoleChip de las cards — se acota al árbol del sheet.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NewUserSheet),
+        matching: find.text('Operario'),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pumpAndSettle();
+
+    // Sheet cerrado + snackbar de feedback (§44).
+    expect(find.text('Crear usuario'), findsNothing);
+    expect(
+      find.text('Usuario creado — compartile la contraseña temporal'),
+      findsOneWidget,
+    );
+    // El insert al tope sube el total y la primera card es la del nuevo.
+    expect(find.text('55 miembros'), findsOneWidget);
+    expect(
+      tester
+          .widget<OrgMemberCard>(find.byType(OrgMemberCard).first)
+          .member
+          .name,
+      'Usuario Nuevo',
+    );
   });
 }

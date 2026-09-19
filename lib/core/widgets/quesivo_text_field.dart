@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../theme/app_colors.dart';
 
-/// Campo de texto de las pantallas de autenticación QUESIVO
-/// (quesivo-design-system.yaml §register_form / §login_form).
+/// Campo de texto de marca QUESIVO (quesivo-design-system.yaml
+/// §register_form / §login_form / §create_user_sheet) — borde
+/// quesivoBorder r15, prefixIcon navy, fill blanco.
 ///
-/// SOLID (SRP): solo renderiza la caja con el estilo de marca; no sabe para
-/// qué se usa (nombre, email, password). `isPassword` agrega el ojo de
-/// visibilidad como estado visual interno.
-class QuesivoAuthField extends StatefulWidget {
-  const QuesivoAuthField({
+/// SOLID (SRP): solo renderiza la caja con el estilo de marca; no sabe
+/// para qué se usa (nombre, email, password). `isPassword` agrega el ojo
+/// de visibilidad como estado visual interno.
+///
+/// Movido a core/widgets en §44 — es una primitiva de marca compartida
+/// por auth y los módulos (antes `QuesivoAuthField` en features/auth).
+class QuesivoTextField extends StatefulWidget {
+  const QuesivoTextField({
     super.key,
     required this.hintText,
     required this.prefixIcon,
@@ -27,10 +31,10 @@ class QuesivoAuthField extends StatefulWidget {
   final void Function(String)? onChanged;
 
   @override
-  State<QuesivoAuthField> createState() => _QuesivoAuthFieldState();
+  State<QuesivoTextField> createState() => _QuesivoTextFieldState();
 }
 
-class _QuesivoAuthFieldState extends State<QuesivoAuthField> {
+class _QuesivoTextFieldState extends State<QuesivoTextField> {
   bool _obscure = true;
 
   @override
