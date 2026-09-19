@@ -53,7 +53,11 @@ class AuthApiService {
           },
           onError: (DioException e, handler) {
             dev.log('AuthApi - Error status code: ${e.response?.statusCode}');
-            return handler.reject(e);
+            // next (no reject): el error debe seguir viajando por la cadena —
+            // RefreshTokenInterceptor viene después en la lista y su onError
+            // es quien dispara el refresh. Con reject la cadena se corta acá
+            // y ningún 401 autenticado llega a intentar refresco.
+            return handler.next(e);
           },
         ),
       );
