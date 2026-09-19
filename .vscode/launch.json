@@ -19,6 +19,19 @@
             ]
         },
         {
+            "name": "Solid DEV (Dispositivo Físico)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=ENV=dev",
+                // IP LAN de la PC donde corre el backend local — ajustar si
+                // cambia por DHCP (ipconfig → IPv4 del adaptador Wi-Fi).
+                // El backend debe escuchar en 0.0.0.0 (NestJS default).
+                "--dart-define=API_URL=http://192.168.1.10:3000",
+                "--dart-define=API_TOKEN=${env:API_TOKEN_DEV}"
+            ]
+        },
+        {
             "name": "Solid STG (Servidor Pruebas)",
             "request": "launch",
             "type": "dart",
