@@ -945,6 +945,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Contraseña restablecida — compartila con {name}'**
   String passwordResetFeedback(String name);
+
+  /// No description provided for @memberLinkedFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'{name} ya tenía cuenta — quedó vinculado y entra con su contraseña actual'**
+  String memberLinkedFeedback(String name);
+
+  /// No description provided for @membershipExistsError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese correo ya pertenece a esta organización'**
+  String get membershipExistsError;
+
+  /// No description provided for @linkedUserSuspendedError.
+  ///
+  /// In es, this message translates to:
+  /// **'Esa cuenta está suspendida — no se puede vincular'**
+  String get linkedUserSuspendedError;
+
+  /// No description provided for @usersForbiddenError.
+  ///
+  /// In es, this message translates to:
+  /// **'No tenés permisos para gestionar usuarios'**
+  String get usersForbiddenError;
+
+  /// No description provided for @tooManyAttemptsError.
+  ///
+  /// In es, this message translates to:
+  /// **'Demasiados intentos — esperá un momento'**
+  String get tooManyAttemptsError;
+
+  /// No description provided for @genericError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocurrió un error — intentalo de nuevo'**
+  String get genericError;
+
+  /// No description provided for @networkError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo conectar al servidor — revisá tu conexión'**
+  String get networkError;
 }
 
 class _AppLocalizationsDelegate

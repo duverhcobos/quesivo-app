@@ -52,6 +52,7 @@ class HttpNetworkServiceImpl implements INetworkService {
       throw RestApiException(
         statusCode: response.statusCode,
         message: _extractErrorMessage(response.body),
+        errorCode: _extractErrorCode(response.body),
       );
     }
   }
@@ -70,6 +71,19 @@ class HttpNetworkServiceImpl implements INetworkService {
       return 'Http Error';
     } catch (_) {
       return 'Http Error';
+    }
+  }
+
+  /// Paridad con el servicio Dio — mismo campo `errorCode` del
+  /// DomainExceptionFilter.
+  String? _extractErrorCode(String body) {
+    try {
+      final data = jsonDecode(body);
+      if (data is! Map<String, dynamic>) return null;
+      final code = data['errorCode'];
+      return code is String ? code : null;
+    } catch (_) {
+      return null;
     }
   }
 }

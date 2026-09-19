@@ -43,6 +43,7 @@ class DioNetworkServiceImpl implements INetworkService {
             _extractErrorMessage(e.response!.data) ??
             e.response!.statusMessage ??
             'Error desconocido',
+        errorCode: _extractErrorCode(e.response!.data),
       );
     } else {
       // Error de red (sin internet, timeout)
@@ -59,5 +60,13 @@ class DioNetworkServiceImpl implements INetworkService {
     if (message is String) return message;
     if (message is List && message.isNotEmpty) return message.first.toString();
     return null;
+  }
+
+  /// `errorCode` estable del DomainExceptionFilter (ej. los dos 409 de
+  /// POST /auth/users) — ausente en errores de guard/validación.
+  String? _extractErrorCode(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    final code = data['errorCode'];
+    return code is String ? code : null;
   }
 }

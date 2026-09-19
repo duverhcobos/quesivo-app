@@ -190,5 +190,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "memberLinkedFeedback": "{name} já tinha conta — ficou vinculado e entra com a senha atual",
+  "@memberLinkedFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipExistsError": "Esse e-mail já pertence a esta organização",
+  "linkedUserSuspendedError": "Essa conta está suspensa — não pode ser vinculada",
+  "usersForbiddenError": "Você não tem permissão para gerenciar usuários",
+  "tooManyAttemptsError": "Muitas tentativas — aguarde um momento",
+  "genericError": "Ocorreu um erro — tente novamente",
+  "networkError": "Não foi possível conectar ao servidor — verifique sua conexão"
 }

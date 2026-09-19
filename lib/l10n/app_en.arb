@@ -190,5 +190,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "memberLinkedFeedback": "{name} already had an account — linked and signs in with their current password",
+  "@memberLinkedFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipExistsError": "That email already belongs to this organization",
+  "linkedUserSuspendedError": "That account is suspended — it can't be linked",
+  "usersForbiddenError": "You don't have permission to manage users",
+  "tooManyAttemptsError": "Too many attempts — wait a moment",
+  "genericError": "Something went wrong — try again",
+  "networkError": "Couldn't reach the server — check your connection"
 }

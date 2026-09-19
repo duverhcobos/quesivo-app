@@ -18,11 +18,12 @@ import '../widgets/users_search_field.dart';
 import 'sample_org_members.dart';
 
 /// Pantalla principal del módulo Usuarios (`/home/usuarios` — hija del
-/// branch Inicio). Solo UI: el listado se pinta con
-/// `generateSampleOrgMembers()` hasta la propuesta que integre
-/// `GET /auth/users`; las acciones de fila mutan el dataset local (§45
-/// — solo UI, el PATCH llega con la integración); el FAB de creación
-/// abre `NewUserSheet` (§44).
+/// branch Inicio). El listado se pinta con `generateSampleOrgMembers()`
+/// hasta la propuesta que integre `GET /auth/users`; las acciones de
+/// fila mutan el dataset local (§45 — solo UI, el PATCH llega con la
+/// integración); el FAB de creación abre `NewUserSheet`, que desde §46
+/// ya pega a `POST /auth/users` real — el insert local es el reflejo
+/// optimista hasta el GET.
 ///
 /// Rediseño §38: cabecera navy del módulo. §39: hero edge-to-edge
 /// detrás del ShellHeader. §41/§42: hero mínimo sin back/subtítulo.
@@ -145,10 +146,11 @@ class _UsersScreenState extends State<UsersScreen> {
     return box.size.height;
   }
 
-  /// §44 — abre el sheet de creación; al volver con un miembro lo
-  /// inserta al tope del dataset local (stats + listado se actualizan
-  /// solos) y muestra feedback. La integración reemplaza el insert por
-  /// `POST /auth/users` + refresh de la página.
+  /// §44/§46 — abre el sheet de creación, que ya pega a
+  /// `POST /auth/users` real vía `CreateUserCubit`; al volver con el
+  /// miembro del backend lo inserta al tope del dataset local (reflejo
+  /// optimista hasta la propuesta de `GET /auth/users`) y muestra
+  /// feedback — `linked` si el email ya existía globalmente.
   Future<void> _openNewUserSheet() async {
     // El hero arranca en y=0 de la pantalla → su alto ES la coordenada del
     // borde inferior de la tarjeta navy; el sheet no crece más arriba de
@@ -165,7 +167,13 @@ class _UsersScreenState extends State<UsersScreen> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)!.memberCreatedFeedback),
+        content: Text(
+          // linked: el email ya existía globalmente — solo se creó la
+          // membresía y no hay contraseña temporal que compartir.
+          created.linked
+              ? AppLocalizations.of(context)!.memberLinkedFeedback(created.name)
+              : AppLocalizations.of(context)!.memberCreatedFeedback,
+        ),
       ),
     );
   }

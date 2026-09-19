@@ -11,7 +11,17 @@ class RestApiException implements Exception {
   final int statusCode;
   final String message;
 
-  RestApiException({required this.statusCode, required this.message});
+  /// Código estable de dominio del backend — `DomainExceptionFilter` lo
+  /// emite cuando la excepción lo trae (ej. `MEMBERSHIP_ALREADY_EXISTS`,
+  /// `USER_SUSPENDED`, `INVALID_REFRESH_TOKEN`). Permite distinguir
+  /// errores que comparten el mismo status HTTP.
+  final String? errorCode;
+
+  RestApiException({
+    required this.statusCode,
+    required this.message,
+    this.errorCode,
+  });
 }
 
 class UnauthorizedException extends RestApiException {

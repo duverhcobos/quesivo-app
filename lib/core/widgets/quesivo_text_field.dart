@@ -21,6 +21,7 @@ class QuesivoTextField extends StatefulWidget {
     this.isPassword = false,
     this.errorText,
     this.onChanged,
+    this.enabled = true,
   });
 
   final String hintText;
@@ -29,6 +30,10 @@ class QuesivoTextField extends StatefulWidget {
   final bool isPassword;
   final String? errorText;
   final void Function(String)? onChanged;
+
+  /// `false` bloquea la edición — la sheet de creación lo usa para
+  /// congelar los campos mientras el submit está en vuelo.
+  final bool enabled;
 
   @override
   State<QuesivoTextField> createState() => _QuesivoTextFieldState();
@@ -48,6 +53,7 @@ class _QuesivoTextFieldState extends State<QuesivoTextField> {
       obscureText: widget.isPassword && _obscure,
       keyboardType: widget.keyboardType,
       onChanged: widget.onChanged,
+      enabled: widget.enabled,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       style: const TextStyle(
         color: AppColors.quesivoDarkText,
@@ -85,6 +91,10 @@ class _QuesivoTextFieldState extends State<QuesivoTextField> {
               )
             : null,
         enabledBorder: border,
+        // Mismo r15 de marca al deshabilitar — sin esto el decorator cae
+        // al border del tema global (r12) y el campo cambia de forma
+        // durante el submit del sheet.
+        disabledBorder: border,
         focusedBorder: border.copyWith(
           borderSide: const BorderSide(color: AppColors.quesivoNavy, width: 2),
         ),

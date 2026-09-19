@@ -1,17 +1,70 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:formz/formz.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:quesivo/core/widgets/quesivo_primary_button.dart';
 import 'package:quesivo/core/widgets/quesivo_text_field.dart';
 import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/domain/entities/user_role.dart';
+import 'package:quesivo/features/users/domain/failures/users_failure.dart';
+import 'package:quesivo/features/users/presentation/cubit/create_user_cubit.dart';
+import 'package:quesivo/features/users/presentation/cubit/create_user_state.dart';
 import 'package:quesivo/features/users/presentation/widgets/new_user_sheet.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+class MockCreateUserCubit extends MockCubit<CreateUserState>
+    implements CreateUserCubit {}
+
 void main() {
   // El sheet corre dentro de un Navigator — el harness es un botón que
-  // dispara `NewUserSheet.show(context)` y captura el Future<OrgMember?>
-  // que el sheet resuelve al hacer pop (OrgMember creado o null).
+  // dispara `NewUserSheet.show(context, cubit: mock)` (seam de tests)
+  // y captura el Future<OrgMember?> que el sheet resuelve al hacer pop
+  // (OrgMember del backend o null).
+  late MockCreateUserCubit mockCubit;
+  late StreamController<CreateUserState> stateController;
   late Future<OrgMember?> result;
+
+  const tMember = OrgMember(
+    id: 'uuid-backend-1',
+    email: 'nuevo@mail.com',
+    name: 'Usuario Nuevo',
+    role: UserRole.operator,
+    status: MemberStatus.active,
+    organizationId: 'org-1',
+  );
+
+  setUpAll(() {
+    registerFallbackValue(UserRole.operator);
+  });
+
+  setUp(() {
+    mockCubit = MockCreateUserCubit();
+    // Broadcast: el BlocConsumer se suscribe dos veces a bloc.stream
+    // (listener + builder) — un controller normal crashea con
+    // "Stream has already been listened to".
+    stateController = StreamController<CreateUserState>.broadcast();
+    // Stubs directos del stream/estado (un solo hop async — whenListen
+    // agrega un broadcast intermedio que obligaría a más pumps).
+    when(() => mockCubit.stream).thenAnswer((_) => stateController.stream);
+    when(() => mockCubit.state).thenReturn(const CreateUserState());
+    when(() => mockCubit.close()).thenAnswer((_) async {});
+    when(
+      () => mockCubit.submit(
+        name: any(named: 'name'),
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+        role: any(named: 'role'),
+      ),
+    ).thenAnswer((_) async {});
+  });
+
+  tearDown(() {
+    stateController.close();
+  });
 
   Widget buildApp() => MaterialApp(
     locale: const Locale('es'),
@@ -21,7 +74,8 @@ void main() {
       builder: (context) => Scaffold(
         body: Center(
           child: ElevatedButton(
-            onPressed: () => result = NewUserSheet.show(context),
+            onPressed: () =>
+                result = NewUserSheet.show(context, cubit: mockCubit),
             child: const Text('open'),
           ),
         ),
@@ -45,6 +99,14 @@ void main() {
 
   Finder field(String hint) => find.widgetWithText(TextFormField, hint);
 
+  Future<void> fillValidForm(WidgetTester tester) async {
+    await tester.enterText(field('Nombre completo'), 'Usuario Nuevo');
+    await tester.enterText(field('Correo electrónico'), 'nuevo@mail.com');
+    await tester.enterText(field('Contraseña temporal'), 'Temporal1');
+    await tester.tap(find.text('Operario'));
+    await tester.pump();
+  }
+
   testWidgets('renderiza campos, chips de rol y acciones', (tester) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
@@ -63,28 +125,37 @@ void main() {
     expect(find.text('Cancelar'), findsOneWidget);
   });
 
-  testWidgets('submit vacío muestra los errores y el sheet sigue abierto', (
-    tester,
-  ) async {
-    useTallSurface(tester);
-    await tester.pumpWidget(buildApp());
-    await openSheet(tester);
+  testWidgets(
+    'submit vacío muestra los errores y el sheet sigue abierto (sin llamar al cubit)',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
+      await openSheet(tester);
 
-    await tester.tap(find.text('Crear usuario'));
-    await tester.pump();
+      await tester.tap(find.text('Crear usuario'));
+      await tester.pump();
 
-    expect(find.text('Ingresá el nombre completo'), findsOneWidget);
-    expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
-    expect(
-      find.text(
-        'Mínimo 8 caracteres, una mayúscula, una minúscula y un número',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Elegí un rol'), findsOneWidget);
-    // No hubo pop — el sheet sigue abierto.
-    expect(find.text('Crear usuario'), findsOneWidget);
-  });
+      expect(find.text('Ingresá el nombre completo'), findsOneWidget);
+      expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
+      expect(
+        find.text(
+          'Mínimo 8 caracteres, una mayúscula, una minúscula y un número',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Elegí un rol'), findsOneWidget);
+      // No hubo pop — el sheet sigue abierto.
+      expect(find.text('Crear usuario'), findsOneWidget);
+      verifyNever(
+        () => mockCubit.submit(
+          name: any(named: 'name'),
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+          role: any(named: 'role'),
+        ),
+      );
+    },
+  );
 
   testWidgets('con campos válidos pero sin rol solo muestra "Elegí un rol"', (
     tester,
@@ -109,32 +180,135 @@ void main() {
       findsNothing,
     );
     expect(find.text('Crear usuario'), findsOneWidget);
+    verifyNever(
+      () => mockCubit.submit(
+        name: any(named: 'name'),
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+        role: any(named: 'role'),
+      ),
+    );
   });
 
-  testWidgets('submit válido hace pop con el OrgMember (email normalizado)', (
+  testWidgets('submit válido llama al cubit con los valores normalizados', (
     tester,
   ) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
     await openSheet(tester);
 
-    await tester.enterText(field('Nombre completo'), 'Usuario Nuevo');
+    await tester.enterText(field('Nombre completo'), '  Usuario Nuevo ');
     await tester.enterText(field('Correo electrónico'), 'Nuevo@Mail.com ');
     await tester.enterText(field('Contraseña temporal'), 'Temporal1');
     await tester.tap(find.text('Operario'));
     await tester.pump();
     await tester.tap(find.text('Crear usuario'));
+    await tester.pump();
+
+    verify(
+      () => mockCubit.submit(
+        name: 'Usuario Nuevo',
+        email: 'nuevo@mail.com',
+        password: 'Temporal1',
+        role: UserRole.operator,
+      ),
+    ).called(1);
+  });
+
+  testWidgets(
+    'estado inProgress muestra spinner y deshabilita campos y acciones',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
+      await openSheet(tester);
+
+      stateController.add(
+        const CreateUserState(status: FormzSubmissionStatus.inProgress),
+      );
+      // El evento viaja por microtask: un pump lo entrega al consumer
+      // (marca dirty) y el segundo pinta el rebuild. No pumpAndSettle —
+      // el spinner es una animación infinita y nunca settlea.
+      await tester.pump();
+      await tester.pump();
+
+      // El primario muestra spinner navy en vez del label.
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(
+        tester
+            .widget<QuesivoPrimaryButton>(find.byType(QuesivoPrimaryButton))
+            .isLoading,
+        isTrue,
+      );
+      // Los 3 campos quedan bloqueados mientras el submit está en vuelo.
+      for (final f in tester.widgetList<QuesivoTextField>(
+        find.byType(QuesivoTextField),
+      )) {
+        expect(f.enabled, isFalse);
+      }
+      // El ghost Cancelar se deshabilita — el submit en vuelo manda.
+      final cancelButton = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Cancelar'),
+      );
+      expect(cancelButton.onPressed, isNull);
+    },
+  );
+
+  testWidgets('estado success popea el miembro real del backend', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+    await fillValidForm(tester);
+
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pump();
+
+    // El backend respondió 201 — el cubit emite success con el
+    // OrgMember real (uuid, linked) y el sheet lo devuelve por pop.
+    stateController.add(
+      const CreateUserState(
+        status: FormzSubmissionStatus.success,
+        createdMember: tMember,
+      ),
+    );
     await tester.pumpAndSettle();
 
-    final member = await result;
-    expect(member, isNotNull);
-    expect(member!.name, 'Usuario Nuevo');
-    expect(member.email, 'nuevo@mail.com');
-    expect(member.role, UserRole.operator);
-    expect(member.status, MemberStatus.active);
+    expect(await result, tMember);
     // El sheet cerró.
     expect(find.text('Crear usuario'), findsNothing);
   });
+
+  testWidgets(
+    'estado failure muestra el error inline y el sheet sigue abierto',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
+      await openSheet(tester);
+      await fillValidForm(tester);
+
+      await tester.tap(find.text('Crear usuario'));
+      await tester.pump();
+
+      // 409 MEMBERSHIP_ALREADY_EXISTS → mensaje inline (no snackbar):
+      // el form queda abierto para corregir el email.
+      stateController.add(
+        const CreateUserState(
+          status: FormzSubmissionStatus.failure,
+          failure: MembershipAlreadyExistsFailure(),
+        ),
+      );
+      // Doble pump: entrega del evento (microtask) + rebuild pintado.
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        find.text('Ese correo ya pertenece a esta organización'),
+        findsOneWidget,
+      );
+      expect(find.text('Crear usuario'), findsOneWidget);
+    },
+  );
 
   testWidgets('Cancelar cierra el sheet sin resultado', (tester) async {
     useTallSurface(tester);

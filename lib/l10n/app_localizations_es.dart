@@ -471,4 +471,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String passwordResetFeedback(String name) {
     return 'Contraseña restablecida — compartila con $name';
   }
+
+  @override
+  String memberLinkedFeedback(String name) {
+    return '$name ya tenía cuenta — quedó vinculado y entra con su contraseña actual';
+  }
+
+  @override
+  String get membershipExistsError =>
+      'Ese correo ya pertenece a esta organización';
+
+  @override
+  String get linkedUserSuspendedError =>
+      'Esa cuenta está suspendida — no se puede vincular';
+
+  @override
+  String get usersForbiddenError => 'No tenés permisos para gestionar usuarios';
+
+  @override
+  String get tooManyAttemptsError => 'Demasiados intentos — esperá un momento';
+
+  @override
+  String get genericError => 'Ocurrió un error — intentalo de nuevo';
+
+  @override
+  String get networkError =>
+      'No se pudo conectar al servidor — revisá tu conexión';
 }

@@ -189,5 +189,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "memberLinkedFeedback": "{name} ya tenía cuenta — quedó vinculado y entra con su contraseña actual",
+  "@memberLinkedFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipExistsError": "Ese correo ya pertenece a esta organización",
+  "linkedUserSuspendedError": "Esa cuenta está suspendida — no se puede vincular",
+  "usersForbiddenError": "No tenés permisos para gestionar usuarios",
+  "tooManyAttemptsError": "Demasiados intentos — esperá un momento",
+  "genericError": "Ocurrió un error — intentalo de nuevo",
+  "networkError": "No se pudo conectar al servidor — revisá tu conexión"
 }

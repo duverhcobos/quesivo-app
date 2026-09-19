@@ -1,14 +1,85 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:formz/formz.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:quesivo/core/di/setup_di.dart';
 import 'package:quesivo/features/users/domain/entities/org_member.dart';
+import 'package:quesivo/features/users/domain/entities/user_role.dart';
+import 'package:quesivo/features/users/presentation/cubit/create_user_cubit.dart';
+import 'package:quesivo/features/users/presentation/cubit/create_user_state.dart';
 import 'package:quesivo/features/users/presentation/screens/users_screen.dart';
 import 'package:quesivo/features/users/presentation/widgets/new_user_sheet.dart';
 import 'package:quesivo/features/users/presentation/widgets/org_member_card.dart';
 import 'package:quesivo/features/users/presentation/widgets/role_filter_chips.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+class MockCreateUserCubit extends MockCubit<CreateUserState>
+    implements CreateUserCubit {}
+
 void main() {
+  // El NewUserSheet resuelve su cubit por `locator` (la screen no pasa
+  // el seam `cubit:`) — se registra un mock en setUp para controlar las
+  // emisiones y evitar que el factory real pida dependencias de red.
+  late MockCreateUserCubit mockCubit;
+  late StreamController<CreateUserState> stateController;
+
+  const tCreated = OrgMember(
+    id: 'uuid-backend-1',
+    email: 'nuevo@mail.com',
+    name: 'Usuario Nuevo',
+    role: UserRole.operator,
+    status: MemberStatus.active,
+    organizationId: 'org-1',
+  );
+
+  const tLinked = OrgMember(
+    id: 'uuid-backend-2',
+    email: 'ana.vieja@mail.com',
+    name: 'Ana Vieja',
+    role: UserRole.operator,
+    status: MemberStatus.active,
+    organizationId: 'org-1',
+    linked: true,
+  );
+
+  setUpAll(() {
+    registerFallbackValue(UserRole.operator);
+  });
+
+  setUp(() {
+    mockCubit = MockCreateUserCubit();
+    // Broadcast: el BlocConsumer se suscribe dos veces a bloc.stream
+    // (listener + builder) — un controller normal crashea con
+    // "Stream has already been listened to".
+    stateController = StreamController<CreateUserState>.broadcast();
+    // Stubs directos del stream/estado (un solo hop async — whenListen
+    // agrega un broadcast intermedio que obligaría a más pumps).
+    when(() => mockCubit.stream).thenAnswer((_) => stateController.stream);
+    when(() => mockCubit.state).thenReturn(const CreateUserState());
+    when(() => mockCubit.close()).thenAnswer((_) async {});
+    when(
+      () => mockCubit.submit(
+        name: any(named: 'name'),
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+        role: any(named: 'role'),
+      ),
+    ).thenAnswer((_) async {});
+    locator.registerFactory<CreateUserCubit>(() => mockCubit);
+  });
+
+  tearDown(() {
+    // Sin awaits: testWidgets corre en FakeAsync — el `done` del close
+    // queda encolado sin flush y un await acá colgaría el test. El
+    // isolate del test se descarta con el Future pendiente.
+    stateController.close();
+    locator.reset();
+  });
+
   Widget buildApp() => const MaterialApp(
     locale: Locale('es'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -25,6 +96,32 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
+  Future<void> openAndFillSheet(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.person_add_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Nombre completo'),
+      'Usuario Nuevo',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Correo electrónico'),
+      'nuevo@mail.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Contraseña temporal'),
+      'Temporal1',
+    );
+    // "Operario" también aparece en RoleFilterChips y en los
+    // MemberRoleChip de las cards — se acota al árbol del sheet.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NewUserSheet),
+        matching: find.text('Operario'),
+      ),
+    );
+    await tester.pump();
   }
 
   testWidgets('muestra título, tooltip de acción y stats sobre el total (54)', (
@@ -122,35 +219,31 @@ void main() {
   ) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
+    await openAndFillSheet(tester);
 
-    await tester.tap(find.byIcon(Icons.person_add_outlined));
-    await tester.pumpAndSettle();
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pump();
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Nombre completo'),
-      'Usuario Nuevo',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Correo electrónico'),
-      'nuevo@mail.com',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Contraseña temporal'),
-      'Temporal1',
-    );
-    // "Operario" también aparece en RoleFilterChips y en los
-    // MemberRoleChip de las cards — se acota al árbol del sheet.
-    await tester.tap(
-      find.descendant(
-        of: find.byType(NewUserSheet),
-        matching: find.text('Operario'),
+    // El submit salió al cubit con los valores del form.
+    verify(
+      () => mockCubit.submit(
+        name: 'Usuario Nuevo',
+        email: 'nuevo@mail.com',
+        password: 'Temporal1',
+        role: UserRole.operator,
+      ),
+    ).called(1);
+
+    // El backend respondió 201 — el sheet popea el OrgMember real.
+    stateController.add(
+      const CreateUserState(
+        status: FormzSubmissionStatus.success,
+        createdMember: tCreated,
       ),
     );
-    await tester.pump();
-    await tester.tap(find.text('Crear usuario'));
     await tester.pumpAndSettle();
 
-    // Sheet cerrado + snackbar de feedback (§44).
+    // Sheet cerrado + snackbar de feedback (§46).
     expect(find.text('Crear usuario'), findsNothing);
     expect(
       find.text('Usuario creado — compartile la contraseña temporal'),
@@ -164,6 +257,48 @@ void main() {
           .member
           .name,
       'Usuario Nuevo',
+    );
+  });
+
+  testWidgets('miembro con linked:true muestra el snackbar de vinculación', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openAndFillSheet(tester);
+
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pump();
+
+    // 201 con linked:true — el email ya existía globalmente y solo se
+    // creó la membresía: no hay contraseña temporal que compartir.
+    stateController.add(
+      const CreateUserState(
+        status: FormzSubmissionStatus.success,
+        createdMember: tLinked,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Crear usuario'), findsNothing);
+    expect(
+      find.text(
+        'Ana Vieja ya tenía cuenta — quedó vinculado y entra con su contraseña actual',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Usuario creado — compartile la contraseña temporal'),
+      findsNothing,
+    );
+    // Igual se inserta al tope del dataset local.
+    expect(find.text('55 miembros'), findsOneWidget);
+    expect(
+      tester
+          .widget<OrgMemberCard>(find.byType(OrgMemberCard).first)
+          .member
+          .linked,
+      isTrue,
     );
   });
 

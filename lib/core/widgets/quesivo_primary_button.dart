@@ -13,10 +13,15 @@ class QuesivoPrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.fullWidth = true,
+    this.isLoading = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
+
+  /// `true`: el label se reemplaza por un spinner navy y el botón queda
+  /// deshabilitado — el alto de 64px se conserva (no salta el layout).
+  final bool isLoading;
 
   /// `true` (default): el botón toma todo el ancho disponible — patrón de
   /// auth. `false`: abraza al label — para pares de acciones lado a lado
@@ -26,7 +31,7 @@ class QuesivoPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.quesivoYellow,
         foregroundColor: AppColors.quesivoNavy,
@@ -48,7 +53,16 @@ class QuesivoPrimaryButton extends StatelessWidget {
       // scaleDown: en pares 1:1 (sheets) un label largo como
       // "Actualizar contraseña" no entra en la mitad a 18px — escala en
       // vez de envolver a 2 líneas y romper la simetría del par.
-      child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
+      child: isLoading
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppColors.quesivoNavy,
+              ),
+            )
+          : FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
     );
     return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
   }
