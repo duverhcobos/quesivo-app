@@ -33,6 +33,16 @@ class UsersSearchField extends StatelessWidget {
           controller: controller,
           onChanged: onChanged,
           textInputAction: TextInputAction.search,
+          // Style explícito — sin él el texto tipeado hereda onSurface del
+          // tema activo: en modo oscuro sale casi blanco sobre el fill
+          // quesivoWhite forzado y no se lee (bug visto en físico). Mismo
+          // criterio que QuesivoTextField.
+          style: const TextStyle(
+            color: AppColors.quesivoDarkText,
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+          ),
+          cursorColor: AppColors.quesivoNavy,
           decoration: InputDecoration(
             hintText: l10n.searchUsersHint,
             hintStyle: const TextStyle(color: AppColors.quesivoTextSecondary),

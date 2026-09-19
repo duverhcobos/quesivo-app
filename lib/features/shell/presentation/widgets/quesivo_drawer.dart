@@ -7,7 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
 import 'drawer/drawer_brand_decoration.dart';
-import 'drawer/drawer_close_button.dart';
+import '../../../../core/widgets/quesivo_close_button.dart';
 import 'drawer/drawer_identity.dart';
 import 'drawer/drawer_menu_list.dart';
 
@@ -37,7 +37,7 @@ import 'drawer/drawer_menu_list.dart';
 ///
 /// Este archivo es solo la composición: cada pieza vive en su propio
 /// widget del mismo directorio (propuesta §29-refactor-drawer) —
-/// `DrawerBrandDecoration`, `DrawerCloseButton`, `DrawerIdentity` y
+/// `DrawerBrandDecoration`, `QuesivoCloseButton`, `DrawerIdentity` y
 /// `DrawerMenuList` (que a su vez usa `DrawerHomeTile`,
 /// `DrawerSectionLabel` y `DrawerMenuItemRow`).
 class QuesivoDrawer extends StatelessWidget {
@@ -163,7 +163,7 @@ class QuesivoDrawer extends StatelessWidget {
                     // alinea al tope, así que compensa ese mismo aire.
                     const Padding(
                       padding: EdgeInsets.only(top: 2),
-                      child: DrawerCloseButton(),
+                      child: QuesivoCloseButton(),
                     ),
                   ],
                 ),

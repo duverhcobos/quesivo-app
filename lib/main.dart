@@ -60,9 +60,15 @@ class MainApp extends StatelessWidget {
 
             // Inyectamos el Sistema Centralizado de Diseño Abstracto
             theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode
-                .system, // Sigue el sistema del celular automáticamente
+            // Diseño ÚNICO claro (decisión del usuario): no existe un tema
+            // dark Quesivo diseñado — el darkTheme heredado del proyecto
+            // origen (teal/verde/terracota) no es la marca y ThemeMode.system
+            // rompía la UI en físico: texto claro sobre fills quesivoWhite
+            // forzados, popups oscuros sobre cards blancas, cursores
+            // invisibles. Mientras no se diseñe un dark Quesivo real, la app
+            // ignora el tema del dispositivo. Cuando llegue, se define
+            // darkTheme con tokens quesivo* y se revisita.
+            themeMode: ThemeMode.light,
             // ---Internacionalización (i18n) ---
             // Forzamos el Locale que el usuario prefiera en el Cubit.
             // Si el estado es null, Flutter delega al sistema del celular inteligentemente.

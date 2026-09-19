@@ -12,31 +12,41 @@ class QuesivoPrimaryButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
+    this.fullWidth = true,
   });
 
   final String label;
   final VoidCallback? onPressed;
 
+  /// `true` (default): el botón toma todo el ancho disponible — patrón de
+  /// auth. `false`: abraza al label — para pares de acciones lado a lado
+  /// en sheets (el primario no debería estirarse a medio form).
+  final bool fullWidth;
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 64,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.quesivoYellow,
-          foregroundColor: AppColors.quesivoNavy,
-          disabledBackgroundColor: AppColors.quesivoYellow.withValues(
-            alpha: 0.45,
-          ),
-          disabledForegroundColor: AppColors.quesivoNavy.withValues(alpha: 0.5),
-          elevation: 0,
-          shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+    final button = ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.quesivoYellow,
+        foregroundColor: AppColors.quesivoNavy,
+        disabledBackgroundColor: AppColors.quesivoYellow.withValues(
+          alpha: 0.45,
         ),
-        child: Text(label),
+        disabledForegroundColor: AppColors.quesivoNavy.withValues(alpha: 0.5),
+        elevation: 0,
+        // El alto lo fija el botón mismo — así la variante hug-content no
+        // necesita un SizedBox de ancho, que dentro de un Row sin límites
+        // fuerza width:∞ y crashea (bug visto en físico).
+        minimumSize: const Size(0, 64),
+        // 16px: en los CTAs full-width el padding es invisible (texto
+        // centrado) y en los pares 1:1 le da aire al label en la mitad.
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
       ),
+      child: Text(label),
     );
+    return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
   }
 }

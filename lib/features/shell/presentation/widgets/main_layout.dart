@@ -48,6 +48,13 @@ class _MainLayoutState extends State<MainLayout> {
     return Scaffold(
       backgroundColor: AppColors.quesivoWhite,
       endDrawer: const QuesivoDrawer(),
+      // El teclado NO desplaza el chrome: con el default (true) el body se
+      // encoge con viewInsets y el Positioned(bottom: 0) del QuesivoNavBar
+      // sube flotando sobre el teclado (bug visto en físico). Con false el
+      // nav queda donde está y el teclado lo cubre — las pantallas siguen
+      // scrolleables y los formularios viven en sheets con useRootNavigator
+      // + viewInsets propios, que no dependen de este resize.
+      resizeToAvoidBottomInset: false,
       // §39 — Stack edge-to-edge: la hija pinta a pantalla completa y
       // reserva sus insets con shell_insets; el header y el nav flotan
       // encima. Ya no se remueve el padding superior del MediaQuery: las

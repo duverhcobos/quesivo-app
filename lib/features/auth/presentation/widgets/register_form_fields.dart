@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/widgets/password_requirements_checklist.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
+import '../../domain/value_objects/register_password.dart';
 import '../cubit/register_cubit.dart';
 import '../cubit/register_state.dart';
-import 'password_requirements_checklist.dart';
 
 /// Los 5 campos del formulario de registro (§register_form, gap 16) más el
 /// checklist vivo de requisitos entre password y confirmación.
@@ -77,12 +78,25 @@ class RegisterFormFields extends StatelessWidget {
         BlocBuilder<RegisterCubit, RegisterState>(
           buildWhen: (p, c) => p.password.value != c.password.value,
           builder: (context, state) => PasswordRequirementsChecklist(
-            password: state.password.value,
             title: l10n.passwordReqTitle,
-            minLengthLabel: l10n.passwordReqMinLength,
-            uppercaseLabel: l10n.passwordReqUppercase,
-            lowercaseLabel: l10n.passwordReqLowercase,
-            digitLabel: l10n.passwordReqDigit,
+            items: [
+              PasswordRequirementItem(
+                met: RegisterPassword.hasMinLength(state.password.value),
+                label: l10n.passwordReqMinLength,
+              ),
+              PasswordRequirementItem(
+                met: RegisterPassword.hasUppercase(state.password.value),
+                label: l10n.passwordReqUppercase,
+              ),
+              PasswordRequirementItem(
+                met: RegisterPassword.hasLowercase(state.password.value),
+                label: l10n.passwordReqLowercase,
+              ),
+              PasswordRequirementItem(
+                met: RegisterPassword.hasDigit(state.password.value),
+                label: l10n.passwordReqDigit,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),

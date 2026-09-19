@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/widgets/password_requirements_checklist.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
+import '../../domain/value_objects/register_password.dart';
 import '../cubit/reset_password_cubit.dart';
 import '../cubit/reset_password_state.dart';
-import 'password_requirements_checklist.dart';
 
 /// Campos del formulario de restablecimiento de contraseña
 /// (§password_form): nueva contraseña + checklist vivo de requisitos +
@@ -39,12 +40,25 @@ class ResetPasswordFormFields extends StatelessWidget {
         BlocBuilder<ResetPasswordCubit, ResetPasswordState>(
           buildWhen: (p, c) => p.password.value != c.password.value,
           builder: (context, state) => PasswordRequirementsChecklist(
-            password: state.password.value,
             title: l10n.passwordReqTitle,
-            minLengthLabel: l10n.passwordReqMinLength,
-            uppercaseLabel: l10n.passwordReqUppercase,
-            lowercaseLabel: l10n.passwordReqLowercase,
-            digitLabel: l10n.passwordReqDigit,
+            items: [
+              PasswordRequirementItem(
+                met: RegisterPassword.hasMinLength(state.password.value),
+                label: l10n.passwordReqMinLength,
+              ),
+              PasswordRequirementItem(
+                met: RegisterPassword.hasUppercase(state.password.value),
+                label: l10n.passwordReqUppercase,
+              ),
+              PasswordRequirementItem(
+                met: RegisterPassword.hasLowercase(state.password.value),
+                label: l10n.passwordReqLowercase,
+              ),
+              PasswordRequirementItem(
+                met: RegisterPassword.hasDigit(state.password.value),
+                label: l10n.passwordReqDigit,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),

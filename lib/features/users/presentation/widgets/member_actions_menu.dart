@@ -22,6 +22,20 @@ class MemberActionsMenu extends StatelessWidget {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert, color: AppColors.quesivoTextSecondary),
       tooltip: l10n.memberActionsTooltip,
+      // Piel clara forzada: el módulo es light-only y sin `color` el popup
+      // toma el surface del tema — en dark mode sale oscuro y los textos
+      // navy quedan ilegibles (bug visto en físico). Mismo lenguaje que la
+      // card: blanco, radius 16, hairline border, sombra navy 12%.
+      color: AppColors.quesivoWhite,
+      surfaceTintColor: Colors.transparent,
+      elevation: 10,
+      shadowColor: AppColors.quesivoShadow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.quesivoBorder),
+      ),
+      // Cae justo debajo del ⋮ en vez de cubrir el contenido de la card.
+      offset: const Offset(0, 8),
       onSelected: (_) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.moduleComingSoon))),
@@ -34,15 +48,17 @@ class MemberActionsMenu extends StatelessWidget {
                 suspended ? Icons.check_circle_outline : Icons.block_outlined,
                 size: 20,
                 color: suspended
-                    ? AppColors.quesivoDarkText
+                    ? AppColors.quesivoSuccess
                     : AppColors.quesivoError,
               ),
               const SizedBox(width: 12),
               Text(
                 suspended ? l10n.reactivateUserAction : l10n.suspendUserAction,
                 style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                   color: suspended
-                      ? AppColors.quesivoDarkText
+                      ? AppColors.quesivoSuccess
                       : AppColors.quesivoError,
                 ),
               ),
@@ -59,7 +75,14 @@ class MemberActionsMenu extends StatelessWidget {
                 color: AppColors.quesivoDarkText,
               ),
               const SizedBox(width: 12),
-              Text(l10n.resetPasswordAction),
+              Text(
+                l10n.resetPasswordAction,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.quesivoDarkText,
+                ),
+              ),
             ],
           ),
         ),
