@@ -435,8 +435,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get createUserButton => 'Criar usuário';
 
   @override
-  String get memberCreatedFeedback =>
-      'Usuário criado — compartilhe a senha temporária';
+  String get memberCreatedFeedback => 'Usuário criado com sucesso';
 
   @override
   String suspendMemberTitle(String name) {

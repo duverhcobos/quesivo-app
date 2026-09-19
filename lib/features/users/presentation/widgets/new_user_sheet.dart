@@ -9,6 +9,7 @@ import '../../../../core/widgets/password_requirements_checklist.dart';
 import '../../../../core/widgets/quesivo_close_button.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
+import '../../../../core/widgets/quesivo_toast.dart';
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
 import '../../domain/failures/users_failure.dart';
@@ -28,9 +29,11 @@ import 'role_selector_chips.dart';
 /// (patrón del proyecto: el error llega de afuera, no de un `validator`
 /// interno). La política vive en los VOs de dominio (`MemberName`,
 /// `MemberEmail`, `TempPassword` — misma regla que `RegisterDto` del
-/// backend, doc 007-post-users.md). El error del backend se muestra
-/// inline sobre las acciones (no snackbar): el form queda abierto para
-/// corregir — ej. `MEMBERSHIP_ALREADY_EXISTS` invita a cambiar el email.
+/// backend, doc 007-post-users.md). El error del backend sale por
+/// `QuesivoToast.error` sobre el overlay raíz (feedback del usuario —
+/// antes era un texto inline sobre los botones): el form queda abierto
+/// para corregir — ej. `MEMBERSHIP_ALREADY_EXISTS` invita a cambiar
+/// el email — y el toast rojo flota por encima del sheet sin taparlo.
 class NewUserSheet extends StatefulWidget {
   const NewUserSheet({super.key});
 
@@ -54,6 +57,12 @@ class NewUserSheet extends StatefulWidget {
       // del branch (StatefulShellRoute) la barra quedaba pintada encima
       // y tapaba la parte baja del form (bug visto en físico).
       useRootNavigator: true,
+      // Salida más suave que el default (~200ms): tras la pausa de
+      // éxito el sheet baja en ~450ms — el cierre instantáneo se
+      // sentía abrupto (feedback del usuario en físico).
+      sheetAnimationStyle: const AnimationStyle(
+        reverseDuration: Duration(milliseconds: 450),
+      ),
       isScrollControlled: true,
       backgroundColor: AppColors.quesivoWhite,
       shape: const RoundedRectangleBorder(
@@ -182,11 +191,26 @@ class _NewUserSheetState extends State<NewUserSheet> {
             Flexible(
               child: BlocConsumer<CreateUserCubit, CreateUserState>(
                 listenWhen: (p, c) =>
-                    p.status != c.status && c.status.isSuccess,
+                    p.status != c.status &&
+                    (c.status.isSuccess || c.status.isFailure),
                 listener: (context, state) {
-                  // Pausa de confirmación ~900ms: el check del botón y
-                  // la línea verde quedan visibles antes de devolver el
-                  // miembro REAL del backend (uuid + linked) por pop.
+                  if (state.status.isFailure) {
+                    // Error del backend → toast rojo sobre el overlay
+                    // raíz (flota por encima del sheet): el form queda
+                    // abierto para corregir — ej. el 409 invita a
+                    // cambiar el email.
+                    QuesivoToast.error(
+                      context,
+                      message: _failureText(
+                        AppLocalizations.of(context)!,
+                        state.failure,
+                      ),
+                    );
+                    return;
+                  }
+                  // Pausa de confirmación ~900ms: el check del botón
+                  // queda visible antes de devolver el miembro REAL
+                  // del backend (uuid + linked) por pop.
                   final member = state.createdMember;
                   Future.delayed(_successDismissDelay, () {
                     if (context.mounted) {
@@ -228,11 +252,13 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           errorText: _nameError
                               ? l10n.invalidMemberNameError
                               : null,
-                          onChanged: (v) => setState(() {
-                            _name = v;
-                            _nameError = false;
+                          onChanged: (v) {
+                            setState(() {
+                              _name = v;
+                              _nameError = false;
+                            });
                             _clearBackendError();
-                          }),
+                          },
                         ),
                         const SizedBox(height: 14),
                         QuesivoTextField(
@@ -243,11 +269,13 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           errorText: _emailError
                               ? l10n.invalidEmailError
                               : null,
-                          onChanged: (v) => setState(() {
-                            _email = v;
-                            _emailError = false;
+                          onChanged: (v) {
+                            setState(() {
+                              _email = v;
+                              _emailError = false;
+                            });
                             _clearBackendError();
-                          }),
+                          },
                         ),
                         const SizedBox(height: 14),
                         // Visible a propósito: es una contraseña temporal que el
@@ -260,11 +288,13 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           errorText: _passwordError
                               ? l10n.invalidTempPasswordError
                               : null,
-                          onChanged: (v) => setState(() {
-                            _password = v;
-                            _passwordError = false;
+                          onChanged: (v) {
+                            setState(() {
+                              _password = v;
+                              _passwordError = false;
+                            });
                             _clearBackendError();
-                          }),
+                          },
                         ),
                         const SizedBox(height: 12),
                         // Checklist vivo (mismo de registro/reset) — evalúa
@@ -308,11 +338,13 @@ class _NewUserSheetState extends State<NewUserSheet> {
                             opacity: isBusy ? 0.6 : 1,
                             child: RoleSelectorChips(
                               selected: _role,
-                              onChanged: (role) => setState(() {
-                                _role = role;
-                                _roleError = false;
+                              onChanged: (role) {
+                                setState(() {
+                                  _role = role;
+                                  _roleError = false;
+                                });
                                 _clearBackendError();
-                              }),
+                              },
                             ),
                           ),
                         ),
@@ -324,53 +356,6 @@ class _NewUserSheetState extends State<NewUserSheet> {
                               fontSize: 12,
                               color: Theme.of(context).colorScheme.error,
                             ),
-                          ),
-                        ],
-                        // Error del backend inline sobre el par de acciones
-                        // (no snackbar): el form queda abierto para corregir.
-                        if (state.status.isFailure) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            _failureText(l10n, state.failure),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ],
-                        // Confirmación visible durante la pausa de éxito
-                        // (~900ms antes del pop): check + el mismo texto
-                        // que va a mostrar el snackbar de la pantalla —
-                        // distingue linked (ya tenía cuenta global).
-                        if (state.status.isSuccess) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.check_circle_outline,
-                                size: 18,
-                                color: AppColors.quesivoSuccess,
-                              ),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  state.createdMember?.linked ?? false
-                                      ? l10n.memberLinkedFeedback(
-                                          state.createdMember!.name,
-                                        )
-                                      : l10n.memberCreatedFeedback,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.quesivoSuccess,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                         const SizedBox(height: 24),

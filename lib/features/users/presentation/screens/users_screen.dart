@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_toast.dart';
 import '../../../shell/presentation/widgets/shell_insets.dart';
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
@@ -165,17 +166,22 @@ class _UsersScreenState extends State<UsersScreen> {
         curve: Curves.easeOut,
       );
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          // linked: el email ya existía globalmente — solo se creó la
-          // membresía y no hay contraseña temporal que compartir.
-          created.linked
-              ? AppLocalizations.of(context)!.memberLinkedFeedback(created.name)
-              : AppLocalizations.of(context)!.memberCreatedFeedback,
-        ),
-      ),
-    );
+    // Toast flotante arriba — único mensaje; dentro del sheet solo
+    // quedó el check del botón. Semántica por estado: linked es
+    // informativo (no se creó cuenta, solo membresía) → info azul.
+    if (created.linked) {
+      QuesivoToast.info(
+        context,
+        message: AppLocalizations.of(
+          context,
+        )!.memberLinkedFeedback(created.name),
+      );
+    } else {
+      QuesivoToast.success(
+        context,
+        message: AppLocalizations.of(context)!.memberCreatedFeedback,
+      );
+    }
   }
 
   /// §45 — flip de estado en el dataset local tras confirmar el
@@ -186,23 +192,22 @@ class _UsersScreenState extends State<UsersScreen> {
     if (index == -1) return;
     setState(() => _allMembers[index] = member.copyWith(status: status));
     final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          status == MemberStatus.suspended
-              ? l10n.memberSuspendedFeedback
-              : l10n.memberReactivatedFeedback,
-        ),
-      ),
-    );
+    // Suspendida deja un estado restrictivo → warning ámbar;
+    // reactivada es éxito → verde.
+    if (status == MemberStatus.suspended) {
+      QuesivoToast.warning(context, message: l10n.memberSuspendedFeedback);
+    } else {
+      QuesivoToast.success(context, message: l10n.memberReactivatedFeedback);
+    }
   }
 
   /// §45 — feedback del reset. La integración manda el password a
   /// `PATCH /auth/users/:id/password` (que además levanta el lockout).
   void _resetMemberPassword(OrgMember member, String password) {
     final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.passwordResetFeedback(member.name))),
+    QuesivoToast.success(
+      context,
+      message: l10n.passwordResetFeedback(member.name),
     );
   }
 

@@ -10,6 +10,26 @@ Este proyecto (**Quesivo**, app móvil Flutter en desarrollo activo con destino 
 que los cambios de código **no se apliquen directamente**: se plantean primero como una propuesta
 para que el usuario la revise y apruebe.
 
+## Orden de implementación (acordado 2026-09-19)
+
+La propuesta NO espera aprobación previa — el usuario valida el resultado ya funcionando, no el
+documento. El ciclo es:
+
+```
+1. Sesión principal → redacta la propuesta en propuestas/ (mismo detalle de siempre:
+   rutas exactas + código completo de archivos nuevos — es el contrato de lo que se implementa)
+2. Se implementa de inmediato (subagente implementador o directo según tamaño)
+3. Se AVISA al usuario → él valida VISUALMENTE en el device/emulador y pide ajustes de diseño
+4. Solo DESPUÉS de su validación pasa a auditoría de código (subagente revisor) —
+   auditar antes sería revisar código que la revisión visual puede cambiar
+5. Se aplican juntas las correcciones visuales del usuario + hallazgos de la auditoría
+6. Verificación (format/analyze/test) + commit
+```
+
+Excepciones: correcciones triviales de un solo archivo y fixes de comportamiento reportados por el
+usuario en físico (bugs/UX ya implementados) se aplican directo sin propuesta — quedan documentados
+en el design-system yaml y/o el commit.
+
 ## Cuándo aplica
 
 Siempre que se vaya a implementar una funcionalidad, agregar una feature/pantalla, modificar lógica

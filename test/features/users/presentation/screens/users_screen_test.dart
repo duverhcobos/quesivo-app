@@ -246,12 +246,11 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
-    // Sheet cerrado + snackbar de feedback (§46).
+    // Sheet cerrado + toast verde de confirmación arriba (§46 —
+    // reemplaza al SnackBar: pill flotante, auto-dismiss ~2.6s).
     expect(find.text('Crear usuario'), findsNothing);
-    expect(
-      find.text('Usuario creado — compartile la contraseña temporal'),
-      findsOneWidget,
-    );
+    expect(find.text('Usuario creado con éxito'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
     // El insert al tope sube el total y la primera card es la del nuevo.
     expect(find.text('55 miembros'), findsOneWidget);
     expect(
@@ -261,9 +260,14 @@ void main() {
           .name,
       'Usuario Nuevo',
     );
+
+    // Drena el auto-dismiss del toast (~2.6s) — sin el pump el Timer
+    // queda pendiente al teardown ("A Timer is still pending").
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
   });
 
-  testWidgets('miembro con linked:true muestra el snackbar de vinculación', (
+  testWidgets('miembro con linked:true muestra el toast de vinculación', (
     tester,
   ) async {
     useTallSurface(tester);
@@ -292,10 +296,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(
-      find.text('Usuario creado — compartile la contraseña temporal'),
-      findsNothing,
-    );
+    expect(find.text('Usuario creado con éxito'), findsNothing);
     // Igual se inserta al tope del dataset local.
     expect(find.text('55 miembros'), findsOneWidget);
     expect(
@@ -305,6 +306,8 @@ void main() {
           .linked,
       isTrue,
     );
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('suspender desde el menú cambia el chip de la card', (
@@ -344,5 +347,7 @@ void main() {
       tester.widget<OrgMemberCard>(card).member.status,
       MemberStatus.suspended,
     );
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
   });
 }

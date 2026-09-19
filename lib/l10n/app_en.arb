@@ -154,7 +154,7 @@
   "invalidMemberNameError": "Enter the full name",
   "invalidTempPasswordError": "At least 8 characters, one uppercase, one lowercase and one digit",
   "createUserButton": "Create user",
-  "memberCreatedFeedback": "User created — share the temporary password",
+  "memberCreatedFeedback": "User created successfully",
   "suspendMemberTitle": "Suspend {name}?",
   "@suspendMemberTitle": {
     "placeholders": {

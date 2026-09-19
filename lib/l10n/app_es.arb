@@ -153,7 +153,7 @@
   "invalidMemberNameError": "Ingresá el nombre completo",
   "invalidTempPasswordError": "Mínimo 8 caracteres, una mayúscula, una minúscula y un número",
   "createUserButton": "Crear usuario",
-  "memberCreatedFeedback": "Usuario creado — compartile la contraseña temporal",
+  "memberCreatedFeedback": "Usuario creado con éxito",
   "suspendMemberTitle": "¿Suspender a {name}?",
   "@suspendMemberTitle": {
     "placeholders": {

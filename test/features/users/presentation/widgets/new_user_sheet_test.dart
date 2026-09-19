@@ -278,15 +278,12 @@ void main() {
       await tester.pump();
 
       // Durante la pausa: sheet abierto (el título sigue — el label del
-      // botón ya fue reemplazado por el check), línea verde con el
-      // texto de éxito (el mismo del snackbar de la pantalla).
+      // botón ya fue reemplazado por el check). El mensaje de éxito NO
+      // va en el sheet — solo el check del botón confirma dentro del
+      // modal; el texto llega por QuesivoToast tras el pop.
       expect(find.text('Nuevo usuario'), findsOneWidget);
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
-      expect(
-        find.text('Usuario creado — compartile la contraseña temporal'),
-        findsOneWidget,
-      );
+      expect(find.text('Usuario creado con éxito'), findsNothing);
       expect(
         tester
             .widget<QuesivoPrimaryButton>(find.byType(QuesivoPrimaryButton))
@@ -304,7 +301,7 @@ void main() {
   );
 
   testWidgets(
-    'estado failure muestra el error inline y el sheet sigue abierto',
+    'estado failure muestra el error en un toast y el sheet sigue abierto',
     (tester) async {
       useTallSurface(tester);
       await tester.pumpWidget(buildApp());
@@ -314,8 +311,9 @@ void main() {
       await tester.tap(find.text('Crear usuario'));
       await tester.pump();
 
-      // 409 MEMBERSHIP_ALREADY_EXISTS → mensaje inline (no snackbar):
-      // el form queda abierto para corregir el email.
+      // 409 MEMBERSHIP_ALREADY_EXISTS → toast rojo sobre el overlay
+      // raíz (ya no es texto inline sobre los botones): el form queda
+      // abierto para corregir el email.
       stateController.add(
         const CreateUserState(
           status: FormzSubmissionStatus.failure,
@@ -330,7 +328,13 @@ void main() {
         find.text('Ese correo ya pertenece a esta organización'),
         findsOneWidget,
       );
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
       expect(find.text('Crear usuario'), findsOneWidget);
+
+      // Drena el auto-dismiss del toast (~2.6s) — sin el pump el Timer
+      // queda pendiente al teardown ("A Timer is still pending").
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
     },
   );
 

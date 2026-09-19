@@ -895,7 +895,7 @@ abstract class AppLocalizations {
   /// No description provided for @memberCreatedFeedback.
   ///
   /// In es, this message translates to:
-  /// **'Usuario creado — compartile la contraseña temporal'**
+  /// **'Usuario creado con éxito'**
   String get memberCreatedFeedback;
 
   /// No description provided for @suspendMemberTitle.
