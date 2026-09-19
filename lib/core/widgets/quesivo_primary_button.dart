@@ -14,6 +14,7 @@ class QuesivoPrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.fullWidth = true,
     this.isLoading = false,
+    this.isSuccess = false,
   });
 
   final String label;
@@ -23,6 +24,11 @@ class QuesivoPrimaryButton extends StatelessWidget {
   /// deshabilitado — el alto de 64px se conserva (no salta el layout).
   final bool isLoading;
 
+  /// `true`: el label se reemplaza por un check navy — tercer estado de
+  /// un submit async (respuesta OK mostrada un instante dentro del botón
+  /// antes de que el contenedor reaccione/cierre). También deshabilita.
+  final bool isSuccess;
+
   /// `true` (default): el botón toma todo el ancho disponible — patrón de
   /// auth. `false`: abraza al label — para pares de acciones lado a lado
   /// en sheets (el primario no debería estirarse a medio form).
@@ -31,7 +37,7 @@ class QuesivoPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
+      onPressed: (isLoading || isSuccess) ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.quesivoYellow,
         foregroundColor: AppColors.quesivoNavy,
@@ -61,6 +67,12 @@ class QuesivoPrimaryButton extends StatelessWidget {
                 strokeWidth: 2.5,
                 color: AppColors.quesivoNavy,
               ),
+            )
+          : isSuccess
+          ? const Icon(
+              Icons.check_rounded,
+              size: 26,
+              color: AppColors.quesivoNavy,
             )
           : FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
     );

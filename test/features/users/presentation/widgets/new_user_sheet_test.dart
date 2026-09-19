@@ -253,31 +253,55 @@ void main() {
     },
   );
 
-  testWidgets('estado success popea el miembro real del backend', (
-    tester,
-  ) async {
-    useTallSurface(tester);
-    await tester.pumpWidget(buildApp());
-    await openSheet(tester);
-    await fillValidForm(tester);
+  testWidgets(
+    'estado success muestra check ~900ms y luego popea el miembro real',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
+      await openSheet(tester);
+      await fillValidForm(tester);
 
-    await tester.tap(find.text('Crear usuario'));
-    await tester.pump();
+      await tester.tap(find.text('Crear usuario'));
+      await tester.pump();
 
-    // El backend respondió 201 — el cubit emite success con el
-    // OrgMember real (uuid, linked) y el sheet lo devuelve por pop.
-    stateController.add(
-      const CreateUserState(
-        status: FormzSubmissionStatus.success,
-        createdMember: tMember,
-      ),
-    );
-    await tester.pumpAndSettle();
+      // El backend respondió 201 — el cubit emite success con el
+      // OrgMember real (uuid, linked). El sheet NO popea de inmediato:
+      // hay una pausa de confirmación visible (~900ms) antes del pop.
+      stateController.add(
+        const CreateUserState(
+          status: FormzSubmissionStatus.success,
+          createdMember: tMember,
+        ),
+      );
+      // Doble pump: entrega del evento (microtask) + rebuild pintado.
+      await tester.pump();
+      await tester.pump();
 
-    expect(await result, tMember);
-    // El sheet cerró.
-    expect(find.text('Crear usuario'), findsNothing);
-  });
+      // Durante la pausa: sheet abierto (el título sigue — el label del
+      // botón ya fue reemplazado por el check), línea verde con el
+      // texto de éxito (el mismo del snackbar de la pantalla).
+      expect(find.text('Nuevo usuario'), findsOneWidget);
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+      expect(
+        find.text('Usuario creado — compartile la contraseña temporal'),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<QuesivoPrimaryButton>(find.byType(QuesivoPrimaryButton))
+            .isSuccess,
+        isTrue,
+      );
+
+      // Vencida la pausa, el sheet devuelve el miembro y cierra.
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(await result, tMember);
+      expect(find.text('Crear usuario'), findsNothing);
+    },
+  );
 
   testWidgets(
     'estado failure muestra el error inline y el sheet sigue abierto',

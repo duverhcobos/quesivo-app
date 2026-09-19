@@ -234,13 +234,16 @@ void main() {
       ),
     ).called(1);
 
-    // El backend respondió 201 — el sheet popea el OrgMember real.
+    // El backend respondió 201 — el sheet muestra la confirmación
+    // ~900ms y luego popea el OrgMember real.
     stateController.add(
       const CreateUserState(
         status: FormzSubmissionStatus.success,
         createdMember: tCreated,
       ),
     );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
     // Sheet cerrado + snackbar de feedback (§46).
@@ -278,6 +281,8 @@ void main() {
         createdMember: tLinked,
       ),
     );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
     expect(find.text('Crear usuario'), findsNothing);

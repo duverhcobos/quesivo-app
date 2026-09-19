@@ -74,6 +74,11 @@ class NewUserSheet extends StatefulWidget {
 }
 
 class _NewUserSheetState extends State<NewUserSheet> {
+  /// Pausa de confirmación antes de cerrar: el usuario ve el check del
+  /// botón + la línea verde de éxito dentro del sheet (feedback en
+  /// físico — el pop inmediato tras el 201 se sentía abrupto).
+  static const _successDismissDelay = Duration(milliseconds: 900);
+
   String _name = '';
   String _email = '';
   String _password = '';
@@ -121,16 +126,18 @@ class _NewUserSheetState extends State<NewUserSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     // Fuera del BlocConsumer: la zona fija (✕) y el PopScope también
-    // necesitan saber si hay submit en vuelo.
-    final isSubmitting = context.select<CreateUserCubit, bool>(
-      (c) => c.state.status.isInProgress,
+    // necesitan saber si hay submit en vuelo o pausa de éxito activa.
+    final isBusy = context.select<CreateUserCubit, bool>(
+      (c) => c.state.status.isInProgress || c.state.status.isSuccess,
     );
     return PopScope(
-      // Bloquea scrim-tap, drag-down y back durante el submit: cerrar
-      // con el POST en vuelo pierde el resultado (el miembro pudo
-      // haberse creado sin que la UI lo sepa) y emitir sobre el cubit
-      // ya cerrado lanza StateError.
-      canPop: !isSubmitting,
+      // Bloquea scrim-tap, drag-down y back durante el submit Y la
+      // pausa de éxito: cerrar antes pierde el resultado (el miembro
+      // pudo haberse creado sin que la UI lo sepa) y emitir sobre el
+      // cubit ya cerrado lanza StateError. El pop retardado del
+      // listener no lo frena canPop — Navigator.pop no consulta
+      // popDisposition (solo maybePop/back lo hacen).
+      canPop: !isBusy,
       child: Padding(
         // El sheet sube entero sobre el teclado.
         padding: EdgeInsets.only(
@@ -163,9 +170,10 @@ class _NewUserSheetState extends State<NewUserSheet> {
                     ),
                     Align(
                       alignment: Alignment.centerRight,
-                      // Inerte durante el submit — el PopScope bloquea el
-                      // pop de todos modos; el atenuado comunica el bloqueo.
-                      child: QuesivoCloseButton(enabled: !isSubmitting),
+                      // Inerte durante el submit y la pausa de éxito —
+                      // el PopScope bloquea el pop de todos modos; el
+                      // atenuado comunica el bloqueo.
+                      child: QuesivoCloseButton(enabled: !isBusy),
                     ),
                   ],
                 ),
@@ -176,11 +184,19 @@ class _NewUserSheetState extends State<NewUserSheet> {
                 listenWhen: (p, c) =>
                     p.status != c.status && c.status.isSuccess,
                 listener: (context, state) {
-                  // Devuelve el miembro REAL del backend (uuid + linked).
-                  Navigator.of(context).pop(state.createdMember);
+                  // Pausa de confirmación ~900ms: el check del botón y
+                  // la línea verde quedan visibles antes de devolver el
+                  // miembro REAL del backend (uuid + linked) por pop.
+                  final member = state.createdMember;
+                  Future.delayed(_successDismissDelay, () {
+                    if (context.mounted) {
+                      Navigator.of(context).pop(member);
+                    }
+                  });
                 },
                 builder: (context, state) {
-                  final isSubmitting = state.status.isInProgress;
+                  final isBusy =
+                      state.status.isInProgress || state.status.isSuccess;
                   final tempPassword = TempPassword.dirty(_password);
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -208,7 +224,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           hintText: l10n.fullNamePlaceholder,
                           prefixIcon: Icons.person_outline,
                           keyboardType: TextInputType.name,
-                          enabled: !isSubmitting,
+                          enabled: !isBusy,
                           errorText: _nameError
                               ? l10n.invalidMemberNameError
                               : null,
@@ -223,7 +239,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           hintText: l10n.registerEmailPlaceholder,
                           prefixIcon: Icons.mail_outline,
                           keyboardType: TextInputType.emailAddress,
-                          enabled: !isSubmitting,
+                          enabled: !isBusy,
                           errorText: _emailError
                               ? l10n.invalidEmailError
                               : null,
@@ -240,7 +256,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
                         QuesivoTextField(
                           hintText: l10n.tempPasswordPlaceholder,
                           prefixIcon: Icons.lock_outline,
-                          enabled: !isSubmitting,
+                          enabled: !isBusy,
                           errorText: _passwordError
                               ? l10n.invalidTempPasswordError
                               : null,
@@ -287,9 +303,9 @@ class _NewUserSheetState extends State<NewUserSheet> {
                         // Form congelado durante el submit: los chips no
                         // aceptan taps (los args ya fueron capturados).
                         IgnorePointer(
-                          ignoring: isSubmitting,
+                          ignoring: isBusy,
                           child: Opacity(
-                            opacity: isSubmitting ? 0.6 : 1,
+                            opacity: isBusy ? 0.6 : 1,
                             child: RoleSelectorChips(
                               selected: _role,
                               onChanged: (role) => setState(() {
@@ -324,6 +340,39 @@ class _NewUserSheetState extends State<NewUserSheet> {
                             ),
                           ),
                         ],
+                        // Confirmación visible durante la pausa de éxito
+                        // (~900ms antes del pop): check + el mismo texto
+                        // que va a mostrar el snackbar de la pantalla —
+                        // distingue linked (ya tenía cuenta global).
+                        if (state.status.isSuccess) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.check_circle_outline,
+                                size: 18,
+                                color: AppColors.quesivoSuccess,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  state.createdMember?.linked ?? false
+                                      ? l10n.memberLinkedFeedback(
+                                          state.createdMember!.name,
+                                        )
+                                      : l10n.memberCreatedFeedback,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.quesivoSuccess,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         // Par lado a lado en mitades iguales (feedback del
                         // usuario — mismo tamaño para ambos): negativa ghost
@@ -333,7 +382,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           children: [
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: isSubmitting
+                                onPressed: isBusy
                                     ? null
                                     : () => Navigator.of(context).pop(),
                                 style: ElevatedButton.styleFrom(
@@ -360,7 +409,10 @@ class _NewUserSheetState extends State<NewUserSheet> {
                             Expanded(
                               child: QuesivoPrimaryButton(
                                 label: l10n.createUserButton,
-                                isLoading: isSubmitting,
+                                // spinner → check → pop: la pausa de
+                                // éxito mantiene el botón ocupado.
+                                isLoading: state.status.isInProgress,
+                                isSuccess: state.status.isSuccess,
                                 onPressed: _submit,
                               ),
                             ),
