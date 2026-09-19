@@ -341,9 +341,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get usersSubtitle => 'Gerencie quem pode acessar sua queijaria.';
-
-  @override
   String get newUserButton => 'Novo usuário';
 
   @override
@@ -354,6 +351,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get roleProducer => 'Produtor';
+
+  @override
+  String get searchUsersHint => 'Buscar por nome ou e-mail';
+
+  @override
+  String get roleFilterAll => 'Todos';
+
+  @override
+  String get noSearchResultsTitle => 'Sem resultados';
+
+  @override
+  String get noSearchResultsHint => 'Tente outro nome, e-mail ou filtro.';
 
   @override
   String get memberStatusActive => 'Ativo';
@@ -379,4 +388,26 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get emptyUsersHint =>
       'Os usuários que você criar para sua queijaria aparecerão aqui.';
+
+  @override
+  String membersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count membros',
+      one: '$count membro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String activeMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ativos',
+      one: '$count ativo',
+    );
+    return '$_temp0';
+  }
 }

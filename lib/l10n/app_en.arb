@@ -115,11 +115,14 @@
       }
     }
   },
-  "usersSubtitle": "Manage who can access your cheese factory.",
   "newUserButton": "New user",
   "roleOperator": "Operator",
   "roleCollector": "Collector",
   "roleProducer": "Producer",
+  "searchUsersHint": "Search by name or email",
+  "roleFilterAll": "All",
+  "noSearchResultsTitle": "No results",
+  "noSearchResultsHint": "Try another name, email, or filter.",
   "memberStatusActive": "Active",
   "memberStatusSuspended": "Suspended",
   "memberActionsTooltip": "User options",
@@ -127,5 +130,21 @@
   "reactivateUserAction": "Reactivate user",
   "resetPasswordAction": "Reset password",
   "emptyUsersTitle": "No users yet",
-  "emptyUsersHint": "Users you create for your cheese factory will appear here."
+  "emptyUsersHint": "Users you create for your cheese factory will appear here.",
+  "membersCount": "{count, plural, =1{{count} member} other{{count} members}}",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeMembersCount": "{count, plural, =1{{count} active} other{{count} active}}",
+  "@activeMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

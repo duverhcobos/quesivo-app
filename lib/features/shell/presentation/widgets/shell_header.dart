@@ -24,6 +24,15 @@ import 'drawer/drawer_brand_decoration.dart';
 class ShellHeader extends StatelessWidget {
   const ShellHeader({super.key});
 
+  /// Alto del contenido navy (sin el inset del status bar): avatar 44 +
+  /// margen vertical 12×2. Fijado con `SizedBox` en el build para que
+  /// `context.shellHeaderHeight` (§39) sea exacto en todo dispositivo.
+  /// §42: 76→68 — el margen inferior de la banda se sumaba al aire de la
+  /// fila del título del módulo y dejaba un vacío navy entre la
+  /// identidad y el título (feedback del usuario: "se desorganizó el
+  /// header"); con 12×2 la cabecera vuelve a leerse como una unidad.
+  static const double contentHeight = 68;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -72,79 +81,97 @@ class ShellHeader extends StatelessWidget {
             ),
             SafeArea(
               bottom: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: size.width * 0.075,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    // Avatar con iniciales — es identidad, ya no abre el
-                    // menú. El anillo blanco 20% separa el círculo del
-                    // navy (la tarjeta del drawer no lo lleva).
-                    UserInitialAvatar(displayName: displayName, withRing: true),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.quesivoWhite,
+              // Altura fija = contentHeight — antes era implícita
+              // (padding 16×2 + avatar 44); ahora es contrato: las
+              // pantallas reservan exactamente este alto bajo la banda.
+              child: SizedBox(
+                height: contentHeight,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: size.width * 0.075),
+                  child: Row(
+                    children: [
+                      // Avatar con iniciales — es identidad, ya no abre el
+                      // menú. El anillo blanco 20% separa el círculo del
+                      // navy (la tarjeta del drawer no lo lleva).
+                      UserInitialAvatar(
+                        displayName: displayName,
+                        withRing: true,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          // mainAxisSize.min es necesario: al fijar la
+                          // altura del Row con el SizedBox(contentHeight)
+                          // de §39, el Column (mainAxisSize.max por
+                          // defecto) pasó a poder "llenar" esa altura
+                          // finita y alineaba el texto arriba (start) en
+                          // vez de centrado — el avatar sí se centraba
+                          // (no está en un Expanded/Column). Con `min` el
+                          // Column vuelve a medir solo su contenido y el
+                          // Row lo centra igual que al avatar.
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.quesivoWhite,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              displayOrgName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.quesivoWhite.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Trigger del QuesivoDrawer: `Scaffold.of` resuelve el
+                      // Scaffold del MainLayout (este header está debajo en el
+                      // árbol) y abre el menú lateral desde la derecha. El
+                      // círculo de borde blanco 20% es hermana del ✕ navy del
+                      // drawer, en versión sobre navy.
+                      Material(
+                        color: Colors.transparent,
+                        shape: CircleBorder(
+                          side: BorderSide(
+                            color: AppColors.quesivoWhite.withValues(
+                              alpha: 0.2,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            displayOrgName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          // Ripple circular — sin customBorder el splash
+                          // saldría cuadrado dentro del círculo.
+                          customBorder: const CircleBorder(),
+                          onTap: () => Scaffold.of(context).openEndDrawer(),
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: Icon(
+                              Icons.menu,
+                              size: 22,
                               color: AppColors.quesivoWhite.withValues(
-                                alpha: 0.6,
+                                alpha: 0.85,
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    // Trigger del QuesivoDrawer: `Scaffold.of` resuelve el
-                    // Scaffold del MainLayout (este header está debajo en el
-                    // árbol) y abre el menú lateral desde la derecha. El
-                    // círculo de borde blanco 20% es hermana del ✕ navy del
-                    // drawer, en versión sobre navy.
-                    Material(
-                      color: Colors.transparent,
-                      shape: CircleBorder(
-                        side: BorderSide(
-                          color: AppColors.quesivoWhite.withValues(alpha: 0.2),
                         ),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        // Ripple circular — sin customBorder el splash
-                        // saldría cuadrado dentro del círculo.
-                        customBorder: const CircleBorder(),
-                        onTap: () => Scaffold.of(context).openEndDrawer(),
-                        child: SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: Icon(
-                            Icons.menu,
-                            size: 22,
-                            color: AppColors.quesivoWhite.withValues(
-                              alpha: 0.85,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -10,6 +10,12 @@ import 'shell_header.dart';
 /// §header-navy-avatar + §drawer-cuenta): `ShellHeader` navy de identidad
 /// arriba + `QuesivoNavBar` flotante abajo + `QuesivoDrawer` como
 /// endDrawer (cuenta/logout, se abre desde la hamburguesa del header).
+/// §39: el body es un `Stack` edge-to-edge — la hija pinta a pantalla
+/// completa detrás del chrome y reserva sus insets con
+/// `context.shellHeaderHeight` / `context.shellNavBarHeight`
+/// (shell_insets.dart); así un hero navy puede fusionarse con la banda y
+/// las esquinas redondeadas del chrome revelan el fondo de la propia
+/// pantalla, no el del Scaffold.
 /// Recibe el `navigationShell` de go_router — no conoce rutas concretas
 /// (SRP). Es `StatefulWidget` solo para recordar el índice anterior del
 /// tab y dar dirección al slide de transición (derecha↔izquierda según
@@ -42,48 +48,44 @@ class _MainLayoutState extends State<MainLayout> {
     return Scaffold(
       backgroundColor: AppColors.quesivoWhite,
       endDrawer: const QuesivoDrawer(),
-      body: Column(
+      // §39 — Stack edge-to-edge: la hija pinta a pantalla completa y
+      // reserva sus insets con shell_insets; el header y el nav flotan
+      // encima. Ya no se remueve el padding superior del MediaQuery: las
+      // pantallas lo necesitan para calcular shellHeaderHeight.
+      body: Stack(
         children: [
-          const ShellHeader(),
-          // El header ya consumió el inset superior con su SafeArea; se lo
-          // retiro a las tabs para que sus SafeArea internos no dupliquen
-          // el espacio bajo la banda navy.
-          Expanded(
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              // Slide direccional + fade al cambiar de tab: la `key` en
-              // currentIndex reinicia el tween; el shell va como `child`
-              // (no se reconstruye — las branches conservan stack y
-              // scroll), solo repintan FractionalTranslation y Opacity. Un
-              // solo tween maneja ambos: la opacidad cae del desplazamiento
-              // restante. Con animaciones off, duración 0.
-              child: TweenAnimationBuilder<Offset>(
-                key: ValueKey(index),
-                tween: Tween(
-                  begin: Offset(0.15 * direction, 0),
-                  end: Offset.zero,
-                ),
-                duration: MediaQuery.disableAnimationsOf(context)
-                    ? Duration.zero
-                    : const Duration(milliseconds: 400),
-                curve: Curves.easeOut,
-                builder: (context, offset, child) => FractionalTranslation(
-                  translation: offset,
-                  child: Opacity(
-                    opacity: 1 - (offset.dx.abs() / 0.15),
-                    child: child,
-                  ),
-                ),
-                child: navigationShell,
+          // Slide direccional + fade al cambiar de tab — mismo tween que
+          // antes, ahora deslizando el contenido bajo el chrome navy.
+          Positioned.fill(
+            child: TweenAnimationBuilder<Offset>(
+              key: ValueKey(index),
+              tween: Tween(
+                begin: Offset(0.15 * direction, 0),
+                end: Offset.zero,
               ),
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : const Duration(milliseconds: 400),
+              curve: Curves.easeOut,
+              builder: (context, offset, child) => FractionalTranslation(
+                translation: offset,
+                child: Opacity(
+                  opacity: 1 - (offset.dx.abs() / 0.15),
+                  child: child,
+                ),
+              ),
+              child: navigationShell,
             ),
+          ),
+          const Positioned(top: 0, left: 0, right: 0, child: ShellHeader()),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: QuesivoNavBar(navigationShell: navigationShell),
           ),
         ],
       ),
-      // Transparente: la `QuesivoNavBar` ya trae su propio fondo navy,
-      // margen y sombra — el Scaffold solo le reserva el slot inferior.
-      bottomNavigationBar: QuesivoNavBar(navigationShell: navigationShell),
     );
   }
 }

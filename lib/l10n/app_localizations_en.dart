@@ -341,9 +341,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get usersSubtitle => 'Manage who can access your cheese factory.';
-
-  @override
   String get newUserButton => 'New user';
 
   @override
@@ -354,6 +351,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleProducer => 'Producer';
+
+  @override
+  String get searchUsersHint => 'Search by name or email';
+
+  @override
+  String get roleFilterAll => 'All';
+
+  @override
+  String get noSearchResultsTitle => 'No results';
+
+  @override
+  String get noSearchResultsHint => 'Try another name, email, or filter.';
 
   @override
   String get memberStatusActive => 'Active';
@@ -379,4 +388,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emptyUsersHint =>
       'Users you create for your cheese factory will appear here.';
+
+  @override
+  String membersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '$count member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String activeMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active',
+      one: '$count active',
+    );
+    return '$_temp0';
+  }
 }

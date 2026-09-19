@@ -19,6 +19,16 @@ class MemberRoleChip extends StatelessWidget {
     UserRole.producer => l10n.roleProducer,
   };
 
+  /// Ícono de dominio por rol — vocabulario quesero (§38):
+  /// escudo = admin, casco = operario de planta, camión = recolector
+  /// de ruta, tractor = productor lechero.
+  IconData get _icon => switch (role) {
+    UserRole.admin => Icons.shield_outlined,
+    UserRole.operator => Icons.engineering_outlined,
+    UserRole.collector => Icons.local_shipping_outlined,
+    UserRole.producer => Icons.agriculture_outlined,
+  };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -28,13 +38,20 @@ class MemberRoleChip extends StatelessWidget {
         color: AppColors.quesivoIconSurface,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        _label(l10n),
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppColors.quesivoNavy,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_icon, size: 13, color: AppColors.quesivoNavy),
+          const SizedBox(width: 5),
+          Text(
+            _label(l10n),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.quesivoNavy,
+            ),
+          ),
+        ],
       ),
     );
   }

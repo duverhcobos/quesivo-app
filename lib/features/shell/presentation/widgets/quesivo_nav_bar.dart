@@ -21,6 +21,11 @@ class QuesivoNavBar extends StatelessWidget {
   /// Shell de go_router: expone `currentIndex` y `goBranch` para los tabs.
   final StatefulNavigationShell navigationShell;
 
+  /// Alto de la lámina de contenido — el total en pantalla es
+  /// `height` + inset inferior del sistema (`SafeArea` interno). Las
+  /// pantallas lo leen vía `context.shellNavBarHeight` (§39).
+  static const double height = 74;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -61,7 +66,7 @@ class QuesivoNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Container(
-          height: 74,
+          height: height,
           // Top 10: la gota del item activo respira — no queda pegando al
           // borde superior redondeado de la lámina.
           padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),

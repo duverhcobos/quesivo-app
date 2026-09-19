@@ -742,12 +742,6 @@ abstract class AppLocalizations {
   /// **'v{version}'**
   String appVersion(String version);
 
-  /// No description provided for @usersSubtitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Gestiona quiénes acceden a tu quesera.'**
-  String get usersSubtitle;
-
   /// No description provided for @newUserButton.
   ///
   /// In es, this message translates to:
@@ -771,6 +765,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Productor'**
   String get roleProducer;
+
+  /// No description provided for @searchUsersHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por nombre o correo'**
+  String get searchUsersHint;
+
+  /// No description provided for @roleFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get roleFilterAll;
+
+  /// No description provided for @noSearchResultsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin resultados'**
+  String get noSearchResultsTitle;
+
+  /// No description provided for @noSearchResultsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Probá con otro nombre, correo o filtro.'**
+  String get noSearchResultsHint;
 
   /// No description provided for @memberStatusActive.
   ///
@@ -819,6 +837,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Los usuarios que crees para tu quesera aparecerán acá.'**
   String get emptyUsersHint;
+
+  /// No description provided for @membersCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{{count} miembro} other{{count} miembros}}'**
+  String membersCount(int count);
+
+  /// No description provided for @activeMembersCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{{count} activo} other{{count} activos}}'**
+  String activeMembersCount(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -114,11 +114,14 @@
       }
     }
   },
-  "usersSubtitle": "Gestiona quiénes acceden a tu quesera.",
   "newUserButton": "Nuevo usuario",
   "roleOperator": "Operario",
   "roleCollector": "Recolector",
   "roleProducer": "Productor",
+  "searchUsersHint": "Buscar por nombre o correo",
+  "roleFilterAll": "Todos",
+  "noSearchResultsTitle": "Sin resultados",
+  "noSearchResultsHint": "Probá con otro nombre, correo o filtro.",
   "memberStatusActive": "Activo",
   "memberStatusSuspended": "Suspendido",
   "memberActionsTooltip": "Opciones del usuario",
@@ -126,5 +129,21 @@
   "reactivateUserAction": "Reactivar usuario",
   "resetPasswordAction": "Restablecer contraseña",
   "emptyUsersTitle": "Todavía no hay usuarios",
-  "emptyUsersHint": "Los usuarios que crees para tu quesera aparecerán acá."
+  "emptyUsersHint": "Los usuarios que crees para tu quesera aparecerán acá.",
+  "membersCount": "{count, plural, =1{{count} miembro} other{{count} miembros}}",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeMembersCount": "{count, plural, =1{{count} activo} other{{count} activos}}",
+  "@activeMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -4,6 +4,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_backdrop.dart';
+import '../widgets/shell_insets.dart';
 
 /// Pantalla placeholder genérica de los módulos del drawer
 /// (propuesta §26-modulos-placeholder).
@@ -63,7 +64,14 @@ class ModulePlaceholderScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SafeArea(
+            // §39: el contenido reserva el chrome del shell — back debajo
+            // de la banda, contenido centrado por encima del nav. Las
+            // decoraciones del backdrop quedan fuera (pintan full-bleed).
+            Padding(
+              padding: EdgeInsets.only(
+                top: context.shellHeaderHeight,
+                bottom: context.shellNavBarHeight,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

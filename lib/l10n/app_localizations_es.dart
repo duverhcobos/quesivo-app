@@ -341,9 +341,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get usersSubtitle => 'Gestiona quiénes acceden a tu quesera.';
-
-  @override
   String get newUserButton => 'Nuevo usuario';
 
   @override
@@ -354,6 +351,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get roleProducer => 'Productor';
+
+  @override
+  String get searchUsersHint => 'Buscar por nombre o correo';
+
+  @override
+  String get roleFilterAll => 'Todos';
+
+  @override
+  String get noSearchResultsTitle => 'Sin resultados';
+
+  @override
+  String get noSearchResultsHint => 'Probá con otro nombre, correo o filtro.';
 
   @override
   String get memberStatusActive => 'Activo';
@@ -379,4 +388,26 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get emptyUsersHint =>
       'Los usuarios que crees para tu quesera aparecerán acá.';
+
+  @override
+  String membersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count miembros',
+      one: '$count miembro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String activeMembersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activos',
+      one: '$count activo',
+    );
+    return '$_temp0';
+  }
 }

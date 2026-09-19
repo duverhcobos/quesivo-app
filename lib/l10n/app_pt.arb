@@ -115,11 +115,14 @@
       }
     }
   },
-  "usersSubtitle": "Gerencie quem pode acessar sua queijaria.",
   "newUserButton": "Novo usuário",
   "roleOperator": "Operador",
   "roleCollector": "Coletor",
   "roleProducer": "Produtor",
+  "searchUsersHint": "Buscar por nome ou e-mail",
+  "roleFilterAll": "Todos",
+  "noSearchResultsTitle": "Sem resultados",
+  "noSearchResultsHint": "Tente outro nome, e-mail ou filtro.",
   "memberStatusActive": "Ativo",
   "memberStatusSuspended": "Suspenso",
   "memberActionsTooltip": "Opções do usuário",
@@ -127,5 +130,21 @@
   "reactivateUserAction": "Reativar usuário",
   "resetPasswordAction": "Redefinir senha",
   "emptyUsersTitle": "Ainda não há usuários",
-  "emptyUsersHint": "Os usuários que você criar para sua queijaria aparecerão aqui."
+  "emptyUsersHint": "Os usuários que você criar para sua queijaria aparecerão aqui.",
+  "membersCount": "{count, plural, =1{{count} membro} other{{count} membros}}",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeMembersCount": "{count, plural, =1{{count} ativo} other{{count} ativos}}",
+  "@activeMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
