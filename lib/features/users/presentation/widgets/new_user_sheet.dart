@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
@@ -93,21 +94,30 @@ class _NewUserSheetState extends State<NewUserSheet> {
   String _password = '';
   UserRole? _role;
 
-  bool _nameError = false;
-  bool _emailError = false;
+  bool _nameError = false; // vacío al submit → "Ingresá el nombre completo"
+  bool _nameFormatError = false; // live: separadores mal ubicados
+  bool _emailError = false; // submit: vacío · live: formato inválido
   bool _passwordError = false;
   bool _roleError = false;
 
   void _submit() {
     final name = _name.trim();
     final email = _email.trim().toLowerCase();
+    final nameInvalid = name.isEmpty || MemberName.dirty(name).isNotValid;
     setState(() {
-      _nameError = !MemberName.dirty(name).isValid;
+      _nameError = name.isEmpty;
+      _nameFormatError = !_nameError && nameInvalid;
       _emailError = !MemberEmail.dirty(email).isValid;
       _passwordError = !TempPassword.dirty(_password).isValid;
       _roleError = _role == null;
     });
-    if (_nameError || _emailError || _passwordError || _roleError) return;
+    if (_nameError ||
+        _nameFormatError ||
+        _emailError ||
+        _passwordError ||
+        _roleError) {
+      return;
+    }
 
     context.read<CreateUserCubit>().submit(
       name: name,
@@ -249,13 +259,25 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           prefixIcon: Icons.person_outline,
                           keyboardType: TextInputType.name,
                           enabled: !isBusy,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              MemberName.allowedChars,
+                            ),
+                          ],
                           errorText: _nameError
                               ? l10n.invalidMemberNameError
+                              : _nameFormatError
+                              ? l10n.memberNameFormatError
                               : null,
                           onChanged: (v) {
                             setState(() {
                               _name = v;
                               _nameError = false;
+                              // Aviso en vivo — solo si hay contenido
+                              // e inválido.
+                              _nameFormatError =
+                                  v.isNotEmpty &&
+                                  MemberName.dirty(v).isNotValid;
                             });
                             _clearBackendError();
                           },
@@ -266,13 +288,20 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           prefixIcon: Icons.mail_outline,
                           keyboardType: TextInputType.emailAddress,
                           enabled: !isBusy,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              MemberEmail.allowedChars,
+                            ),
+                          ],
                           errorText: _emailError
                               ? l10n.invalidEmailError
                               : null,
                           onChanged: (v) {
                             setState(() {
                               _email = v;
-                              _emailError = false;
+                              _emailError =
+                                  v.isNotEmpty &&
+                                  MemberEmail.dirty(v).isNotValid;
                             });
                             _clearBackendError();
                           },
@@ -285,6 +314,11 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           hintText: l10n.tempPasswordPlaceholder,
                           prefixIcon: Icons.lock_outline,
                           enabled: !isBusy,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              TempPassword.allowedChars,
+                            ),
+                          ],
                           errorText: _passwordError
                               ? l10n.invalidTempPasswordError
                               : null,

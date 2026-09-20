@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
@@ -31,6 +32,9 @@ class ResetPasswordFormFields extends StatelessWidget {
             hintText: l10n.newPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegisterPassword.allowedChars),
+            ],
             onChanged: (v) =>
                 context.read<ResetPasswordCubit>().passwordChanged(v),
           ),
@@ -70,6 +74,9 @@ class ResetPasswordFormFields extends StatelessWidget {
             hintText: l10n.confirmPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegisterPassword.allowedChars),
+            ],
             onChanged: (v) =>
                 context.read<ResetPasswordCubit>().confirmPasswordChanged(v),
             errorText: state.confirmPassword.displayError != null

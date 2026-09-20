@@ -9,6 +9,9 @@ enum MemberEmailValidationError { empty, invalid }
 class MemberEmail extends FormzInput<String, MemberEmailValidationError> {
   static final _emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
 
+  /// Charset de email — bloquea espacios y símbolos ajenos al formato.
+  static final allowedChars = RegExp(r'[a-zA-Z0-9@._%+\-]');
+
   const MemberEmail.pure() : super.pure('');
   const MemberEmail.dirty([super.value = '']) : super.dirty();
 

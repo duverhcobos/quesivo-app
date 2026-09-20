@@ -10,6 +10,10 @@ enum OrganizationNameValidationError { empty, tooShort }
 /// negocio distintas que pueden divergir (longitudes, caracteres, etc.).
 class OrganizationName
     extends FormzInput<String, OrganizationNameValidationError> {
+  /// Charset permitido — la razón social admite dígitos y signos de
+  /// puntuación comunes además de letras; el validator no cambia.
+  static final allowedChars = RegExp(r"[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ '&.,\-]");
+
   const OrganizationName.pure() : super.pure('');
   const OrganizationName.dirty([super.value = '']) : super.dirty();
 

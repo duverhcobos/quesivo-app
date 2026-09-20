@@ -13,6 +13,10 @@ class TempPassword extends FormzInput<String, TempPasswordValidationError> {
   static final _hasUpper = RegExp(r'[A-Z]');
   static final _hasDigit = RegExp(r'\d');
 
+  /// Charset permitido — solo lo que el requisito pide (letras y
+  /// dígitos); símbolos y espacios se bloquean a nivel tecla.
+  static final allowedChars = RegExp(r'[a-zA-Z0-9]');
+
   const TempPassword.pure() : super.pure('');
   const TempPassword.dirty([super.value = '']) : super.dirty();
 

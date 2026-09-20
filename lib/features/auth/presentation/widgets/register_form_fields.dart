@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/widgets/password_requirements_checklist.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
+import '../../domain/value_objects/email.dart';
+import '../../domain/value_objects/full_name.dart';
+import '../../domain/value_objects/organization_name.dart';
 import '../../domain/value_objects/register_password.dart';
 import '../cubit/register_cubit.dart';
 import '../cubit/register_state.dart';
@@ -29,6 +33,9 @@ class RegisterFormFields extends StatelessWidget {
           builder: (context, state) => QuesivoTextField(
             hintText: l10n.orgNamePlaceholder,
             prefixIcon: Icons.storefront_outlined,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(OrganizationName.allowedChars),
+            ],
             onChanged: (v) =>
                 context.read<RegisterCubit>().organizationNameChanged(v),
             errorText: state.organizationName.displayError != null
@@ -42,10 +49,16 @@ class RegisterFormFields extends StatelessWidget {
           builder: (context, state) => QuesivoTextField(
             hintText: l10n.fullNamePlaceholder,
             prefixIcon: Icons.person_outline,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(FullName.allowedChars),
+            ],
             onChanged: (v) => context.read<RegisterCubit>().fullNameChanged(v),
-            errorText: state.fullName.displayError != null
-                ? l10n.invalidFullNameError
-                : null,
+            errorText: state.fullName.displayError == null
+                ? null
+                : state.fullName.displayError ==
+                      FullNameValidationError.invalidFormat
+                ? l10n.memberNameFormatError
+                : l10n.invalidFullNameError,
           ),
         ),
         const SizedBox(height: 16),
@@ -55,6 +68,9 @@ class RegisterFormFields extends StatelessWidget {
             hintText: l10n.registerEmailPlaceholder,
             prefixIcon: Icons.mail_outline,
             keyboardType: TextInputType.emailAddress,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(Email.allowedChars),
+            ],
             onChanged: (v) => context.read<RegisterCubit>().emailChanged(v),
             errorText: state.email.displayError != null
                 ? l10n.invalidEmailError
@@ -68,6 +84,9 @@ class RegisterFormFields extends StatelessWidget {
             hintText: l10n.registerPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegisterPassword.allowedChars),
+            ],
             onChanged: (v) => context.read<RegisterCubit>().passwordChanged(v),
             // Sin errorText: el checklist vivo de abajo ya comunica
             // cada requisito — el mensaje genérico sería redundante.
@@ -106,6 +125,9 @@ class RegisterFormFields extends StatelessWidget {
             hintText: l10n.confirmPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegisterPassword.allowedChars),
+            ],
             onChanged: (v) =>
                 context.read<RegisterCubit>().confirmPasswordChanged(v),
             errorText: state.confirmPassword.displayError != null

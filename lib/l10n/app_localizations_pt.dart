@@ -428,6 +428,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get invalidMemberNameError => 'Digite o nome completo';
 
   @override
+  String get memberNameFormatError =>
+      'Use apenas letras, espaços, hífens e apóstrofos';
+
+  @override
   String get invalidTempPasswordError =>
       'Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número';
 

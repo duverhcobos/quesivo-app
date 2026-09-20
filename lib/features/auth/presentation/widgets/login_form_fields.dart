@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
@@ -6,6 +7,8 @@ import 'package:quesivo/l10n/app_localizations.dart';
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
+import '../../domain/value_objects/email.dart';
+import '../../domain/value_objects/password.dart';
 import '../cubit/login_cubit.dart';
 import '../cubit/login_state.dart';
 
@@ -31,6 +34,9 @@ class LoginFormFields extends StatelessWidget {
             hintText: l10n.registerEmailPlaceholder,
             prefixIcon: Icons.mail_outline,
             keyboardType: TextInputType.emailAddress,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(Email.allowedChars),
+            ],
             onChanged: (v) => context.read<LoginCubit>().emailChanged(v),
             errorText: state.email.displayError != null
                 ? l10n.invalidEmailError
@@ -46,6 +52,9 @@ class LoginFormFields extends StatelessWidget {
             hintText: l10n.registerPasswordPlaceholder,
             prefixIcon: Icons.lock_outline,
             isPassword: true,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(Password.allowedChars),
+            ],
             onChanged: (v) => context.read<LoginCubit>().passwordChanged(v),
             errorText: state.password.displayError != null
                 ? l10n.invalidPasswordError

@@ -152,6 +152,7 @@
   "roleFieldLabel": "Função na organização",
   "roleRequiredError": "Escolha uma função",
   "invalidMemberNameError": "Digite o nome completo",
+  "memberNameFormatError": "Use apenas letras, espaços, hífens e apóstrofos",
   "invalidTempPasswordError": "Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número",
   "createUserButton": "Criar usuário",
   "memberCreatedFeedback": "Usuário criado com sucesso",

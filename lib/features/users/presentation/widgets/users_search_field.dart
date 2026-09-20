@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -33,6 +34,13 @@ class UsersSearchField extends StatelessWidget {
           controller: controller,
           onChanged: onChanged,
           textInputAction: TextInputAction.search,
+          inputFormatters: [
+            // Unión de lo buscable (nombre + email): regex local del
+            // widget — es filtro de UI, no regla de dominio (§47).
+            FilteringTextInputFormatter.allow(
+              RegExp(r"[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ@._%+\-' ]"),
+            ),
+          ],
           // Style explícito — sin él el texto tipeado hereda onSurface del
           // tema activo: en modo oscuro sale casi blanco sobre el fill
           // quesivoWhite forzado y no se lee (bug visto en físico). Mismo

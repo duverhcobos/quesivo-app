@@ -17,6 +17,10 @@ class RegisterPassword
   static final _hasUpper = RegExp(r'[A-Z]');
   static final _hasDigit = RegExp(r'\d');
 
+  /// Charset permitido — solo lo que el requisito pide (letras y
+  /// dígitos); símbolos y espacios se bloquean a nivel tecla.
+  static final allowedChars = RegExp(r'[a-zA-Z0-9]');
+
   /// Predicados de la política — única fuente de verdad compartida por el
   /// validator y por el checklist visual de la pantalla.
   static bool hasMinLength(String v) => v.length >= 8;

@@ -152,6 +152,7 @@
   "roleFieldLabel": "Role in the organization",
   "roleRequiredError": "Choose a role",
   "invalidMemberNameError": "Enter the full name",
+  "memberNameFormatError": "Use only letters, spaces, hyphens and apostrophes",
   "invalidTempPasswordError": "At least 8 characters, one uppercase, one lowercase and one digit",
   "createUserButton": "Create user",
   "memberCreatedFeedback": "User created successfully",

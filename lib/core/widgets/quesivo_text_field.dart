@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // TextInputFormatter
 
 import '../theme/app_colors.dart';
 
@@ -22,6 +23,7 @@ class QuesivoTextField extends StatefulWidget {
     this.errorText,
     this.onChanged,
     this.enabled = true,
+    this.inputFormatters,
   });
 
   final String hintText;
@@ -34,6 +36,11 @@ class QuesivoTextField extends StatefulWidget {
   /// `false` bloquea la edición — la sheet de creación lo usa para
   /// congelar los campos mientras el submit está en vuelo.
   final bool enabled;
+
+  /// Formatters de tecla — el sheet de creación los usa para bloquear
+  /// caracteres que el campo jamás acepta (dígitos en nombre, espacios
+  /// en email, símbolos en contraseña temporal).
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<QuesivoTextField> createState() => _QuesivoTextFieldState();
@@ -54,6 +61,7 @@ class _QuesivoTextFieldState extends State<QuesivoTextField> {
       keyboardType: widget.keyboardType,
       onChanged: widget.onChanged,
       enabled: widget.enabled,
+      inputFormatters: widget.inputFormatters,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       style: const TextStyle(
         color: AppColors.quesivoDarkText,

@@ -880,6 +880,12 @@ abstract class AppLocalizations {
   /// **'Ingresá el nombre completo'**
   String get invalidMemberNameError;
 
+  /// No description provided for @memberNameFormatError.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa solo letras, espacios, guiones y apóstrofes'**
+  String get memberNameFormatError;
+
   /// No description provided for @invalidTempPasswordError.
   ///
   /// In es, this message translates to:

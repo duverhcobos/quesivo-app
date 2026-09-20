@@ -428,6 +428,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidMemberNameError => 'Enter the full name';
 
   @override
+  String get memberNameFormatError =>
+      'Use only letters, spaces, hyphens and apostrophes';
+
+  @override
   String get invalidTempPasswordError =>
       'At least 8 characters, one uppercase, one lowercase and one digit';
 

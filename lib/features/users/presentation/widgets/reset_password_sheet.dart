@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -7,6 +8,7 @@ import '../../../../core/widgets/quesivo_close_button.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
 import '../../domain/entities/org_member.dart';
+import '../../domain/value_objects/temp_password.dart';
 
 /// Sheet de reset de contraseña por admin (§45) — mini-form con un solo
 /// campo, mismo contenedor y convenciones que `NewUserSheet` (§44 +
@@ -15,9 +17,10 @@ import '../../domain/entities/org_member.dart';
 /// backend tal cual (el reset además levanta el lockout del email,
 /// doc 010).
 ///
-/// La política espeja el VO del backend (min 8, mayúscula, minúscula,
-/// dígito) — igual que en NewUserSheet; la propuesta de integración
-/// introduce el VO de dominio compartido.
+/// La política vive en el VO `TempPassword` (min 8, mayúscula,
+/// minúscula, dígito — misma del backend) — el checklist y el submit
+/// consumen sus predicados (§47 fix de auditoría: antes regexes
+/// espejo locales).
 class ResetPasswordSheet extends StatefulWidget {
   const ResetPasswordSheet({super.key, required this.member});
 
@@ -55,21 +58,11 @@ class ResetPasswordSheet extends StatefulWidget {
 }
 
 class _ResetPasswordSheetState extends State<ResetPasswordSheet> {
-  static final _hasLower = RegExp(r'[a-z]');
-  static final _hasUpper = RegExp(r'[A-Z]');
-  static final _hasDigit = RegExp(r'\d');
-
   String _password = '';
   bool _passwordError = false;
 
-  bool get _validPassword =>
-      _password.length >= 8 &&
-      _hasLower.hasMatch(_password) &&
-      _hasUpper.hasMatch(_password) &&
-      _hasDigit.hasMatch(_password);
-
   void _submit() {
-    setState(() => _passwordError = !_validPassword);
+    setState(() => _passwordError = TempPassword.dirty(_password).isNotValid);
     if (_passwordError) return;
     Navigator.of(context).pop(_password);
   }
@@ -136,6 +129,11 @@ class _ResetPasswordSheetState extends State<ResetPasswordSheet> {
                   QuesivoTextField(
                     hintText: l10n.newPasswordPlaceholder,
                     prefixIcon: Icons.lock_outline,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        TempPassword.allowedChars,
+                      ),
+                    ],
                     errorText: _passwordError
                         ? l10n.invalidTempPasswordError
                         : null,
@@ -149,19 +147,19 @@ class _ResetPasswordSheetState extends State<ResetPasswordSheet> {
                     title: l10n.passwordReqTitle,
                     items: [
                       PasswordRequirementItem(
-                        met: _password.length >= 8,
+                        met: TempPassword.dirty(_password).hasMinLength,
                         label: l10n.passwordReqMinLength,
                       ),
                       PasswordRequirementItem(
-                        met: _hasUpper.hasMatch(_password),
+                        met: TempPassword.dirty(_password).hasUppercase,
                         label: l10n.passwordReqUppercase,
                       ),
                       PasswordRequirementItem(
-                        met: _hasLower.hasMatch(_password),
+                        met: TempPassword.dirty(_password).hasLowercase,
                         label: l10n.passwordReqLowercase,
                       ),
                       PasswordRequirementItem(
-                        met: _hasDigit.hasMatch(_password),
+                        met: TempPassword.dirty(_password).hasDigit,
                         label: l10n.passwordReqDigit,
                       ),
                     ],

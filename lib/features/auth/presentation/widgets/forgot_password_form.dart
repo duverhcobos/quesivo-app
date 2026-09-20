@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/widgets/quesivo_text_field.dart';
+import '../../domain/value_objects/email.dart';
 import '../cubit/forgot_password_cubit.dart';
 import '../cubit/forgot_password_state.dart';
 
@@ -24,6 +26,9 @@ class ForgotPasswordForm extends StatelessWidget {
         hintText: l10n.registerEmailPlaceholder,
         prefixIcon: Icons.mail_outline,
         keyboardType: TextInputType.emailAddress,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(Email.allowedChars),
+        ],
         onChanged: (v) => context.read<ForgotPasswordCubit>().emailChanged(v),
         errorText: state.email.displayError != null
             ? l10n.invalidEmailError

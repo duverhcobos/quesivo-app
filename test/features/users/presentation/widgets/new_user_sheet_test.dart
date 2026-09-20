@@ -349,4 +349,98 @@ void main() {
     expect(await result, isNull);
     expect(find.text('Nuevo usuario'), findsNothing);
   });
+
+  testWidgets('el formatter del nombre bloquea dígitos y símbolos al tipear', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    // El charset de MemberName solo deja pasar letras (con
+    // tildes/ñ/ü), espacio, apóstrofe y guion — '123!!' ni entra.
+    await tester.enterText(field('Nombre completo'), 'Juan123!!');
+    await tester.pump();
+
+    expect(find.text('Juan'), findsOneWidget);
+  });
+
+  testWidgets('el formatter del email bloquea espacios al tipear', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    await tester.enterText(field('Correo electrónico'), 'a b@c');
+    await tester.pump();
+
+    expect(find.text('ab@c'), findsOneWidget);
+  });
+
+  testWidgets('el formatter de contraseña bloquea símbolos al tipear', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    // TempPassword solo admite lo que el requisito pide (a-zA-Z0-9) —
+    // '!@#' queda filtrado a nivel tecla.
+    await tester.enterText(field('Contraseña temporal'), 'Abc1!@#x');
+    await tester.pump();
+
+    expect(find.text('Abc1x'), findsOneWidget);
+  });
+
+  testWidgets('email sin formato muestra el error en vivo, sin submit', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    await tester.enterText(field('Correo electrónico'), 'juanmail.com');
+    await tester.pump();
+
+    // Sin tap en "Crear usuario" — el onChanged ya marca el error.
+    expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
+    verifyNever(
+      () => mockCubit.submit(
+        name: any(named: 'name'),
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+        role: any(named: 'role'),
+      ),
+    );
+  });
+
+  testWidgets(
+    'nombre con separador inicial muestra el error de formato en vivo, sin submit',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
+      await openSheet(tester);
+
+      // '-' entra al campo (está en el charset) pero el patrón exige
+      // letra al inicio — el error en vivo es el de formato, no el de
+      // vacío.
+      await tester.enterText(field('Nombre completo'), '-Juan');
+      await tester.pump();
+
+      expect(
+        find.text('Usa solo letras, espacios, guiones y apóstrofes'),
+        findsOneWidget,
+      );
+      expect(find.text('Ingresá el nombre completo'), findsNothing);
+      verifyNever(
+        () => mockCubit.submit(
+          name: any(named: 'name'),
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+          role: any(named: 'role'),
+        ),
+      );
+    },
+  );
 }

@@ -62,4 +62,25 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     },
   );
+
+  testWidgets('el formatter bloquea símbolos y emojis al tipear', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    var lastValue = '';
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      buildApp(controller: controller, onChanged: (value) => lastValue = value),
+    );
+
+    // Charset local del widget: unión de lo buscable (letras con
+    // tildes/ñ/ü, dígitos, @ . _ % + - ' y espacio) — '!', '#', '$' y
+    // los emojis quedan filtrados a nivel tecla.
+    await tester.enterText(find.byType(TextField), 'a!n#a\$😀');
+    await tester.pump();
+
+    expect(controller.text, 'ana');
+    expect(lastValue, 'ana');
+  });
 }

@@ -151,6 +151,7 @@
   "roleFieldLabel": "Rol en la organización",
   "roleRequiredError": "Elegí un rol",
   "invalidMemberNameError": "Ingresá el nombre completo",
+  "memberNameFormatError": "Usa solo letras, espacios, guiones y apóstrofes",
   "invalidTempPasswordError": "Mínimo 8 caracteres, una mayúscula, una minúscula y un número",
   "createUserButton": "Crear usuario",
   "memberCreatedFeedback": "Usuario creado con éxito",
