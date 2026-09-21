@@ -40,6 +40,10 @@ class UsersSpeedDial extends StatefulWidget {
   State<UsersSpeedDial> createState() => _UsersSpeedDialState();
 }
 
+/// Ancho del FAB principal (56px) — lo comparte `_SpeedDialAction` para
+/// centrar su círculo de 44px en el eje del FAB (6px por lado).
+const double _fabSize = 56;
+
 class _UsersSpeedDialState extends State<UsersSpeedDial>
     with SingleTickerProviderStateMixin {
   /// Fade+slide de las acciones (~200ms según la propuesta).
@@ -48,7 +52,6 @@ class _UsersSpeedDialState extends State<UsersSpeedDial>
   /// Gap vertical entre el borde superior del FAB (56px) y la primera
   /// acción, y entre acciones.
   static const _actionsGap = 16.0;
-  static const _fabSize = 56.0;
 
   late final AnimationController _controller;
   OverlayEntry? _overlayEntry;
@@ -150,12 +153,14 @@ class _UsersSpeedDialState extends State<UsersSpeedDial>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _SpeedDialAction(
+                    key: const ValueKey('users-speed-dial-link'),
                     label: l10n.fabLinkUser,
                     icon: Icons.link_outlined,
                     onTap: () => _runAction(widget.onLink),
                   ),
                   const SizedBox(height: 12),
                   _SpeedDialAction(
+                    key: const ValueKey('users-speed-dial-create'),
                     label: l10n.fabCreateUser,
                     icon: Icons.person_add_outlined,
                     onTap: () => _runAction(widget.onCreate),
@@ -195,11 +200,14 @@ class _UsersSpeedDialState extends State<UsersSpeedDial>
   }
 }
 
-/// Acción del speed dial: pill blanca con el label a la izquierda +
-/// mini botón circular navy con ícono blanco a la derecha. Ambas mitades
-/// disparan el mismo `onTap` (el label es el target principal).
+/// Acción del speed dial: mini botón circular navy con ícono blanco —
+/// solo ícono (feedback del usuario: la pill con el label se veía como
+/// un tooltip). El `SizedBox` de 56px iguala el ancho del FAB para que
+/// el círculo quede centrado en su eje (44px → 6px de margen por lado).
+/// El label vive en `Semantics` — a11y sin tooltip visible.
 class _SpeedDialAction extends StatelessWidget {
   const _SpeedDialAction({
+    super.key,
     required this.label,
     required this.icon,
     required this.onTap,
@@ -211,51 +219,29 @@ class _SpeedDialAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          color: AppColors.quesivoWhite,
-          borderRadius: BorderRadius.circular(24),
-          elevation: 4,
-          shadowColor: AppColors.quesivoShadow,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(24),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.quesivoNavy,
-                  // El entry del overlay no tiene Scaffold/Material de
-                  // tema encima — sin esto el texto heredaría el
-                  // decoration de fallback (subrayado amarillo).
-                  decoration: TextDecoration.none,
-                ),
+    return SizedBox(
+      width: _fabSize,
+      child: Center(
+        child: Semantics(
+          button: true,
+          label: label,
+          child: Material(
+            color: AppColors.quesivoNavy,
+            shape: const CircleBorder(),
+            elevation: 4,
+            shadowColor: AppColors.quesivoShadow,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onTap,
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: Icon(icon, size: 20, color: AppColors.quesivoWhite),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 10),
-        Material(
-          color: AppColors.quesivoNavy,
-          shape: const CircleBorder(),
-          elevation: 4,
-          shadowColor: AppColors.quesivoShadow,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Icon(icon, size: 20, color: AppColors.quesivoWhite),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

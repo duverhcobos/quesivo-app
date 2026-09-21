@@ -128,7 +128,7 @@ void main() {
   Future<void> openAndFillSheet(WidgetTester tester) async {
     await tester.tap(find.byIcon(Icons.person_add_outlined));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Crear usuario'));
+    await tester.tap(find.byKey(const ValueKey('users-speed-dial-create')));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Nombre completo'),
@@ -244,8 +244,14 @@ void main() {
       await tester.tap(find.byIcon(Icons.person_add_outlined));
       await tester.pumpAndSettle();
 
-      expect(find.text('Crear usuario'), findsOneWidget);
-      expect(find.text('Vincular existente'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('users-speed-dial-create')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('users-speed-dial-link')),
+        findsOneWidget,
+      );
       expect(find.byIcon(Icons.close), findsOneWidget);
 
       // Tap afuera (scrim transparente) cierra el dial sin disparar
@@ -253,8 +259,11 @@ void main() {
       await tester.tapAt(const Offset(400, 400));
       await tester.pumpAndSettle();
 
-      expect(find.text('Crear usuario'), findsNothing);
-      expect(find.text('Vincular existente'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('users-speed-dial-create')),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey('users-speed-dial-link')), findsNothing);
       expect(find.byIcon(Icons.person_add_outlined), findsOneWidget);
     },
   );
@@ -267,7 +276,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.person_add_outlined));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Crear usuario'));
+    await tester.tap(find.byKey(const ValueKey('users-speed-dial-create')));
     await tester.pumpAndSettle();
 
     // El sheet de creación abierto — su título es "Nuevo usuario" y el
@@ -338,7 +347,7 @@ void main() {
       // Speed dial → acción de vinculación.
       await tester.tap(find.byIcon(Icons.person_add_outlined));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Vincular existente'));
+      await tester.tap(find.byKey(const ValueKey('users-speed-dial-link')));
       await tester.pumpAndSettle();
 
       // El sheet de vinculación abierto — solo email + rol (§48).
