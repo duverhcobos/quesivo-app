@@ -116,6 +116,8 @@
     }
   },
   "newUserButton": "New user",
+  "fabCreateUser": "Create user",
+  "fabLinkUser": "Link existing",
   "roleOperator": "Operator",
   "roleCollector": "Collector",
   "roleProducer": "Producer",
@@ -155,6 +157,9 @@
   "memberNameFormatError": "Use only letters, spaces, hyphens and apostrophes",
   "invalidTempPasswordError": "At least 8 characters, one uppercase, one lowercase and one digit",
   "createUserButton": "Create user",
+  "linkUserSheetTitle": "Link user",
+  "linkUserSheetHint": "The email already has a Quesivo account — it links to your organization keeping its current password",
+  "linkUserSubmit": "Link",
   "memberCreatedFeedback": "User created successfully",
   "suspendMemberTitle": "Suspend {name}?",
   "@suspendMemberTitle": {
@@ -202,6 +207,9 @@
   },
   "membershipExistsError": "That email already belongs to this organization",
   "linkedUserSuspendedError": "That account is suspended — it can't be linked",
+  "emailAlreadyExistsError": "That email already has an account — link it from \"Link existing\"",
+  "userNotFoundError": "That email has no account — create it from \"Create user\"",
+  "userIsOwnerError": "That email owns another organization — it cannot be linked",
   "usersForbiddenError": "You don't have permission to manage users",
   "tooManyAttemptsError": "Too many attempts — wait a moment",
   "genericError": "Something went wrong — try again",

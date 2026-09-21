@@ -6,7 +6,6 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/di/setup_di.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/password_requirements_checklist.dart';
 import '../../../../core/widgets/quesivo_close_button.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
@@ -15,32 +14,30 @@ import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
 import '../../domain/failures/users_failure.dart';
 import '../../domain/value_objects/member_email.dart';
-import '../../domain/value_objects/member_name.dart';
-import '../../domain/value_objects/temp_password.dart';
-import '../cubit/create_user_cubit.dart';
-import '../cubit/create_user_state.dart';
+import '../cubit/link_user_cubit.dart';
+import '../cubit/link_user_state.dart';
 import 'role_selector_chips.dart';
 
-/// Bottom sheet de creación de usuario (§44) — el primero de la app.
-/// Integrado en §46: el submit pega a `POST /auth/users` real vía
-/// `CreateUserCubit` y el sheet devuelve por `Navigator.pop` el
-/// `OrgMember` que responde el backend (uuid, `status`, `linked`).
+/// Bottom sheet de vinculación de usuario existente (§48) — espejo
+/// estructural de `NewUserSheet` menos nombre/password/checklist: el
+/// correo ya tiene cuenta global, así que el form solo pide email +
+/// rol y el submit pega a `POST /auth/users/link` vía `LinkUserCubit`
+/// (propuesta backend 058 — el endpoint solo crea la membresía).
 ///
-/// Validación manual al submit — `QuesivoTextField` expone `errorText`
-/// (patrón del proyecto: el error llega de afuera, no de un `validator`
-/// interno). La política vive en los VOs de dominio (`MemberName`,
-/// `MemberEmail`, `TempPassword` — misma regla que `RegisterDto` del
-/// backend, doc 007-post-users.md). El error del backend sale por
-/// `QuesivoToast.error` sobre el overlay raíz (feedback del usuario —
-/// antes era un texto inline sobre los botones): el form queda abierto
-/// para corregir — ej. `MEMBERSHIP_ALREADY_EXISTS` invita a cambiar
-/// el email — y el toast rojo flota por encima del sheet sin taparlo.
-class NewUserSheet extends StatefulWidget {
-  const NewUserSheet({super.key});
+/// Misma mecánica que el sheet de creación: validación manual al submit
+/// con el VO de dominio (`MemberEmail` — `Email.allowedChars` bloquea
+/// a nivel tecla y el errorText se computa en vivo, patrón §47), el
+/// error del backend sale por `QuesivoToast.error` sobre el overlay
+/// raíz (el form queda abierto para corregir — ej. `USER_NOT_FOUND`
+/// invita a revisar el email o crear el usuario), y el éxito espera
+/// ~500ms con el check del botón antes de devolver el `OrgMember`
+/// (`linked:true`) por `Navigator.pop`.
+class LinkUserSheet extends StatefulWidget {
+  const LinkUserSheet({super.key});
 
-  /// Abre el sheet y devuelve el miembro creado por el backend, o `null`
-  /// si se canceló/falló. [cubit] es seam de tests — en producción se
-  /// resuelve por `locator`.
+  /// Abre el sheet y devuelve el miembro vinculado por el backend, o
+  /// `null` si se canceló/falló. [cubit] es seam de tests — en
+  /// producción se resuelve por `locator`.
   ///
   /// [topInset]: coordenada Y hasta donde el sheet puede crecer (borde
   /// inferior del hero navy). El alto total del sheet —contenido + padding
@@ -49,7 +46,7 @@ class NewUserSheet extends StatefulWidget {
   static Future<OrgMember?> show(
     BuildContext context, {
     double topInset = 0,
-    CreateUserCubit? cubit,
+    LinkUserCubit? cubit,
   }) {
     return showModalBottomSheet<OrgMember>(
       context: context,
@@ -73,68 +70,44 @@ class NewUserSheet extends StatefulWidget {
         maxHeight: MediaQuery.sizeOf(context).height - topInset,
       ),
       builder: (_) => BlocProvider(
-        create: (_) => cubit ?? locator<CreateUserCubit>(),
-        child: const NewUserSheet(),
+        create: (_) => cubit ?? locator<LinkUserCubit>(),
+        child: const LinkUserSheet(),
       ),
     );
   }
 
   @override
-  State<NewUserSheet> createState() => _NewUserSheetState();
+  State<LinkUserSheet> createState() => _LinkUserSheetState();
 }
 
-class _NewUserSheetState extends State<NewUserSheet> {
+class _LinkUserSheetState extends State<LinkUserSheet> {
   /// Pausa de confirmación antes de cerrar: el usuario ve el check del
-  /// botón dentro del sheet (feedback en físico — el pop inmediato tras
-  /// el 201 se sentía abrupto; ~500ms por feedback del usuario).
+  /// botón dentro del sheet (mismo ~500ms del sheet de creación).
   static const _successDismissDelay = Duration(milliseconds: 500);
 
-  String _name = '';
   String _email = '';
-  String _password = '';
   UserRole? _role;
 
-  bool _nameError = false; // vacío al submit → "Ingresá el nombre completo"
-  bool _nameFormatError = false; // live: separadores mal ubicados
   bool _emailError = false; // submit: vacío · live: formato inválido
-  bool _passwordError = false;
   bool _roleError = false;
 
   void _submit() {
-    final name = _name.trim();
     final email = _email.trim().toLowerCase();
-    final nameInvalid = name.isEmpty || MemberName.dirty(name).isNotValid;
     setState(() {
-      _nameError = name.isEmpty;
-      _nameFormatError = !_nameError && nameInvalid;
       _emailError = !MemberEmail.dirty(email).isValid;
-      _passwordError = !TempPassword.dirty(_password).isValid;
       _roleError = _role == null;
     });
-    if (_nameError ||
-        _nameFormatError ||
-        _emailError ||
-        _passwordError ||
-        _roleError) {
-      return;
-    }
+    if (_emailError || _roleError) return;
 
-    context.read<CreateUserCubit>().submit(
-      name: name,
-      email: email,
-      password: _password,
-      role: _role!,
-    );
+    context.read<LinkUserCubit>().submit(email: email, role: _role!);
   }
 
   String _failureText(AppLocalizations l10n, UsersFailure? failure) =>
       switch (failure) {
-        // §48/backend 058: create ya no vincula — un email con cuenta
-        // global sale 409 EMAIL_ALREADY_EXISTS y apunta a la acción
-        // de vinculación del speed dial.
-        EmailAlreadyExistsFailure() => l10n.emailAlreadyExistsError,
+        UserNotFoundFailure() => l10n.userNotFoundError,
         MembershipAlreadyExistsFailure() => l10n.membershipExistsError,
         LinkedUserSuspendedFailure() => l10n.linkedUserSuspendedError,
+        UserIsOwnerFailure() => l10n.userIsOwnerError,
         UsersForbiddenFailure() => l10n.usersForbiddenError,
         UsersRateLimitFailure() => l10n.tooManyAttemptsError,
         UsersNetworkFailure() => l10n.networkError,
@@ -143,20 +116,20 @@ class _NewUserSheetState extends State<NewUserSheet> {
 
   /// Editar cualquier campo limpia el error del backend stale — sin
   /// esto el mensaje persiste sobre datos ya corregidos.
-  void _clearBackendError() => context.read<CreateUserCubit>().resetStatus();
+  void _clearBackendError() => context.read<LinkUserCubit>().resetStatus();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     // Fuera del BlocConsumer: la zona fija (✕) y el PopScope también
     // necesitan saber si hay submit en vuelo o pausa de éxito activa.
-    final isBusy = context.select<CreateUserCubit, bool>(
+    final isBusy = context.select<LinkUserCubit, bool>(
       (c) => c.state.status.isInProgress || c.state.status.isSuccess,
     );
     return PopScope(
       // Bloquea scrim-tap, drag-down y back durante el submit Y la
       // pausa de éxito: cerrar antes pierde el resultado (el miembro
-      // pudo haberse creado sin que la UI lo sepa) y emitir sobre el
+      // pudo haberse vinculado sin que la UI lo sepa) y emitir sobre el
       // cubit ya cerrado lanza StateError. El pop retardado del
       // listener no lo frena canPop — Navigator.pop no consulta
       // popDisposition (solo maybePop/back lo hacen).
@@ -203,7 +176,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
               ),
             ),
             Flexible(
-              child: BlocConsumer<CreateUserCubit, CreateUserState>(
+              child: BlocConsumer<LinkUserCubit, LinkUserState>(
                 listenWhen: (p, c) =>
                     p.status != c.status &&
                     (c.status.isSuccess || c.status.isFailure),
@@ -211,8 +184,8 @@ class _NewUserSheetState extends State<NewUserSheet> {
                   if (state.status.isFailure) {
                     // Error del backend → toast rojo sobre el overlay
                     // raíz (flota por encima del sheet): el form queda
-                    // abierto para corregir — ej. el 409 invita a
-                    // cambiar el email.
+                    // abierto para corregir — ej. el 404 invita a
+                    // revisar el email o crear el usuario.
                     QuesivoToast.error(
                       context,
                       message: _failureText(
@@ -224,8 +197,8 @@ class _NewUserSheetState extends State<NewUserSheet> {
                   }
                   // Pausa de confirmación ~500ms: el check del botón
                   // queda visible antes de devolver el miembro REAL
-                  // del backend (uuid + linked) por pop.
-                  final member = state.createdMember;
+                  // del backend (uuid + linked:true) por pop.
+                  final member = state.linkedMember;
                   Future.delayed(_successDismissDelay, () {
                     if (context.mounted) {
                       Navigator.of(context).pop(member);
@@ -235,14 +208,13 @@ class _NewUserSheetState extends State<NewUserSheet> {
                 builder: (context, state) {
                   final isBusy =
                       state.status.isInProgress || state.status.isSuccess;
-                  final tempPassword = TempPassword.dirty(_password);
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          l10n.newUserButton,
+                          l10n.linkUserSheetTitle,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
@@ -251,42 +223,13 @@ class _NewUserSheetState extends State<NewUserSheet> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          l10n.newUserSheetHint,
+                          l10n.linkUserSheetHint,
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.quesivoTextSecondary,
                           ),
                         ),
                         const SizedBox(height: 20),
-                        QuesivoTextField(
-                          hintText: l10n.fullNamePlaceholder,
-                          prefixIcon: Icons.person_outline,
-                          keyboardType: TextInputType.name,
-                          enabled: !isBusy,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              MemberName.allowedChars,
-                            ),
-                          ],
-                          errorText: _nameError
-                              ? l10n.invalidMemberNameError
-                              : _nameFormatError
-                              ? l10n.memberNameFormatError
-                              : null,
-                          onChanged: (v) {
-                            setState(() {
-                              _name = v;
-                              _nameError = false;
-                              // Aviso en vivo — solo si hay contenido
-                              // e inválido.
-                              _nameFormatError =
-                                  v.isNotEmpty &&
-                                  MemberName.dirty(v).isNotValid;
-                            });
-                            _clearBackendError();
-                          },
-                        ),
-                        const SizedBox(height: 14),
                         QuesivoTextField(
                           hintText: l10n.registerEmailPlaceholder,
                           prefixIcon: Icons.mail_outline,
@@ -309,54 +252,6 @@ class _NewUserSheetState extends State<NewUserSheet> {
                             });
                             _clearBackendError();
                           },
-                        ),
-                        const SizedBox(height: 14),
-                        // Visible a propósito: es una contraseña temporal que el
-                        // admin inventa y le comparte al usuario a mano — ocultarla
-                        // solo dificultaría tipearla/dictarla sin typos.
-                        QuesivoTextField(
-                          hintText: l10n.tempPasswordPlaceholder,
-                          prefixIcon: Icons.lock_outline,
-                          enabled: !isBusy,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              TempPassword.allowedChars,
-                            ),
-                          ],
-                          errorText: _passwordError
-                              ? l10n.invalidTempPasswordError
-                              : null,
-                          onChanged: (v) {
-                            setState(() {
-                              _password = v;
-                              _passwordError = false;
-                            });
-                            _clearBackendError();
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        // Checklist vivo (mismo de registro/reset) — evalúa
-                        // los predicados del VO TempPassword de dominio.
-                        PasswordRequirementsChecklist(
-                          title: l10n.passwordReqTitle,
-                          items: [
-                            PasswordRequirementItem(
-                              met: tempPassword.hasMinLength,
-                              label: l10n.passwordReqMinLength,
-                            ),
-                            PasswordRequirementItem(
-                              met: tempPassword.hasUppercase,
-                              label: l10n.passwordReqUppercase,
-                            ),
-                            PasswordRequirementItem(
-                              met: tempPassword.hasLowercase,
-                              label: l10n.passwordReqLowercase,
-                            ),
-                            PasswordRequirementItem(
-                              met: tempPassword.hasDigit,
-                              label: l10n.passwordReqDigit,
-                            ),
-                          ],
                         ),
                         const SizedBox(height: 20),
                         Text(
@@ -397,10 +292,10 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           ),
                         ],
                         const SizedBox(height: 24),
-                        // Par lado a lado en mitades iguales (feedback del
-                        // usuario — mismo tamaño para ambos): negativa ghost
-                        // iconSurface a la izquierda, primario amarillo a la
-                        // derecha; ambos 64px StadiumBorder, gap 12px.
+                        // Par lado a lado en mitades iguales (mismo
+                        // criterio del sheet de creación): negativa ghost
+                        // iconSurface a la izquierda, primario amarillo a
+                        // la derecha; ambos 64px StadiumBorder, gap 12px.
                         Row(
                           children: [
                             Expanded(
@@ -431,7 +326,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: QuesivoPrimaryButton(
-                                label: l10n.createUserButton,
+                                label: l10n.linkUserSubmit,
                                 // spinner → check → pop: la pausa de
                                 // éxito mantiene el botón ocupado.
                                 isLoading: state.status.isInProgress,

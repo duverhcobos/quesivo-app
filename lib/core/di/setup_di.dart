@@ -49,7 +49,9 @@ import '../../features/users/data/datasources/interfaces/i_remote_users_datasour
 import '../../features/users/data/repositories/users_repository_impl.dart';
 import '../../features/users/domain/repositories/i_users_repository.dart';
 import '../../features/users/domain/use_cases/create_user_use_case.dart';
+import '../../features/users/domain/use_cases/link_user_use_case.dart';
 import '../../features/users/presentation/cubit/create_user_cubit.dart';
+import '../../features/users/presentation/cubit/link_user_cubit.dart';
 import '../localization/cubit/locale_cubit.dart';
 
 final locator = GetIt.instance;
@@ -211,8 +213,12 @@ void setupDI() {
   locator.registerLazySingleton(
     () => CreateUserUseCase(locator<IUsersRepository>()),
   );
-  // Cubit de sheet: factory — nace y muere con cada apertura.
+  locator.registerLazySingleton(
+    () => LinkUserUseCase(locator<IUsersRepository>()),
+  );
+  // Cubits de sheet: factory — nacen y mueren con cada apertura.
   locator.registerFactory(() => CreateUserCubit(locator<CreateUserUseCase>()));
+  locator.registerFactory(() => LinkUserCubit(locator<LinkUserUseCase>()));
 
   // 6. Router Automático
   // AuthGuard se inyecta con su logger por constructor (DIP), y es

@@ -748,6 +748,18 @@ abstract class AppLocalizations {
   /// **'Nuevo usuario'**
   String get newUserButton;
 
+  /// No description provided for @fabCreateUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear usuario'**
+  String get fabCreateUser;
+
+  /// No description provided for @fabLinkUser.
+  ///
+  /// In es, this message translates to:
+  /// **'Vincular existente'**
+  String get fabLinkUser;
+
   /// No description provided for @roleOperator.
   ///
   /// In es, this message translates to:
@@ -898,6 +910,24 @@ abstract class AppLocalizations {
   /// **'Crear usuario'**
   String get createUserButton;
 
+  /// No description provided for @linkUserSheetTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vincular usuario'**
+  String get linkUserSheetTitle;
+
+  /// No description provided for @linkUserSheetHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El correo ya tiene cuenta en Quesivo — se vincula a tu quesera y conserva su contraseña actual'**
+  String get linkUserSheetHint;
+
+  /// No description provided for @linkUserSubmit.
+  ///
+  /// In es, this message translates to:
+  /// **'Vincular'**
+  String get linkUserSubmit;
+
   /// No description provided for @memberCreatedFeedback.
   ///
   /// In es, this message translates to:
@@ -969,6 +999,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Esa cuenta está suspendida — no se puede vincular'**
   String get linkedUserSuspendedError;
+
+  /// No description provided for @emailAlreadyExistsError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese correo ya tiene cuenta — vinculalo desde \"Vincular existente\"'**
+  String get emailAlreadyExistsError;
+
+  /// No description provided for @userNotFoundError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese correo no tiene cuenta — crealo desde \"Crear usuario\"'**
+  String get userNotFoundError;
+
+  /// No description provided for @userIsOwnerError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese correo es dueño de otra quesera — no puede vincularse'**
+  String get userIsOwnerError;
 
   /// No description provided for @usersForbiddenError.
   ///

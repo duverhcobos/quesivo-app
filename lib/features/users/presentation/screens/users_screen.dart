@@ -9,6 +9,7 @@ import '../../../../core/widgets/quesivo_toast.dart';
 import '../../../shell/presentation/widgets/shell_insets.dart';
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
+import '../widgets/link_user_sheet.dart';
 import '../widgets/member_stats_row.dart';
 import '../widgets/new_user_sheet.dart';
 import '../widgets/org_member_card.dart';
@@ -16,21 +17,24 @@ import '../widgets/role_filter_chips.dart';
 import '../widgets/users_empty_state.dart';
 import '../widgets/users_list_footer_loader.dart';
 import '../widgets/users_search_field.dart';
+import '../widgets/users_speed_dial.dart';
 import 'sample_org_members.dart';
 
 /// Pantalla principal del módulo Usuarios (`/home/usuarios` — hija del
 /// branch Inicio). El listado se pinta con `generateSampleOrgMembers()`
 /// hasta la propuesta que integre `GET /auth/users`; las acciones de
 /// fila mutan el dataset local (§45 — solo UI, el PATCH llega con la
-/// integración); el FAB de creación abre `NewUserSheet`, que desde §46
-/// ya pega a `POST /auth/users` real — el insert local es el reflejo
+/// integración); el speed dial de §48 abre `NewUserSheet` (creación
+/// contra `POST /auth/users`, §46) o `LinkUserSheet` (vinculación contra
+/// `POST /auth/users/link`, backend 058) — el insert local es el reflejo
 /// optimista hasta el GET.
 ///
 /// Rediseño §38: cabecera navy del módulo. §39: hero edge-to-edge
 /// detrás del ShellHeader. §41/§42: hero mínimo sin back/subtítulo.
-/// La acción de creación vive en el FAB circular amarillo que flota
+/// Las acciones de alta viven en el `UsersSpeedDial` amarillo que flota
 /// sobre el nav (pedido del usuario — el hero queda solo con
-/// título + stats).
+/// título + stats): FAB circular que expande "Crear usuario" y
+/// "Vincular existente" (§48 — backend 058 separó crear de vincular).
 ///
 /// §43: `StatefulWidget` — búsqueda + filtro por rol (locales sobre el
 /// dataset de 54 muestras, `GET /auth/users` hoy no soporta query
@@ -147,11 +151,15 @@ class _UsersScreenState extends State<UsersScreen> {
     return box.size.height;
   }
 
-  /// §44/§46 — abre el sheet de creación, que ya pega a
-  /// `POST /auth/users` real vía `CreateUserCubit`; al volver con el
-  /// miembro del backend lo inserta al tope del dataset local (reflejo
-  /// optimista hasta la propuesta de `GET /auth/users`) y muestra
-  /// feedback — `linked` si el email ya existía globalmente.
+  /// §44/§46 — abre el sheet de creación, que pega a `POST /auth/users`
+  /// real vía `CreateUserCubit`; al volver con el miembro del backend lo
+  /// inserta al tope del dataset local (reflejo optimista hasta la
+  /// propuesta de `GET /auth/users`) y muestra feedback.
+  ///
+  /// Desde §48 el endpoint solo crea (backend 058): un email existente
+  /// ya no vincula — sale `EMAIL_ALREADY_EXISTS` → error en el sheet —
+  /// así que la rama `linked` quedó muerta y el toast es success siempre
+  /// (`OrgMember.linked` se conserva: `linkUser` sí lo trae en true).
   Future<void> _openNewUserSheet() async {
     // El hero arranca en y=0 de la pantalla → su alto ES la coordenada del
     // borde inferior de la tarjeta navy; el sheet no crece más arriba de
@@ -167,21 +175,32 @@ class _UsersScreenState extends State<UsersScreen> {
       );
     }
     // Toast flotante arriba — único mensaje; dentro del sheet solo
-    // quedó el check del botón. Semántica por estado: linked es
-    // informativo (no se creó cuenta, solo membresía) → info azul.
-    if (created.linked) {
-      QuesivoToast.info(
-        context,
-        message: AppLocalizations.of(
-          context,
-        )!.memberLinkedFeedback(created.name),
-      );
-    } else {
-      QuesivoToast.success(
-        context,
-        message: AppLocalizations.of(context)!.memberCreatedFeedback,
+    // quedó el check del botón.
+    QuesivoToast.success(
+      context,
+      message: AppLocalizations.of(context)!.memberCreatedFeedback,
+    );
+  }
+
+  /// §48 — abre el sheet de vinculación (`POST /auth/users/link` vía
+  /// `LinkUserCubit`): al volver con el `OrgMember` (`linked:true`) lo
+  /// inserta al tope + scroll + toast info con `memberLinkedFeedback` —
+  /// semántica informativa: no se creó cuenta, solo la membresía.
+  Future<void> _openLinkUserSheet() async {
+    final linked = await LinkUserSheet.show(context, topInset: _sheetTopInset);
+    if (linked == null || !mounted) return;
+    setState(() => _allMembers.insert(0, linked));
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
     }
+    QuesivoToast.info(
+      context,
+      message: AppLocalizations.of(context)!.memberLinkedFeedback(linked.name),
+    );
   }
 
   /// §45 — flip de estado en el dataset local tras confirmar el
@@ -327,20 +346,16 @@ class _UsersScreenState extends State<UsersScreen> {
               ),
             ],
           ),
-          // ── FAB de creación: círculo amarillo que flota sobre el nav
-          // navy — la acción primaria del listado vive al alcance del
-          // pulgar aunque el hero quede lejos al scrollear (sale del
-          // hero: pedido del usuario).
+          // ── Speed dial (§48): círculo amarillo que flota sobre el
+          // nav navy — expande "Crear usuario" y "Vincular existente"
+          // (backend 058 separó crear de vincular). Misma posición que
+          // el FAB que reemplaza; el scrim lo maneja el propio widget.
           Positioned(
             right: 24,
             bottom: context.shellNavBarHeight + 16,
-            child: FloatingActionButton(
-              onPressed: _openNewUserSheet,
-              tooltip: l10n.newUserButton,
-              backgroundColor: AppColors.quesivoYellow,
-              foregroundColor: AppColors.quesivoNavy,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.person_add_outlined),
+            child: UsersSpeedDial(
+              onCreate: _openNewUserSheet,
+              onLink: _openLinkUserSheet,
             ),
           ),
         ],

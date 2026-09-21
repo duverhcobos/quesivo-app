@@ -11,7 +11,10 @@ import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/domain/entities/user_role.dart';
 import 'package:quesivo/features/users/presentation/cubit/create_user_cubit.dart';
 import 'package:quesivo/features/users/presentation/cubit/create_user_state.dart';
+import 'package:quesivo/features/users/presentation/cubit/link_user_cubit.dart';
+import 'package:quesivo/features/users/presentation/cubit/link_user_state.dart';
 import 'package:quesivo/features/users/presentation/screens/users_screen.dart';
+import 'package:quesivo/features/users/presentation/widgets/link_user_sheet.dart';
 import 'package:quesivo/features/users/presentation/widgets/new_user_sheet.dart';
 import 'package:quesivo/features/users/presentation/widgets/org_member_card.dart';
 import 'package:quesivo/features/users/presentation/widgets/role_filter_chips.dart';
@@ -20,12 +23,18 @@ import 'package:quesivo/l10n/app_localizations.dart';
 class MockCreateUserCubit extends MockCubit<CreateUserState>
     implements CreateUserCubit {}
 
+class MockLinkUserCubit extends MockCubit<LinkUserState>
+    implements LinkUserCubit {}
+
 void main() {
-  // El NewUserSheet resuelve su cubit por `locator` (la screen no pasa
-  // el seam `cubit:`) — se registra un mock en setUp para controlar las
-  // emisiones y evitar que el factory real pida dependencias de red.
+  // Los sheets resuelven su cubit por `locator` (la screen no pasa el
+  // seam `cubit:`) — se registran mocks en setUp para controlar las
+  // emisiones y evitar que los factories reales pidan dependencias de
+  // red.
   late MockCreateUserCubit mockCubit;
   late StreamController<CreateUserState> stateController;
+  late MockLinkUserCubit mockLinkCubit;
+  late StreamController<LinkUserState> linkStateController;
 
   const tCreated = OrgMember(
     id: 'uuid-backend-1',
@@ -70,6 +79,21 @@ void main() {
       ),
     ).thenAnswer((_) async {});
     locator.registerFactory<CreateUserCubit>(() => mockCubit);
+
+    mockLinkCubit = MockLinkUserCubit();
+    linkStateController = StreamController<LinkUserState>.broadcast();
+    when(
+      () => mockLinkCubit.stream,
+    ).thenAnswer((_) => linkStateController.stream);
+    when(() => mockLinkCubit.state).thenReturn(const LinkUserState());
+    when(() => mockLinkCubit.close()).thenAnswer((_) async {});
+    when(
+      () => mockLinkCubit.submit(
+        email: any(named: 'email'),
+        role: any(named: 'role'),
+      ),
+    ).thenAnswer((_) async {});
+    locator.registerFactory<LinkUserCubit>(() => mockLinkCubit);
   });
 
   tearDown(() {
@@ -77,6 +101,7 @@ void main() {
     // queda encolado sin flush y un await acá colgaría el test. El
     // isolate del test se descarta con el Future pendiente.
     stateController.close();
+    linkStateController.close();
     locator.reset();
   });
 
@@ -98,8 +123,12 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
+  /// §48 — el FAB ahora es un speed dial: tap → las dos acciones suben
+  /// sobre el scrim → "Crear usuario" abre el NewUserSheet.
   Future<void> openAndFillSheet(WidgetTester tester) async {
     await tester.tap(find.byIcon(Icons.person_add_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Crear usuario'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Nombre completo'),
@@ -204,14 +233,47 @@ void main() {
     expect(find.byType(OrgMemberCard), findsNWidgets(13));
   });
 
-  testWidgets('el botón de acción abre el sheet de creación', (tester) async {
+  testWidgets(
+    'el FAB expande el speed dial con las dos acciones y el scrim las cierra',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
+
+      // §48 — tap en el FAB: suben las dos acciones y el ícono morfa
+      // person_add → close.
+      await tester.tap(find.byIcon(Icons.person_add_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Crear usuario'), findsOneWidget);
+      expect(find.text('Vincular existente'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsOneWidget);
+
+      // Tap afuera (scrim transparente) cierra el dial sin disparar
+      // nada debajo.
+      await tester.tapAt(const Offset(400, 400));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Crear usuario'), findsNothing);
+      expect(find.text('Vincular existente'), findsNothing);
+      expect(find.byIcon(Icons.person_add_outlined), findsOneWidget);
+    },
+  );
+
+  testWidgets('la acción "Crear usuario" abre el sheet de creación', (
+    tester,
+  ) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
 
     await tester.tap(find.byIcon(Icons.person_add_outlined));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Crear usuario'), findsOneWidget);
+    // El sheet de creación abierto — su título es "Nuevo usuario" y el
+    // submit repite el label de la acción.
+    expect(find.text('Nuevo usuario'), findsOneWidget);
+    expect(find.byType(NewUserSheet), findsOneWidget);
   });
 
   testWidgets('crear desde el sheet agrega el miembro al tope del listado', (
@@ -267,48 +329,84 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('miembro con linked:true muestra el toast de vinculación', (
-    tester,
-  ) async {
-    useTallSurface(tester);
-    await tester.pumpWidget(buildApp());
-    await openAndFillSheet(tester);
+  testWidgets(
+    'la acción "Vincular existente" abre el LinkUserSheet y su resultado inserta el miembro + toast info',
+    (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(buildApp());
 
-    await tester.tap(find.text('Crear usuario'));
-    await tester.pump();
+      // Speed dial → acción de vinculación.
+      await tester.tap(find.byIcon(Icons.person_add_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Vincular existente'));
+      await tester.pumpAndSettle();
 
-    // 201 con linked:true — el email ya existía globalmente y solo se
-    // creó la membresía: no hay contraseña temporal que compartir.
-    stateController.add(
-      const CreateUserState(
-        status: FormzSubmissionStatus.success,
-        createdMember: tLinked,
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
+      // El sheet de vinculación abierto — solo email + rol (§48).
+      expect(find.text('Vincular usuario'), findsOneWidget);
+      expect(find.byType(LinkUserSheet), findsOneWidget);
 
-    expect(find.text('Crear usuario'), findsNothing);
-    expect(
-      find.text(
-        'Ana Vieja ya tenía cuenta — quedó vinculado y entra con su contraseña actual',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Usuario creado con éxito'), findsNothing);
-    // Igual se inserta al tope del dataset local.
-    expect(find.text('55 miembros'), findsOneWidget);
-    expect(
-      tester
-          .widget<OrgMemberCard>(find.byType(OrgMemberCard).first)
-          .member
-          .linked,
-      isTrue,
-    );
-    await tester.pump(const Duration(seconds: 3));
-    await tester.pumpAndSettle();
-  });
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Correo electrónico'),
+        'ana.vieja@mail.com',
+      );
+      // "Operario" también aparece en RoleFilterChips y en los
+      // MemberRoleChip de las cards — se acota al árbol del sheet.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(LinkUserSheet),
+          matching: find.text('Operario'),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Vincular'));
+      await tester.pump();
+
+      // El submit salió al cubit con los valores del form.
+      verify(
+        () => mockLinkCubit.submit(
+          email: 'ana.vieja@mail.com',
+          role: UserRole.operator,
+        ),
+      ).called(1);
+
+      // 201 con linked:true — solo se creó la membresía, el usuario
+      // conserva su contraseña actual (no hay temporal que compartir).
+      linkStateController.add(
+        const LinkUserState(
+          status: FormzSubmissionStatus.success,
+          linkedMember: tLinked,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      // Sheet cerrado + toast info azul de vinculación arriba — la
+      // semántica es informativa: no se creó cuenta, solo membresía.
+      expect(find.text('Vincular usuario'), findsNothing);
+      expect(
+        find.text(
+          'Ana Vieja ya tenía cuenta — quedó vinculado y entra con su contraseña actual',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Usuario creado con éxito'), findsNothing);
+      // El insert al tope sube el total y la primera card es la del
+      // vinculado.
+      expect(find.text('55 miembros'), findsOneWidget);
+      expect(
+        tester
+            .widget<OrgMemberCard>(find.byType(OrgMemberCard).first)
+            .member
+            .linked,
+        isTrue,
+      );
+
+      // Drena el auto-dismiss del toast (~2.6s).
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('suspender desde el menú cambia el chip de la card', (
     tester,

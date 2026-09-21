@@ -126,6 +126,21 @@ void main() {
       expect(result, const Left(UsersForbiddenFailure()));
     });
 
+    test('409 + EMAIL_ALREADY_EXISTS → EmailAlreadyExistsFailure', () async {
+      mockConnected(true);
+      stubThrow(
+        RestApiException(
+          statusCode: 409,
+          message: 'Email exists',
+          errorCode: 'EMAIL_ALREADY_EXISTS',
+        ),
+      );
+
+      final result = await callCreateUser();
+
+      expect(result, const Left(EmailAlreadyExistsFailure()));
+    });
+
     test(
       '409 + MEMBERSHIP_ALREADY_EXISTS → MembershipAlreadyExistsFailure',
       () async {
@@ -196,6 +211,126 @@ void main() {
       final result = await callCreateUser();
 
       expect(result, const Left(UsersServerFailure()));
+    });
+  });
+
+  group('linkUser (POST /auth/users/link — backend 058)', () {
+    void stubLinkThrow(Object error) {
+      when(
+        () => mockRemoteDataSource.linkUser(
+          email: any(named: 'email'),
+          role: any(named: 'role'),
+        ),
+      ).thenThrow(error);
+    }
+
+    Future<Either<UsersFailure, OrgMember>> callLinkUser() =>
+        repository.linkUser(email: tEmail, role: tRole);
+
+    test('retorna UsersNetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await callLinkUser();
+
+      expect(result, const Left(UsersNetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.linkUser(
+          email: any(named: 'email'),
+          role: any(named: 'role'),
+        ),
+      );
+    });
+
+    test('retorna Right(member) en éxito (linked:true)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.linkUser(email: tEmail, role: tRole),
+      ).thenAnswer((_) async => tMemberModel);
+
+      final result = await callLinkUser();
+
+      expect(result, const Right(tMemberModel));
+    });
+
+    test('404 + USER_NOT_FOUND → UserNotFoundFailure', () async {
+      mockConnected(true);
+      stubLinkThrow(
+        RestApiException(
+          statusCode: 404,
+          message: 'User not found',
+          errorCode: 'USER_NOT_FOUND',
+        ),
+      );
+
+      final result = await callLinkUser();
+
+      expect(result, const Left(UserNotFoundFailure()));
+    });
+
+    test('409 + USER_SUSPENDED → LinkedUserSuspendedFailure', () async {
+      mockConnected(true);
+      stubLinkThrow(
+        RestApiException(
+          statusCode: 409,
+          message: 'User suspended',
+          errorCode: 'USER_SUSPENDED',
+        ),
+      );
+
+      final result = await callLinkUser();
+
+      expect(result, const Left(LinkedUserSuspendedFailure()));
+    });
+
+    test(
+      '409 + MEMBERSHIP_ALREADY_EXISTS → MembershipAlreadyExistsFailure',
+      () async {
+        mockConnected(true);
+        stubLinkThrow(
+          RestApiException(
+            statusCode: 409,
+            message: 'Membership exists',
+            errorCode: 'MEMBERSHIP_ALREADY_EXISTS',
+          ),
+        );
+
+        final result = await callLinkUser();
+
+        expect(result, const Left(MembershipAlreadyExistsFailure()));
+      },
+    );
+
+    test('409 + USER_IS_OWNER → UserIsOwnerFailure', () async {
+      mockConnected(true);
+      stubLinkThrow(
+        RestApiException(
+          statusCode: 409,
+          message: 'User is owner',
+          errorCode: 'USER_IS_OWNER',
+        ),
+      );
+
+      final result = await callLinkUser();
+
+      expect(result, const Left(UserIsOwnerFailure()));
+    });
+
+    test('403 → UsersForbiddenFailure', () async {
+      mockConnected(true);
+      stubLinkThrow(RestApiException(statusCode: 403, message: 'Forbidden'));
+
+      final result = await callLinkUser();
+
+      expect(result, const Left(UsersForbiddenFailure()));
+    });
+
+    test('429 → UsersRateLimitFailure', () async {
+      mockConnected(true);
+      stubLinkThrow(RestApiException(statusCode: 429, message: 'Throttled'));
+
+      final result = await callLinkUser();
+
+      expect(result, const Left(UsersRateLimitFailure()));
     });
   });
 }

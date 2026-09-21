@@ -31,6 +31,27 @@ class LinkedUserSuspendedFailure extends UsersFailure {
     : super('Esa cuenta está suspendida — no se puede vincular.');
 }
 
+/// `409 + EMAIL_ALREADY_EXISTS` (create) — el email ya tiene cuenta
+/// global; la vinculación es otra acción (doc 007 post-058).
+class EmailAlreadyExistsFailure extends UsersFailure {
+  const EmailAlreadyExistsFailure()
+    : super('Ese correo ya tiene cuenta — vinculalo como existente.');
+}
+
+/// `404 + USER_NOT_FOUND` (link) — el email no tiene cuenta global;
+/// crear es la otra acción.
+class UserNotFoundFailure extends UsersFailure {
+  const UserNotFoundFailure()
+    : super('Ese correo no tiene cuenta — crealo desde "Crear usuario".');
+}
+
+/// `409 + USER_IS_OWNER` (link) — dueño de otra org no es vinculable
+/// (propuesta backend 056).
+class UserIsOwnerFailure extends UsersFailure {
+  const UserIsOwnerFailure()
+    : super('Ese correo es dueño de otra quesera — no puede vincularse.');
+}
+
 /// `403` — el JWT no trae rol `ADMIN`. Defensivo: la gestión solo se
 /// muestra a admins, pero el rol pudo cambiar desde otro cliente.
 class UsersForbiddenFailure extends UsersFailure {

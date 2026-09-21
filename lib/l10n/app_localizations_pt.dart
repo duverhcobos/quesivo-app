@@ -344,6 +344,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get newUserButton => 'Novo usuário';
 
   @override
+  String get fabCreateUser => 'Criar usuário';
+
+  @override
+  String get fabLinkUser => 'Vincular existente';
+
+  @override
   String get roleOperator => 'Operador';
 
   @override
@@ -439,6 +445,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get createUserButton => 'Criar usuário';
 
   @override
+  String get linkUserSheetTitle => 'Vincular usuário';
+
+  @override
+  String get linkUserSheetHint =>
+      'O e-mail já tem conta no Quesivo — será vinculado à sua queijaria mantendo a senha atual';
+
+  @override
+  String get linkUserSubmit => 'Vincular';
+
+  @override
   String get memberCreatedFeedback => 'Usuário criado com sucesso';
 
   @override
@@ -487,6 +503,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get linkedUserSuspendedError =>
       'Essa conta está suspensa — não pode ser vinculada';
+
+  @override
+  String get emailAlreadyExistsError =>
+      'Esse e-mail já tem conta — vincule-o em \"Vincular existente\"';
+
+  @override
+  String get userNotFoundError =>
+      'Esse e-mail não tem conta — crie-o em \"Criar usuário\"';
+
+  @override
+  String get userIsOwnerError =>
+      'Esse e-mail é dono de outra queijaria — não pode ser vinculado';
 
   @override
   String get usersForbiddenError =>

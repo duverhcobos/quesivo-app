@@ -116,6 +116,8 @@
     }
   },
   "newUserButton": "Novo usuário",
+  "fabCreateUser": "Criar usuário",
+  "fabLinkUser": "Vincular existente",
   "roleOperator": "Operador",
   "roleCollector": "Coletor",
   "roleProducer": "Produtor",
@@ -155,6 +157,9 @@
   "memberNameFormatError": "Use apenas letras, espaços, hífens e apóstrofos",
   "invalidTempPasswordError": "Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número",
   "createUserButton": "Criar usuário",
+  "linkUserSheetTitle": "Vincular usuário",
+  "linkUserSheetHint": "O e-mail já tem conta no Quesivo — será vinculado à sua queijaria mantendo a senha atual",
+  "linkUserSubmit": "Vincular",
   "memberCreatedFeedback": "Usuário criado com sucesso",
   "suspendMemberTitle": "Suspender {name}?",
   "@suspendMemberTitle": {
@@ -202,6 +207,9 @@
   },
   "membershipExistsError": "Esse e-mail já pertence a esta organização",
   "linkedUserSuspendedError": "Essa conta está suspensa — não pode ser vinculada",
+  "emailAlreadyExistsError": "Esse e-mail já tem conta — vincule-o em \"Vincular existente\"",
+  "userNotFoundError": "Esse e-mail não tem conta — crie-o em \"Criar usuário\"",
+  "userIsOwnerError": "Esse e-mail é dono de outra queijaria — não pode ser vinculado",
   "usersForbiddenError": "Você não tem permissão para gerenciar usuários",
   "tooManyAttemptsError": "Muitas tentativas — aguarde um momento",
   "genericError": "Ocorreu um erro — tente novamente",

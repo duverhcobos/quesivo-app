@@ -12,4 +12,11 @@ abstract class IRemoteUsersDataSource {
     required String password,
     required UserRole role,
   });
+
+  /// `POST /auth/users/link` — vincula un user global existente a la org
+  /// del JWT (propuesta backend 058).
+  Future<OrgMemberModel> linkUser({
+    required String email,
+    required UserRole role,
+  });
 }

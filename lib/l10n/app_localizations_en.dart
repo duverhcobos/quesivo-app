@@ -344,6 +344,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newUserButton => 'New user';
 
   @override
+  String get fabCreateUser => 'Create user';
+
+  @override
+  String get fabLinkUser => 'Link existing';
+
+  @override
   String get roleOperator => 'Operator';
 
   @override
@@ -439,6 +445,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createUserButton => 'Create user';
 
   @override
+  String get linkUserSheetTitle => 'Link user';
+
+  @override
+  String get linkUserSheetHint =>
+      'The email already has a Quesivo account — it links to your organization keeping its current password';
+
+  @override
+  String get linkUserSubmit => 'Link';
+
+  @override
   String get memberCreatedFeedback => 'User created successfully';
 
   @override
@@ -487,6 +503,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get linkedUserSuspendedError =>
       'That account is suspended — it can\'t be linked';
+
+  @override
+  String get emailAlreadyExistsError =>
+      'That email already has an account — link it from \"Link existing\"';
+
+  @override
+  String get userNotFoundError =>
+      'That email has no account — create it from \"Create user\"';
+
+  @override
+  String get userIsOwnerError =>
+      'That email owns another organization — it cannot be linked';
 
   @override
   String get usersForbiddenError =>

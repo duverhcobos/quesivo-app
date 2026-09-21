@@ -344,6 +344,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get newUserButton => 'Nuevo usuario';
 
   @override
+  String get fabCreateUser => 'Crear usuario';
+
+  @override
+  String get fabLinkUser => 'Vincular existente';
+
+  @override
   String get roleOperator => 'Operario';
 
   @override
@@ -439,6 +445,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get createUserButton => 'Crear usuario';
 
   @override
+  String get linkUserSheetTitle => 'Vincular usuario';
+
+  @override
+  String get linkUserSheetHint =>
+      'El correo ya tiene cuenta en Quesivo — se vincula a tu quesera y conserva su contraseña actual';
+
+  @override
+  String get linkUserSubmit => 'Vincular';
+
+  @override
   String get memberCreatedFeedback => 'Usuario creado con éxito';
 
   @override
@@ -487,6 +503,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get linkedUserSuspendedError =>
       'Esa cuenta está suspendida — no se puede vincular';
+
+  @override
+  String get emailAlreadyExistsError =>
+      'Ese correo ya tiene cuenta — vinculalo desde \"Vincular existente\"';
+
+  @override
+  String get userNotFoundError =>
+      'Ese correo no tiene cuenta — crealo desde \"Crear usuario\"';
+
+  @override
+  String get userIsOwnerError =>
+      'Ese correo es dueño de otra quesera — no puede vincularse';
 
   @override
   String get usersForbiddenError => 'No tenés permisos para gestionar usuarios';

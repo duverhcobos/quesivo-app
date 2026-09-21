@@ -8,12 +8,24 @@ import '../failures/users_failure.dart';
 /// organización activa. La org la infiere el backend del JWT del admin:
 /// nunca viaja en el body (IDOR, doc 007).
 abstract class IUsersRepository {
-  /// `POST /auth/users` — crea el usuario o lo vincula si el email ya
-  /// existe globalmente (`OrgMember.linked` distingue ambos casos).
+  /// `POST /auth/users` — solo crea (propuesta backend 058): un email
+  /// ya existente globalmente da `EmailAlreadyExistsFailure`; la
+  /// vinculación de un user global vive en `linkUser`.
   Future<Either<UsersFailure, OrgMember>> createUser({
     required String name,
     required String email,
     required String password,
+    required UserRole role,
+  });
+
+  /// `POST /auth/users/link` — vincula a la organización un usuario que
+  /// ya tiene cuenta global (`{email, role}` → solo membresía; el 201
+  /// trae `OrgMember.linked == true`). Errores del contrato:
+  /// `UserNotFoundFailure` (404), `LinkedUserSuspendedFailure`/
+  /// `MembershipAlreadyExistsFailure`/`UserIsOwnerFailure` (409),
+  /// `UsersForbiddenFailure` (403), `UsersRateLimitFailure` (429).
+  Future<Either<UsersFailure, OrgMember>> linkUser({
+    required String email,
     required UserRole role,
   });
 }
