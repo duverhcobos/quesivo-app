@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/user_initials_avatar.dart';
@@ -10,6 +11,12 @@ import 'member_status_chip.dart';
 /// Card de un miembro de la organización en el listado de Usuarios:
 /// avatar de iniciales + nombre + email + chips de rol/estado + menú de
 /// acciones ⋮ que abre `MemberStatusDialog` / `ResetPasswordSheet` (§45).
+///
+/// §49: cuando `member.isOwner` el Wrap de chips gana el badge "Dueño"
+/// (pill con borde navy — la marca distintiva del owner, `isOwner` del
+/// GET /auth/users) y el ⋮ `MemberActionsMenu` NO se renderiza:
+/// suspender/reset sobre el dueño son `OWNER_*` en backend — ofrecerlos
+/// sería un error garantizado.
 class OrgMemberCard extends StatelessWidget {
   const OrgMemberCard({
     super.key,
@@ -78,18 +85,48 @@ class OrgMemberCard extends StatelessWidget {
                   children: [
                     MemberRoleChip(role: member.role),
                     MemberStatusChip(status: member.status),
+                    if (member.isOwner) const _OwnerBadge(),
                   ],
                 ),
               ],
             ),
           ),
-          MemberActionsMenu(
-            member: member,
-            onStatusToggle: onStatusToggle,
-            onPasswordReset: onPasswordReset,
-            sheetTopInset: sheetTopInset,
-          ),
+          // El dueño no es suspendible ni reseteable (OWNER_* en
+          // backend) — sin ⋮ no hay acciones que siempre fallarían.
+          if (!member.isOwner)
+            MemberActionsMenu(
+              member: member,
+              onStatusToggle: onStatusToggle,
+              onPasswordReset: onPasswordReset,
+              sheetTopInset: sheetTopInset,
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// Pill "Dueño" (§49) — borde navy 1px + texto navy 11px w600, junto al
+/// chip de estado en el Wrap de la card. Solo marca, sin interacción.
+class _OwnerBadge extends StatelessWidget {
+  const _OwnerBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.quesivoNavy),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        l10n.ownerBadge,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.quesivoNavy,
+        ),
       ),
     );
   }

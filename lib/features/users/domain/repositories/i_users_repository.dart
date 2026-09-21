@@ -2,12 +2,25 @@ import 'package:dartz/dartz.dart';
 
 import '../entities/org_member.dart';
 import '../entities/user_role.dart';
+import '../entities/users_page.dart';
 import '../failures/users_failure.dart';
 
 /// Repositorio del módulo Usuarios — administración de membresías de la
 /// organización activa. La org la infiere el backend del JWT del admin:
 /// nunca viaja en el body (IDOR, doc 007).
 abstract class IUsersRepository {
+  /// Una página del listado (doc 008): el backend pagina y filtra —
+  /// `search` matchea nombre/email (LIKE case-insensitive), `role` el
+  /// rol de la membresía. `meta.total` devuelve el total FILTRADO.
+  /// Errores del contrato: `UsersForbiddenFailure` (403 no-admin),
+  /// `UsersRateLimitFailure` (429), `UsersNetworkFailure` sin conexión.
+  Future<Either<UsersFailure, UsersPage>> getUsers({
+    required int page,
+    required int limit,
+    String? search,
+    UserRole? role,
+  });
+
   /// `POST /auth/users` — solo crea (propuesta backend 058): un email
   /// ya existente globalmente da `EmailAlreadyExistsFailure`; la
   /// vinculación de un user global vive en `linkUser`.

@@ -33,8 +33,16 @@ class OrgMember extends Equatable {
 
   /// `true` cuando el email ya existía globalmente y `POST /auth/users`
   /// solo creó la membresía (doc 007) — el usuario conserva su password
-  /// y el admin no tiene contraseña temporal que compartir.
+  /// y el admin no tiene contraseña temporal que compartir. Solo viene
+  /// en las respuestas de create/link: los ítems de `GET /auth/users`
+  /// no lo traen (queda en `false`).
   final bool linked;
+
+  /// `true` cuando el miembro es el dueño de la organización
+  /// (`isOwner` del contrato de `GET /auth/users` — backend 056): la UI
+  /// lo marca con el badge "Dueño" y oculta el menú ⋮ (suspender/reset
+  /// son `OWNER_*` en backend — ofrecerlos siempre falla).
+  final bool isOwner;
 
   const OrgMember({
     required this.id,
@@ -44,6 +52,7 @@ class OrgMember extends Equatable {
     required this.status,
     required this.organizationId,
     this.linked = false,
+    this.isOwner = false,
   });
 
   /// Copia inmutable con overrides — la UI la usa para flippear
@@ -57,6 +66,7 @@ class OrgMember extends Equatable {
     MemberStatus? status,
     String? organizationId,
     bool? linked,
+    bool? isOwner,
   }) => OrgMember(
     id: id ?? this.id,
     email: email ?? this.email,
@@ -65,6 +75,7 @@ class OrgMember extends Equatable {
     status: status ?? this.status,
     organizationId: organizationId ?? this.organizationId,
     linked: linked ?? this.linked,
+    isOwner: isOwner ?? this.isOwner,
   );
 
   @override
@@ -76,5 +87,6 @@ class OrgMember extends Equatable {
     status,
     organizationId,
     linked,
+    isOwner,
   ];
 }

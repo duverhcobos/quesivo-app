@@ -1,74 +1,82 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/di/setup_di.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_loader.dart';
 import '../../../../core/widgets/quesivo_toast.dart';
 import '../../../shell/presentation/widgets/shell_insets.dart';
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
+import '../../domain/failures/users_failure.dart';
+import '../cubit/users_list_cubit.dart';
+import '../cubit/users_list_state.dart';
 import '../widgets/link_user_sheet.dart';
 import '../widgets/member_stats_row.dart';
 import '../widgets/new_user_sheet.dart';
 import '../widgets/org_member_card.dart';
 import '../widgets/role_filter_chips.dart';
 import '../widgets/users_empty_state.dart';
+import '../widgets/users_list_error_state.dart';
 import '../widgets/users_list_footer_loader.dart';
 import '../widgets/users_search_field.dart';
 import '../widgets/users_speed_dial.dart';
-import 'sample_org_members.dart';
 
 /// Pantalla principal del módulo Usuarios (`/home/usuarios` — hija del
-/// branch Inicio). El listado se pinta con `generateSampleOrgMembers()`
-/// hasta la propuesta que integre `GET /auth/users`; las acciones de
-/// fila mutan el dataset local (§45 — solo UI, el PATCH llega con la
-/// integración); el speed dial de §48 abre `NewUserSheet` (creación
-/// contra `POST /auth/users`, §46) o `LinkUserSheet` (vinculación contra
-/// `POST /auth/users/link`, backend 058) — el insert local es el reflejo
-/// optimista hasta el GET.
+/// branch Inicio). Desde §49 el listado es REAL: `UsersListCubit` pega a
+/// `GET /auth/users` con paginación server-side (`page`/`limit` +
+/// `search`/`role` en el query, doc 008 + backend 059) — murieron el
+/// dataset sintético de 54 y el filtrado/chunking local. Las acciones
+/// de fila siguen mutando el estado del cubit localmente (el PATCH real
+/// llega con una propuesta posterior); el speed dial de §48 abre `NewUserSheet` /
+/// `LinkUserSheet` y el miembro devuelto se inserta al tope como
+/// reflejo optimista (el orden real es `created_at ASC` — tras un
+/// refresh aparece al final).
 ///
 /// Rediseño §38: cabecera navy del módulo. §39: hero edge-to-edge
 /// detrás del ShellHeader. §41/§42: hero mínimo sin back/subtítulo.
 /// Las acciones de alta viven en el `UsersSpeedDial` amarillo que flota
 /// sobre el nav (pedido del usuario — el hero queda solo con
-/// título + stats): FAB circular que expande "Crear usuario" y
-/// "Vincular existente" (§48 — backend 058 separó crear de vincular).
+/// título + stats).
 ///
-/// §43: `StatefulWidget` — búsqueda + filtro por rol (locales sobre el
-/// dataset de 54 muestras, `GET /auth/users` hoy no soporta query
-/// params de texto/rol) y **scroll paginado**: se muestran de a
-/// `_pageSize` filas y se cargan más al acercarse al final de la lista
-/// (`Future.delayed` simula la latencia real; se reemplaza por
-/// `GET /auth/users?page=` al integrar el endpoint). Sigue sin
-/// Cubit/repositorio — todo el estado es de presentación pura.
-class UsersScreen extends StatefulWidget {
+/// §49: la búsqueda pasa por debounce de 350ms antes de
+/// `cubit.setQuery` (no pega un GET por tecla), el scroll dispara
+/// `loadMore()` al acercarse al fondo y `RefreshIndicator` relanza la
+/// página 1 con los filtros activos.
+class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
 
   @override
-  State<UsersScreen> createState() => _UsersScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<UsersListCubit>(
+      // El cubit es factory (efímero como los del módulo) — nace con la
+      // pantalla y dispara la primera página de inmediato.
+      create: (_) => locator<UsersListCubit>()..load(),
+      child: const _UsersView(),
+    );
+  }
 }
 
-class _UsersScreenState extends State<UsersScreen> {
-  static const _pageSize = 15;
-  static const _loadMoreThreshold = 200.0;
+class _UsersView extends StatefulWidget {
+  const _UsersView();
 
-  final _allMembers = generateSampleOrgMembers();
+  @override
+  State<_UsersView> createState() => _UsersViewState();
+}
+
+class _UsersViewState extends State<_UsersView> {
+  static const _loadMoreThreshold = 200.0;
+  static const _searchDebounce = Duration(milliseconds: 350);
+
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   // Mide el hero navy en vivo: el sheet de creación topea su alto en el
   // borde inferior de la tarjeta azul (sigue visible detrás del scrim).
   final _heroKey = GlobalKey();
-
-  UserRole? _roleFilter;
-  String _query = '';
-  int _visibleCount = _pageSize;
-  bool _isLoadingMore = false;
-
-  // Ignora una carga en vuelo si búsqueda/filtro cambiaron mientras
-  // esperaba — evita que un Future viejo pise el estado del filtro nuevo.
-  int _loadToken = 0;
+  Timer? _searchDebounceTimer;
 
   @override
   void initState() {
@@ -78,6 +86,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
   @override
   void dispose() {
+    _searchDebounceTimer?.cancel();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -85,57 +94,28 @@ class _UsersScreenState extends State<UsersScreen> {
     super.dispose();
   }
 
-  List<OrgMember> get _filteredMembers => _allMembers.where((m) {
-    final matchesRole = _roleFilter == null || m.role == _roleFilter;
-    final q = _query.trim().toLowerCase();
-    final matchesQuery =
-        q.isEmpty ||
-        m.name.toLowerCase().contains(q) ||
-        m.email.toLowerCase().contains(q);
-    return matchesRole && matchesQuery;
-  }).toList();
-
-  bool _hasMore(List<OrgMember> filtered) => _visibleCount < filtered.length;
-
+  /// Scroll paginado real: al acercarse al fondo pide la página
+  /// siguiente — el guard anti doble-call (`hasMore && !isLoadingMore`)
+  /// vive en el cubit, acá solo se dispara el intento.
   void _onScroll() {
-    if (_isLoadingMore) return;
-    if (!_hasMore(_filteredMembers)) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - _loadMoreThreshold) {
-      _loadMore();
+      context.read<UsersListCubit>().loadMore();
     }
   }
 
-  Future<void> _loadMore() async {
-    final token = ++_loadToken;
-    setState(() => _isLoadingMore = true);
-    // Simula la latencia de red — reemplazar por
-    // `GET /auth/users?page=` al integrar el endpoint.
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted || token != _loadToken) return;
-    setState(() {
-      _visibleCount = min(_visibleCount + _pageSize, _filteredMembers.length);
-      _isLoadingMore = false;
-    });
-  }
-
-  void _resetPagination() {
-    _loadToken++;
-    setState(() {
-      _visibleCount = _pageSize;
-      _isLoadingMore = false;
-    });
-  }
-
+  /// Debounce 350ms sobre el buscador — `search` viaja en el query del
+  /// GET (backend 059), sin él cada tecla sería un request.
   void _onQueryChanged(String value) {
-    _query = value;
-    _resetPagination();
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = Timer(_searchDebounce, () {
+      if (!mounted) return;
+      context.read<UsersListCubit>().setQuery(value);
+    });
   }
 
-  void _onRoleChanged(UserRole? role) {
-    _roleFilter = role;
-    _resetPagination();
-  }
+  void _onRoleChanged(UserRole? role) =>
+      context.read<UsersListCubit>().setRole(role);
 
   /// Borde inferior del hero navy medido en vivo — tope de los sheets
   /// modales (creación §44, reset §45) con el teclado abierto.
@@ -153,8 +133,8 @@ class _UsersScreenState extends State<UsersScreen> {
 
   /// §44/§46 — abre el sheet de creación, que pega a `POST /auth/users`
   /// real vía `CreateUserCubit`; al volver con el miembro del backend lo
-  /// inserta al tope del dataset local (reflejo optimista hasta la
-  /// propuesta de `GET /auth/users`) y muestra feedback.
+  /// inserta al tope del listado (reflejo optimista — el orden real es
+  /// `created_at ASC`) y muestra feedback.
   ///
   /// Desde §48 el endpoint solo crea (backend 058): un email existente
   /// ya no vincula — sale `EMAIL_ALREADY_EXISTS` → error en el sheet —
@@ -166,7 +146,7 @@ class _UsersScreenState extends State<UsersScreen> {
     // ahí ni siquiera cuando el teclado lo empuja (scrollea dentro).
     final created = await NewUserSheet.show(context, topInset: _sheetTopInset);
     if (created == null || !mounted) return;
-    setState(() => _allMembers.insert(0, created));
+    context.read<UsersListCubit>().prependMember(created);
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
@@ -189,7 +169,7 @@ class _UsersScreenState extends State<UsersScreen> {
   Future<void> _openLinkUserSheet() async {
     final linked = await LinkUserSheet.show(context, topInset: _sheetTopInset);
     if (linked == null || !mounted) return;
-    setState(() => _allMembers.insert(0, linked));
+    context.read<UsersListCubit>().prependMember(linked);
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
@@ -203,13 +183,13 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
-  /// §45 — flip de estado en el dataset local tras confirmar el
-  /// diálogo. La integración lo reemplaza por
-  /// `PATCH /auth/users/:id/status` + merge del ítem devuelto.
+  /// §45 — flip de estado local tras confirmar el diálogo: reemplaza el
+  /// miembro en el cubit. Una propuesta posterior lo conecta al
+  /// `PATCH /auth/users/:id/status` real + merge del ítem devuelto.
   void _setMemberStatus(OrgMember member, MemberStatus status) {
-    final index = _allMembers.indexWhere((m) => m.id == member.id);
-    if (index == -1) return;
-    setState(() => _allMembers[index] = member.copyWith(status: status));
+    context.read<UsersListCubit>().updateMember(
+      member.copyWith(status: status),
+    );
     final l10n = AppLocalizations.of(context)!;
     // Suspendida deja un estado restrictivo → warning ámbar;
     // reactivada es éxito → verde.
@@ -220,8 +200,8 @@ class _UsersScreenState extends State<UsersScreen> {
     }
   }
 
-  /// §45 — feedback del reset. La integración manda el password a
-  /// `PATCH /auth/users/:id/password` (que además levanta el lockout).
+  /// §45 — feedback del reset. Una propuesta posterior manda el password
+  /// a `PATCH /auth/users/:id/password` (que además levanta el lockout).
   void _resetMemberPassword(OrgMember member, String password) {
     final l10n = AppLocalizations.of(context)!;
     QuesivoToast.success(
@@ -233,9 +213,6 @@ class _UsersScreenState extends State<UsersScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final filtered = _filteredMembers;
-    final visible = filtered.take(_visibleCount).toList();
-    final isFiltering = _query.trim().isNotEmpty || _roleFilter != null;
 
     return Scaffold(
       backgroundColor: AppColors.quesivoSurface,
@@ -276,9 +253,16 @@ class _UsersScreenState extends State<UsersScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          // Stats siempre sobre el total de la org — no sobre
-                          // lo filtrado/visible (§43).
-                          MemberStatsRow(members: _allMembers),
+                          // Stats del GET real: "N miembros" =
+                          // meta.total (filtrado) — no lo cargado (§49).
+                          BlocBuilder<UsersListCubit, UsersListState>(
+                            buildWhen: (p, c) =>
+                                p.total != c.total || p.members != c.members,
+                            builder: (context, state) => MemberStatsRow(
+                              members: state.members,
+                              total: state.total,
+                            ),
+                          ),
                           const SizedBox(height: 18),
                         ],
                       ),
@@ -286,7 +270,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   ],
                 ),
               ),
-              // ── Búsqueda + filtros (§43) ──
+              // ── Búsqueda + filtros (§43 — server-side desde §49) ──
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
                 child: Column(
@@ -297,52 +281,37 @@ class _UsersScreenState extends State<UsersScreen> {
                       onChanged: _onQueryChanged,
                     ),
                     const SizedBox(height: 12),
-                    RoleFilterChips(
-                      selected: _roleFilter,
-                      onChanged: _onRoleChanged,
+                    BlocBuilder<UsersListCubit, UsersListState>(
+                      buildWhen: (p, c) => p.roleFilter != c.roleFilter,
+                      builder: (context, state) => RoleFilterChips(
+                        selected: state.roleFilter,
+                        onChanged: _onRoleChanged,
+                      ),
                     ),
                   ],
                 ),
               ),
-              // ── Listado sobre surface ──
+              // ── Listado sobre surface — estados del GET real ──
               Expanded(
-                child: visible.isEmpty
-                    ? (isFiltering
-                          ? UsersEmptyState(
-                              icon: Icons.search_off,
-                              title: l10n.noSearchResultsTitle,
-                              hint: l10n.noSearchResultsHint,
-                            )
-                          : const UsersEmptyState())
-                    // Padding en el ListView (no en un wrapper): las cards
-                    // pueden scrollear bajo el nav navy y el último ítem sube
-                    // por encima — inset = shellNavBarHeight (§39) + alto del
-                    // FAB (56) + su margen (16) para que el ⋮ de la última
-                    // card nunca quede tapado al llegar al fondo.
-                    : ListView.separated(
-                        controller: _scrollController,
-                        padding: EdgeInsets.fromLTRB(
-                          24,
-                          0,
-                          24,
-                          context.shellNavBarHeight + 72,
-                        ),
-                        itemCount: visible.length + (_isLoadingMore ? 1 : 0),
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          if (index >= visible.length) {
-                            return const UsersListFooterLoader();
-                          }
-                          final member = visible[index];
-                          return OrgMemberCard(
-                            member: member,
-                            onStatusToggle: (s) => _setMemberStatus(member, s),
-                            onPasswordReset: (pw) =>
-                                _resetMemberPassword(member, pw),
-                            sheetTopInset: _sheetTopInset,
-                          );
-                        },
-                      ),
+                child: BlocConsumer<UsersListCubit, UsersListState>(
+                  // §51: error CON lista cargada → toast (la pantalla de
+                  // error se reserva para cuando no hay nada que mostrar).
+                  // Solo en la transición a error — un rebuild con el
+                  // error ya presente no repite el toast.
+                  listenWhen: (p, c) =>
+                      c.status == UsersListStatus.error &&
+                      c.errorNonce != p.errorNonce &&
+                      c.members.isNotEmpty,
+                  listener: (context, state) => QuesivoToast.error(
+                    context,
+                    // 429 dice la verdad (esperá y reintentá), no el
+                    // genérico de conexión.
+                    message: state.failure is UsersRateLimitFailure
+                        ? l10n.tooManyAttemptsError
+                        : l10n.usersLoadError,
+                  ),
+                  builder: (context, state) => _buildBody(context, state),
+                ),
               ),
             ],
           ),
@@ -361,5 +330,114 @@ class _UsersScreenState extends State<UsersScreen> {
         ],
       ),
     );
+  }
+
+  /// Cuerpo del listado según el estado del cubit: spinner de marca en
+  /// la primera carga, error + retry si el GET falló, empty state
+  /// (org vacía o "Sin resultados" con filtro) o la lista real con
+  /// pull-to-refresh y footer de página siguiente.
+  Widget _buildBody(BuildContext context, UsersListState state) {
+    final l10n = AppLocalizations.of(context)!;
+
+    switch (state.status) {
+      case UsersListStatus.initial:
+      case UsersListStatus.loading:
+        // Sin lista previa → loader de marca centrado; con lista, cae
+        // al render de abajo que la muestra ATENUADA bajo el loader
+        // (§51 — feedback visible del refetch por búsqueda/filtro).
+        if (state.members.isEmpty) {
+          // Primera carga — el momento grande del loader de marca.
+          return Center(
+            child: QuesivoLoader(size: 40, semanticLabel: l10n.loadingLabel),
+          );
+        }
+      case UsersListStatus.error:
+        // §51: la pantalla de error solo cuando no hay NADA que mostrar;
+        // con filas cargadas la lista se conserva y el listener ya
+        // disparó el toast de error (reintento = pull-to-refresh o
+        // reescribir la búsqueda).
+        if (state.members.isEmpty) {
+          return UsersListErrorState(
+            onRetry: () => context.read<UsersListCubit>().load(),
+            // 429 sin datos: misma distinción que el toast — el genérico
+            // "revisá tu conexión" mentiría sobre la causa.
+            message: state.failure is UsersRateLimitFailure
+                ? l10n.tooManyAttemptsError
+                : null,
+          );
+        }
+      case UsersListStatus.loaded:
+        break;
+    }
+
+    if (state.members.isEmpty) {
+      final isFiltering = state.query.isNotEmpty || state.roleFilter != null;
+      return isFiltering
+          ? UsersEmptyState(
+              icon: Icons.search_off,
+              title: l10n.noSearchResultsTitle,
+              hint: l10n.noSearchResultsHint,
+            )
+          : const UsersEmptyState();
+    }
+
+    // Footer de página siguiente: visible mientras queden páginas por
+    // pedir (hasMore) o el fetch de la N+1 esté en vuelo — desaparece
+    // al llegar a la última página.
+    final showFooter = state.hasMore || state.isLoadingMore;
+
+    final list = RefreshIndicator(
+      color: AppColors.quesivoNavy,
+      backgroundColor: AppColors.quesivoWhite,
+      onRefresh: () => context.read<UsersListCubit>().refresh(),
+      // Padding en el ListView (no en un wrapper): las cards
+      // pueden scrollear bajo el nav navy y el último ítem sube
+      // por encima — inset = shellNavBarHeight (§39) + alto del
+      // FAB (56) + su margen (16) para que el ⋮ de la última
+      // card nunca quede tapado al llegar al fondo.
+      child: ListView.separated(
+        controller: _scrollController,
+        // AlwaysScrollable: el pull-to-refresh tiene que poder
+        // gatillarse aunque la página no llene el viewport.
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(24, 0, 24, context.shellNavBarHeight + 72),
+        itemCount: state.members.length + (showFooter ? 1 : 0),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          if (index >= state.members.length) {
+            return const UsersListFooterLoader();
+          }
+          final member = state.members[index];
+          return OrgMemberCard(
+            member: member,
+            onStatusToggle: (s) => _setMemberStatus(member, s),
+            onPasswordReset: (pw) => _resetMemberPassword(member, pw),
+            sheetTopInset: _sheetTopInset,
+          );
+        },
+      ),
+    );
+
+    // §51 — refetch con lista previa (búsqueda/filtro): la lista queda
+    // atenuada y sin gestos bajo el loader de marca — se ve que está
+    // trabajando y la data vieja no se lee como fresca. El pull-to-
+    // refresh queda bloqueado mientras vuela el refetch (ya hay carga).
+    if (state.status == UsersListStatus.loading) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          // ExcludeSemantics: la lista atenuada tampoco es navegable por
+          // TalkBack durante el refetch (§51 review — el IgnorePointer
+          // solo bloquea gestos, no el árbol de semantics).
+          ExcludeSemantics(
+            child: IgnorePointer(child: Opacity(opacity: 0.45, child: list)),
+          ),
+          Center(
+            child: QuesivoLoader(size: 28, semanticLabel: l10n.loadingLabel),
+          ),
+        ],
+      );
+    }
+    return list;
   }
 }

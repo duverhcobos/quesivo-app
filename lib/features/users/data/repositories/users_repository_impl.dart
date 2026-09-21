@@ -5,6 +5,7 @@ import '../../../../core/network/interfaces/i_network_info.dart';
 import '../../../auth/data/exceptions/auth_exceptions.dart';
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
+import '../../domain/entities/users_page.dart';
 import '../../domain/failures/users_failure.dart';
 import '../../domain/repositories/i_users_repository.dart';
 import '../datasources/interfaces/i_remote_users_datasource.dart';
@@ -20,6 +21,41 @@ class UsersRepositoryImpl implements IUsersRepository {
   final ILoggerService logger;
 
   UsersRepositoryImpl(this.remoteDataSource, this.networkInfo, this.logger);
+
+  /// `GET /auth/users` — listado paginado real (doc 008, backend
+  /// 052+059). Mismo try/catch + `_mapError` que `createUser`/`linkUser`;
+  /// un 401 (JWT sin org) cae al default genérico — la sesión ya se está
+  /// cerrando vía SessionExpiredNotifier.
+  @override
+  Future<Either<UsersFailure, UsersPage>> getUsers({
+    required int page,
+    required int limit,
+    String? search,
+    UserRole? role,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(UsersNetworkFailure());
+    }
+
+    try {
+      final usersPage = await remoteDataSource.getUsers(
+        page: page,
+        limit: limit,
+        search: search,
+        role: role,
+      );
+      return Right(usersPage);
+    } on RestApiException catch (e, stackTrace) {
+      return Left(_mapError(e, stackTrace));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado listando usuarios',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(UsersServerFailure());
+    }
+  }
 
   @override
   Future<Either<UsersFailure, OrgMember>> createUser({

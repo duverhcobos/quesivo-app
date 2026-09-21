@@ -16,12 +16,20 @@ class OrgMemberModel extends OrgMember {
     required super.status,
     required super.organizationId,
     super.linked,
+    super.isOwner,
   });
 
-  /// Contrato: `{id,email,name,role,status,organizationId,linked}`.
+  /// Contrato create/link: `{id,email,name,role,status,organizationId,
+  /// linked}`. Contrato del listado (`GET /auth/users`, doc 008):
+  /// `{id,email,name,role,status,lastLoginAt,isOwner}` — los ítems del
+  /// GET NO traen `organizationId` ni `linked` (la org es la del JWT y
+  /// `linked` solo aplica a create/link): caen a los defaults `''` /
+  /// `false`. `lastLoginAt` se ignora — la card no lo muestra.
+  ///
   /// Defaults defensivos: `role`/`status` son catálogos cerrados del
   /// backend — un valor desconocido cae a operator/active en vez de
-  /// romper el flujo completo.
+  /// romper el flujo completo. `name` puede venir `null` en el listado
+  /// (profile sin nombre cargado) → `''`.
   factory OrgMemberModel.fromJson(Map<String, dynamic> json) {
     return OrgMemberModel(
       id: json['id']?.toString() ?? '',
@@ -31,6 +39,7 @@ class OrgMemberModel extends OrgMember {
       status: MemberStatus.fromApi(json['status'] as String?),
       organizationId: json['organizationId']?.toString() ?? '',
       linked: json['linked'] == true,
+      isOwner: json['isOwner'] == true,
     );
   }
 }

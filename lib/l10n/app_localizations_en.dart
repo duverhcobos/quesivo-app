@@ -529,4 +529,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get networkError =>
       'Couldn\'t reach the server — check your connection';
+
+  @override
+  String get ownerBadge => 'Owner';
+
+  @override
+  String get usersLoadError =>
+      'Couldn\'t load the list — check your connection';
+
+  @override
+  String get retryButton => 'Retry';
+
+  @override
+  String get loadingLabel => 'Loading';
 }

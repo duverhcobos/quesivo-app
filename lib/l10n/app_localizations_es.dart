@@ -528,4 +528,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get networkError =>
       'No se pudo conectar al servidor — revisá tu conexión';
+
+  @override
+  String get ownerBadge => 'Dueño';
+
+  @override
+  String get usersLoadError =>
+      'No se pudo cargar el listado — revisá tu conexión';
+
+  @override
+  String get retryButton => 'Reintentar';
+
+  @override
+  String get loadingLabel => 'Cargando';
 }

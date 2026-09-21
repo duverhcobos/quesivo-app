@@ -1,6 +1,7 @@
 import '../../../../../core/network/interfaces/i_network_service.dart';
 import '../../../domain/entities/user_role.dart';
 import '../../models/org_member_model.dart';
+import '../../models/users_page_model.dart';
 import '../interfaces/i_remote_users_datasource.dart';
 
 /// `POST /auth/users` real — contrato doc 007. La organización NO viaja
@@ -9,6 +10,29 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
   final INetworkService networkService;
 
   RemoteUsersDataSourceImpl(this.networkService);
+
+  /// `GET /auth/users` real — contrato doc 008 (backend 052+059):
+  /// paginación + filtros server-side. Solo viajan los params presentes
+  /// (`search`/`role` se omiten cuando no hay filtro activo); la org y
+  /// el orden (`created_at ASC` + tiebreaker `id`) los fija el backend.
+  @override
+  Future<UsersPageModel> getUsers({
+    required int page,
+    required int limit,
+    String? search,
+    UserRole? role,
+  }) async {
+    final data = await networkService.get<Map<String, dynamic>>(
+      '/auth/users',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        if (search != null && search.isNotEmpty) 'search': search,
+        if (role != null) 'role': role.apiValue,
+      },
+    );
+    return UsersPageModel.fromJson(data);
+  }
 
   @override
   Future<OrgMemberModel> createUser({

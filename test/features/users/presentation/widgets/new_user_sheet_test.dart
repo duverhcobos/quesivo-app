@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:formz/formz.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:quesivo/core/widgets/quesivo_loader.dart';
 import 'package:quesivo/core/widgets/quesivo_primary_button.dart';
 import 'package:quesivo/core/widgets/quesivo_text_field.dart';
 import 'package:quesivo/features/users/domain/entities/org_member.dart';
@@ -232,7 +233,7 @@ void main() {
       await tester.pump();
 
       // El primario muestra spinner navy en vez del label.
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(QuesivoLoader), findsOneWidget);
       expect(
         tester
             .widget<QuesivoPrimaryButton>(find.byType(QuesivoPrimaryButton))

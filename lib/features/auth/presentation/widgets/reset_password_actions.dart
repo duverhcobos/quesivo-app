@@ -6,6 +6,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_loader.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../cubit/reset_password_cubit.dart';
 import '../cubit/reset_password_state.dart';
@@ -27,7 +28,12 @@ class ResetPasswordActions extends StatelessWidget {
       buildWhen: (p, c) => p.status != c.status || p.isValid != c.isValid,
       builder: (context, state) {
         return state.status.isInProgress
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: QuesivoLoader(
+                  size: 28,
+                  semanticLabel: l10n.loadingLabel,
+                ),
+              )
             : Column(
                 children: [
                   // --- Acción primaria (§primary_button:

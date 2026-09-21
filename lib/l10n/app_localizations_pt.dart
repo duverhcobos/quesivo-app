@@ -529,4 +529,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get networkError =>
       'Não foi possível conectar ao servidor — verifique sua conexão';
+
+  @override
+  String get ownerBadge => 'Dono';
+
+  @override
+  String get usersLoadError =>
+      'Não foi possível carregar a lista — verifique sua conexão';
+
+  @override
+  String get retryButton => 'Tentar novamente';
+
+  @override
+  String get loadingLabel => 'Carregando';
 }

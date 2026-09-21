@@ -213,5 +213,9 @@
   "usersForbiddenError": "Você não tem permissão para gerenciar usuários",
   "tooManyAttemptsError": "Muitas tentativas — aguarde um momento",
   "genericError": "Ocorreu um erro — tente novamente",
-  "networkError": "Não foi possível conectar ao servidor — verifique sua conexão"
+  "networkError": "Não foi possível conectar ao servidor — verifique sua conexão",
+  "ownerBadge": "Dono",
+  "usersLoadError": "Não foi possível carregar a lista — verifique sua conexão",
+  "retryButton": "Tentar novamente",
+  "loadingLabel": "Carregando"
 }

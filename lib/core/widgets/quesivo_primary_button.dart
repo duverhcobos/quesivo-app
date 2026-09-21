@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'quesivo_loader.dart';
 
 /// Pill amarillo 64px/18/w700 de marca (§primary_button) — botón primario
 /// compartido por auth y los módulos, con estado disabled atenuado.
@@ -60,13 +61,10 @@ class QuesivoPrimaryButton extends StatelessWidget {
       // "Actualizar contraseña" no entra en la mitad a 18px — escala en
       // vez de envolver a 2 líneas y romper la simetría del par.
       child: isLoading
-          ? const SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: AppColors.quesivoNavy,
-              ),
+          ? const QuesivoLoader(
+              size: 22,
+              // Sobre el pill amarillo el arco amarillo sería invisible.
+              variant: QuesivoLoaderVariant.navy,
             )
           : isSuccess
           ? const Icon(

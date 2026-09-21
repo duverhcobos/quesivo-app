@@ -213,5 +213,9 @@
   "usersForbiddenError": "You don't have permission to manage users",
   "tooManyAttemptsError": "Too many attempts — wait a moment",
   "genericError": "Something went wrong — try again",
-  "networkError": "Couldn't reach the server — check your connection"
+  "networkError": "Couldn't reach the server — check your connection",
+  "ownerBadge": "Owner",
+  "usersLoadError": "Couldn't load the list — check your connection",
+  "retryButton": "Retry",
+  "loadingLabel": "Loading"
 }

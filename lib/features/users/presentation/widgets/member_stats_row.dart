@@ -5,12 +5,23 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/org_member.dart';
 
 /// Fila de stats del listado de Usuarios dentro de la cabecera navy —
-/// "N miembros · N activos" calculados de la lista real (dot amarillo =
-/// total, dot success = activos). Números de dominio, no decoración.
+/// "N miembros · N activos" (dot amarillo = total, dot success =
+/// activos). Números de dominio, no decoración.
+///
+/// Desde §49 el conteo de miembros usa `meta.total` del
+/// `GET /auth/users` (total FILTRADO — con búsqueda/rol activo muestra
+/// los que coinciden con la vista), no `members.length` que sería solo
+/// lo cargado por paginación. El dot de activos sigue contando sobre
+/// las filas cargadas — el backend no expone un conteo por estado.
 class MemberStatsRow extends StatelessWidget {
-  const MemberStatsRow({super.key, required this.members});
+  const MemberStatsRow({super.key, required this.members, this.total});
 
+  /// Filas cargadas del listado — alimenta el conteo de activos.
   final List<OrgMember> members;
+
+  /// Total real del backend (`UsersPage.total`). `null` →
+  /// `members.length` (fixture/local).
+  final int? total;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +32,7 @@ class MemberStatsRow extends StatelessWidget {
       children: [
         _StatDot(
           color: AppColors.quesivoYellow,
-          label: l10n.membersCount(members.length),
+          label: l10n.membersCount(total ?? members.length),
         ),
         const SizedBox(width: 16),
         _StatDot(

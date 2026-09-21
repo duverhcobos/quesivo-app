@@ -50,8 +50,10 @@ import '../../features/users/data/repositories/users_repository_impl.dart';
 import '../../features/users/domain/repositories/i_users_repository.dart';
 import '../../features/users/domain/use_cases/create_user_use_case.dart';
 import '../../features/users/domain/use_cases/link_user_use_case.dart';
+import '../../features/users/domain/use_cases/list_users_use_case.dart';
 import '../../features/users/presentation/cubit/create_user_cubit.dart';
 import '../../features/users/presentation/cubit/link_user_cubit.dart';
+import '../../features/users/presentation/cubit/users_list_cubit.dart';
 import '../localization/cubit/locale_cubit.dart';
 
 final locator = GetIt.instance;
@@ -216,9 +218,15 @@ void setupDI() {
   locator.registerLazySingleton(
     () => LinkUserUseCase(locator<IUsersRepository>()),
   );
+  locator.registerLazySingleton(
+    () => ListUsersUseCase(locator<IUsersRepository>()),
+  );
   // Cubits de sheet: factory — nacen y mueren con cada apertura.
   locator.registerFactory(() => CreateUserCubit(locator<CreateUserUseCase>()));
   locator.registerFactory(() => LinkUserCubit(locator<LinkUserUseCase>()));
+  // Cubit del listado (§49): factory — efímero como los demás del
+  // módulo, nace con la pantalla y dispara el primer load().
+  locator.registerFactory(() => UsersListCubit(locator<ListUsersUseCase>()));
 
   // 6. Router Automático
   // AuthGuard se inyecta con su logger por constructor (DIP), y es

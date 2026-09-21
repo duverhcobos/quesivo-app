@@ -7,6 +7,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 import '../../../../core/constants/environment/environment.dart';
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_loader.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../cubit/forgot_password_cubit.dart';
 import '../cubit/forgot_password_state.dart';
@@ -31,7 +32,9 @@ class ForgotPasswordActions extends StatelessWidget {
       buildWhen: (p, c) => p.status != c.status || p.isValid != c.isValid,
       builder: (context, state) {
         if (state.status.isInProgress) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: QuesivoLoader(size: 28, semanticLabel: l10n.loadingLabel),
+          );
         }
 
         return Column(

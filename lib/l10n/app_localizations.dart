@@ -1041,6 +1041,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo conectar al servidor — revisá tu conexión'**
   String get networkError;
+
+  /// No description provided for @ownerBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Dueño'**
+  String get ownerBadge;
+
+  /// No description provided for @usersLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el listado — revisá tu conexión'**
+  String get usersLoadError;
+
+  /// No description provided for @retryButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get retryButton;
+
+  /// No description provided for @loadingLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando'**
+  String get loadingLabel;
 }
 
 class _AppLocalizationsDelegate

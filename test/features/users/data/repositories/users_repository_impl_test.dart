@@ -7,9 +7,11 @@ import 'package:quesivo/core/network/interfaces/i_network_info.dart';
 import 'package:quesivo/features/auth/data/exceptions/auth_exceptions.dart';
 import 'package:quesivo/features/users/data/datasources/interfaces/i_remote_users_datasource.dart';
 import 'package:quesivo/features/users/data/models/org_member_model.dart';
+import 'package:quesivo/features/users/data/models/users_page_model.dart';
 import 'package:quesivo/features/users/data/repositories/users_repository_impl.dart';
 import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/domain/entities/user_role.dart';
+import 'package:quesivo/features/users/domain/entities/users_page.dart';
 import 'package:quesivo/features/users/domain/failures/users_failure.dart';
 
 class MockRemoteUsersDataSource extends Mock
@@ -331,6 +333,164 @@ void main() {
       final result = await callLinkUser();
 
       expect(result, const Left(UsersRateLimitFailure()));
+    });
+  });
+
+  group('getUsers (GET /auth/users — §49, doc 008)', () {
+    const tPageModel = UsersPageModel(
+      items: [tMemberModel],
+      page: 2,
+      limit: 15,
+      total: 34,
+      totalPages: 3,
+    );
+
+    void stubGetUsersThrow(Object error) {
+      when(
+        () => mockRemoteDataSource.getUsers(
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+          search: any(named: 'search'),
+          role: any(named: 'role'),
+        ),
+      ).thenThrow(error);
+    }
+
+    Future<Either<UsersFailure, UsersPage>> callGetUsers({
+      String? search,
+      UserRole? role,
+    }) => repository.getUsers(page: 2, limit: 15, search: search, role: role);
+
+    test('retorna UsersNetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await callGetUsers(search: 'ana', role: tRole);
+
+      expect(result, const Left(UsersNetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.getUsers(
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+          search: any(named: 'search'),
+          role: any(named: 'role'),
+        ),
+      );
+    });
+
+    test(
+      'manda page/limit/search/role al datasource tal cual (los query params los arma él)',
+      () async {
+        mockConnected(true);
+        when(
+          () => mockRemoteDataSource.getUsers(
+            page: 2,
+            limit: 15,
+            search: 'ana',
+            role: tRole,
+          ),
+        ).thenAnswer((_) async => tPageModel);
+
+        final result = await callGetUsers(search: 'ana', role: tRole);
+
+        expect(result, const Right(tPageModel));
+        verify(
+          () => mockRemoteDataSource.getUsers(
+            page: 2,
+            limit: 15,
+            search: 'ana',
+            role: tRole,
+          ),
+        ).called(1);
+      },
+    );
+
+    test('sin filtros manda search/role en null', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.getUsers(
+          page: 2,
+          limit: 15,
+          search: null,
+          role: null,
+        ),
+      ).thenAnswer((_) async => tPageModel);
+
+      final result = await callGetUsers();
+
+      expect(result, const Right(tPageModel));
+      verify(
+        () => mockRemoteDataSource.getUsers(
+          page: 2,
+          limit: 15,
+          search: null,
+          role: null,
+        ),
+      ).called(1);
+    });
+
+    test(
+      'el meta parseado llega en el Right (total/totalPages/hasMore)',
+      () async {
+        mockConnected(true);
+        when(
+          () => mockRemoteDataSource.getUsers(
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+            search: any(named: 'search'),
+            role: any(named: 'role'),
+          ),
+        ).thenAnswer((_) async => tPageModel);
+
+        final result = await callGetUsers();
+
+        result.fold((_) => fail('esperaba Right'), (page) {
+          expect(page.page, 2);
+          expect(page.total, 34);
+          expect(page.totalPages, 3);
+          // page 2 de 3 → queda una página por pedir.
+          expect(page.hasMore, isTrue);
+        });
+      },
+    );
+
+    test('403 → UsersForbiddenFailure', () async {
+      mockConnected(true);
+      stubGetUsersThrow(
+        RestApiException(statusCode: 403, message: 'Forbidden'),
+      );
+
+      final result = await callGetUsers();
+
+      expect(result, const Left(UsersForbiddenFailure()));
+    });
+
+    test('429 → UsersRateLimitFailure', () async {
+      mockConnected(true);
+      stubGetUsersThrow(
+        RestApiException(statusCode: 429, message: 'Throttled'),
+      );
+
+      final result = await callGetUsers();
+
+      expect(result, const Left(UsersRateLimitFailure()));
+    });
+
+    test('500 → UsersServerFailure con el mensaje', () async {
+      mockConnected(true);
+      stubGetUsersThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await callGetUsers();
+
+      expect(result, const Left(UsersServerFailure('Boom')));
+    });
+
+    test('excepción no-RestApi → UsersServerFailure genérico', () async {
+      mockConnected(true);
+      stubGetUsersThrow(Exception('cualquier cosa'));
+
+      final result = await callGetUsers();
+
+      expect(result, const Left(UsersServerFailure()));
     });
   });
 }

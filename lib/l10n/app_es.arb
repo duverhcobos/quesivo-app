@@ -212,5 +212,9 @@
   "usersForbiddenError": "No tenés permisos para gestionar usuarios",
   "tooManyAttemptsError": "Demasiados intentos — esperá un momento",
   "genericError": "Ocurrió un error — intentalo de nuevo",
-  "networkError": "No se pudo conectar al servidor — revisá tu conexión"
+  "networkError": "No se pudo conectar al servidor — revisá tu conexión",
+  "ownerBadge": "Dueño",
+  "usersLoadError": "No se pudo cargar el listado — revisá tu conexión",
+  "retryButton": "Reintentar",
+  "loadingLabel": "Cargando"
 }

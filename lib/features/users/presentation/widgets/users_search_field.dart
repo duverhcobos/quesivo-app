@@ -4,11 +4,12 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
-/// Campo de búsqueda del listado de Usuarios — filtra por nombre o
-/// correo sobre lo ya cargado (local; server-side query queda para
-/// cuando `GET /auth/users` lo soporte). El ícono de limpiar solo
-/// aparece con texto cargado (`ValueListenableBuilder` sobre el propio
-/// `controller`, sin rebuild del padre).
+/// Campo de búsqueda del listado de Usuarios — desde §49 el `search`
+/// viaja en el query del `GET /auth/users` real (la screen lo manda con
+/// debounce de 350ms vía `UsersListCubit.setQuery`; el backend matchea
+/// email + nombre del profile con LIKE case-insensitive). El ícono de
+/// limpiar solo aparece con texto cargado (`ValueListenableBuilder`
+/// sobre el propio `controller`, sin rebuild del padre).
 class UsersSearchField extends StatelessWidget {
   const UsersSearchField({
     super.key,
