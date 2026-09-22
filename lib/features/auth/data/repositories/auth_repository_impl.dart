@@ -60,9 +60,14 @@ class AuthRepositoryImpl implements IAuthRepository {
       );
       return Left(InvalidCredentialsFailure());
     } on RestApiException catch (e, stackTrace) {
-      // Contrato real (api/auth/002): 403 = cuenta suspendida, 429 =
-      // rate limit — ambos merecen mensaje propio, no el crudo del body.
+      // Contrato real (api/auth/002): 403 = cuenta suspendida O rol
+      // no-ADMIN (propuesta 062 — se distinguen por errorCode: el de
+      // suspendida viaja sin código), 429 = rate limit — ambos merecen
+      // mensaje propio, no el crudo del body.
       if (e.statusCode == 403) {
+        if (e.errorCode == 'ROLE_NOT_ALLOWED') {
+          return const Left(RoleNotAllowedFailure());
+        }
         return const Left(AccountSuspendedFailure());
       }
       if (e.statusCode == 429) {

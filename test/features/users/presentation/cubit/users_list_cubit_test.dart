@@ -10,15 +10,20 @@ import 'package:quesivo/features/users/domain/entities/user_role.dart';
 import 'package:quesivo/features/users/domain/entities/users_page.dart';
 import 'package:quesivo/features/users/domain/failures/users_failure.dart';
 import 'package:quesivo/features/users/domain/use_cases/list_users_use_case.dart';
+import 'package:quesivo/features/users/domain/use_cases/update_user_status_use_case.dart';
 import 'package:quesivo/features/users/presentation/cubit/users_list_cubit.dart';
 import 'package:quesivo/features/users/presentation/cubit/users_list_state.dart';
 
 // Disfrazamos al UseCase completo (Inversión de Control local)
 class MockListUsersUseCase extends Mock implements ListUsersUseCase {}
 
+class MockUpdateUserStatusUseCase extends Mock
+    implements UpdateUserStatusUseCase {}
+
 void main() {
   late UsersListCubit cubit;
   late MockListUsersUseCase mockListUsers;
+  late MockUpdateUserStatusUseCase mockUpdateStatus;
 
   /// Gate manual para demorar una respuesta del use case — permite
   /// probar el token de generación (respuesta vieja que vuelve tarde).
@@ -110,9 +115,14 @@ void main() {
     ).thenAnswer((_) => answer(++call));
   }
 
+  setUpAll(() {
+    registerFallbackValue(MemberStatus.suspended);
+  });
+
   setUp(() {
     mockListUsers = MockListUsersUseCase();
-    cubit = UsersListCubit(mockListUsers);
+    mockUpdateStatus = MockUpdateUserStatusUseCase();
+    cubit = UsersListCubit(mockListUsers, mockUpdateStatus);
     loadMoreGate = Completer<Either<UsersFailure, UsersPage>>();
   });
 
@@ -653,5 +663,132 @@ void main() {
     await cubit.close();
 
     await expectLater(pending, completes);
+  });
+
+  group('setMemberStatus (§52 — PATCH real)', () {
+    const tSuspendedM1 = OrgMember(
+      id: 'u1',
+      email: 'ana@mail.com',
+      name: 'Ana Pérez',
+      role: UserRole.operator,
+      status: MemberStatus.suspended,
+      organizationId: 'org-1',
+    );
+
+    void stubUpdateStatus(Future<Either<UsersFailure, OrgMember>> answer) {
+      when(
+        () => mockUpdateStatus(
+          userId: any(named: 'userId'),
+          status: any(named: 'status'),
+        ),
+      ).thenAnswer((_) => answer);
+    }
+
+    blocTest<UsersListCubit, UsersListState>(
+      'éxito: marca busy, llama al use case, mergea el ítem del 200 y libera busy',
+      build: () {
+        stubUpdateStatus(Future.value(const Right(tSuspendedM1)));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) => c.setMemberStatus(tM1, MemberStatus.suspended),
+      expect: () => [
+        // busy ON — la card muestra loader en vez del ⋮
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        // busy OFF
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          isNot(contains('u1')),
+        ),
+        // merge del ítem fresco — status suspended en la lista
+        isA<UsersListState>().having(
+          (s) => s.members.firstWhere((m) => m.id == 'u1').status,
+          'members[u1].status',
+          MemberStatus.suspended,
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => mockUpdateStatus(userId: 'u1', status: MemberStatus.suspended),
+        ).called(1);
+      },
+    );
+
+    blocTest<UsersListCubit, UsersListState>(
+      'failure: libera busy y NO toca el miembro (la screen tosta el error)',
+      build: () {
+        stubUpdateStatus(Future.value(const Left(LastAdminFailure())));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) async {
+        final result = await c.setMemberStatus(tM1, MemberStatus.suspended);
+        // El Either crudo vuelve a la screen para el toast mapeado.
+        expect(result, const Left(LastAdminFailure()));
+      },
+      expect: () => [
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          isNot(contains('u1')),
+        ),
+      ],
+      verify: (c) {
+        // El miembro quedó intacto — nada de flip optimista.
+        expect(
+          c.state.members.firstWhere((m) => m.id == 'u1').status,
+          MemberStatus.active,
+        );
+      },
+    );
+
+    test(
+      'segunda acción sobre la misma card con PATCH en vuelo es no-op defensivo',
+      () async {
+        final gate = Completer<Either<UsersFailure, OrgMember>>();
+        stubUpdateStatus(gate.future);
+
+        final first = cubit.setMemberStatus(tM1, MemberStatus.suspended);
+        await pumpEventQueue(); // deja emitir el busy
+        expect(cubit.state.busyMemberIds, contains('u1'));
+
+        // Segunda llamada: no invoca el use case de nuevo y devuelve el
+        // miembro intacto (no un error falso).
+        final second = await cubit.setMemberStatus(tM1, MemberStatus.active);
+        expect(second, const Right(tM1));
+        verify(
+          () => mockUpdateStatus(
+            userId: any(named: 'userId'),
+            status: any(named: 'status'),
+          ),
+        ).called(1);
+
+        gate.complete(const Right(tSuspendedM1));
+        await first;
+      },
+    );
+
+    test(
+      'setMemberStatus completado tras cerrar la pantalla no emite ni lanza',
+      () async {
+        stubUpdateStatus(Future.value(const Right(tSuspendedM1)));
+        final pending = cubit.setMemberStatus(tM1, MemberStatus.suspended);
+        await cubit.close();
+
+        // El PATCH pudo aplicarse en el backend igual — el guard isClosed
+        // evita el StateError del emit sobre el cubit muerto.
+        await expectLater(pending, completes);
+      },
+    );
   });
 }

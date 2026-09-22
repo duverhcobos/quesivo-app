@@ -11,4 +11,5 @@
 abstract class INetworkService {
   Future<T> post<T>(String path, {Map<String, dynamic>? data});
   Future<T> get<T>(String path, {Map<String, dynamic>? queryParameters});
+  Future<T> patch<T>(String path, {Map<String, dynamic>? data});
 }

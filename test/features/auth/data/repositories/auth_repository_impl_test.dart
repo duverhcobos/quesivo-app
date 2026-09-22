@@ -153,6 +153,32 @@ void main() {
       expect(result, const Left(AccountSuspendedFailure()));
     });
 
+    test(
+      'retorna RoleNotAllowedFailure ante 403 con errorCode ROLE_NOT_ALLOWED (backend 062)',
+      () async {
+        mockConnected(true);
+        when(
+          () => mockRemoteDataSource.loginWithEmailPassword(
+            email: tEmail,
+            password: tPassword,
+          ),
+        ).thenThrow(
+          RestApiException(
+            statusCode: 403,
+            message: 'Restricted',
+            errorCode: 'ROLE_NOT_ALLOWED',
+          ),
+        );
+
+        final result = await repository.loginWithEmailPassword(
+          email: tEmail,
+          password: tPassword,
+        );
+
+        expect(result, const Left(RoleNotAllowedFailure()));
+      },
+    );
+
     test('retorna TooManyAttemptsFailure ante RestApiException 429', () async {
       mockConnected(true);
       when(

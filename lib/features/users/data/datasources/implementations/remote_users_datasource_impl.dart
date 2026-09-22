@@ -1,4 +1,5 @@
 import '../../../../../core/network/interfaces/i_network_service.dart';
+import '../../../domain/entities/org_member.dart';
 import '../../../domain/entities/user_role.dart';
 import '../../models/org_member_model.dart';
 import '../../models/users_page_model.dart';
@@ -64,6 +65,35 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     final data = await networkService.post<Map<String, dynamic>>(
       '/auth/users/link',
       data: {'email': email, 'role': role.apiValue},
+    );
+    return OrgMemberModel.fromJson(data);
+  }
+
+  /// `PATCH /auth/users/:id/status` real (doc 009) — la org la infiere
+  /// el backend del JWT; el 200 trae el ítem fresco para mergear.
+  @override
+  Future<OrgMemberModel> updateUserStatus({
+    required String userId,
+    required MemberStatus status,
+  }) async {
+    final data = await networkService.patch<Map<String, dynamic>>(
+      '/auth/users/$userId/status',
+      data: {'status': status.apiValue},
+    );
+    return OrgMemberModel.fromJson(data);
+  }
+
+  /// `PATCH /auth/users/:id/password` real (doc 010) — el password es
+  /// global pero la autorización es por membresía; revoca solo las
+  /// sesiones del target en ESTA org.
+  @override
+  Future<OrgMemberModel> updateUserPassword({
+    required String userId,
+    required String password,
+  }) async {
+    final data = await networkService.patch<Map<String, dynamic>>(
+      '/auth/users/$userId/password',
+      data: {'password': password},
     );
     return OrgMemberModel.fromJson(data);
   }

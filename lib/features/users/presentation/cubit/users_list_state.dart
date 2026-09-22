@@ -54,6 +54,12 @@ class UsersListState extends Equatable {
   /// de la screen usando este nonce como trigger).
   final int errorNonce;
 
+  /// IDs de miembros con una acción de fila en vuelo (PATCH status,
+  /// §52) — la card muestra un `QuesivoLoader` chico en vez del ⋮
+  /// mientras tanto. Set (no un solo id): dos acciones en cards
+  /// distintas pueden volar a la vez.
+  final Set<String> busyMemberIds;
+
   const UsersListState({
     this.status = UsersListStatus.initial,
     this.members = const [],
@@ -65,6 +71,7 @@ class UsersListState extends Equatable {
     this.roleFilter,
     this.failure,
     this.errorNonce = 0,
+    this.busyMemberIds = const {},
   });
 
   // Sentinel para distinguir "no se pasó el param" de "se pasó null"
@@ -83,6 +90,7 @@ class UsersListState extends Equatable {
     Object? roleFilter = _unset,
     Object? failure = _unset,
     int? errorNonce,
+    Set<String>? busyMemberIds,
   }) => UsersListState(
     status: status ?? this.status,
     members: members ?? this.members,
@@ -98,6 +106,7 @@ class UsersListState extends Equatable {
         ? this.failure
         : failure as UsersFailure?,
     errorNonce: errorNonce ?? this.errorNonce,
+    busyMemberIds: busyMemberIds ?? this.busyMemberIds,
   );
 
   @override
@@ -112,5 +121,6 @@ class UsersListState extends Equatable {
     roleFilter,
     failure,
     errorNonce,
+    busyMemberIds,
   ];
 }

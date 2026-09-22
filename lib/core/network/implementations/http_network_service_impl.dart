@@ -43,6 +43,22 @@ class HttpNetworkServiceImpl implements INetworkService {
     }
   }
 
+  @override
+  Future<T> patch<T>(String path, {Map<String, dynamic>? data}) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final response = await client.patch(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      return _processResponse<T>(response);
+    } catch (e) {
+      if (e is RestApiException) rethrow;
+      throw ServerException();
+    }
+  }
+
   T _processResponse<T>(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(response.body) as T;

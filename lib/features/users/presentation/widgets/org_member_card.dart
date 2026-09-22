@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_loader.dart';
 import '../../../../core/widgets/user_initials_avatar.dart';
 import '../../domain/entities/org_member.dart';
 import 'member_actions_menu.dart';
@@ -16,7 +17,10 @@ import 'member_status_chip.dart';
 /// (pill con borde navy — la marca distintiva del owner, `isOwner` del
 /// GET /auth/users) y el ⋮ `MemberActionsMenu` NO se renderiza:
 /// suspender/reset sobre el dueño son `OWNER_*` en backend — ofrecerlos
-/// sería un error garantizado.
+/// sería un error garantizado. §52: tampoco se renderiza en la card
+/// propia (`isSelf` — SELF_SUSPENSION garantizado y resetearse revocaría
+/// la sesión propia) y con un PATCH en vuelo (`isBusy`) cede a un
+/// `QuesivoLoader` chico navy.
 class OrgMemberCard extends StatelessWidget {
   const OrgMemberCard({
     super.key,
@@ -24,14 +28,25 @@ class OrgMemberCard extends StatelessWidget {
     required this.onStatusToggle,
     required this.onPasswordReset,
     this.sheetTopInset = 0,
+    this.isSelf = false,
+    this.isBusy = false,
   });
 
   final OrgMember member;
   final ValueChanged<MemberStatus> onStatusToggle;
-  final ValueChanged<String> onPasswordReset;
+  final ValueChanged<OrgMember> onPasswordReset;
 
   /// Tope del `ResetPasswordSheet` — lo mide la pantalla sobre el hero.
   final double sheetTopInset;
+
+  /// `true` cuando la card es del propio admin logueado (§52) — sin ⋮:
+  /// suspenderse es SELF_SUSPENSION y resetearse revocaría la sesión
+  /// propia.
+  final bool isSelf;
+
+  /// `true` mientras un PATCH de la fila está en vuelo (§52) — el ⋮
+  /// cede al loader chico y queda inerte.
+  final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +106,20 @@ class OrgMemberCard extends StatelessWidget {
               ],
             ),
           ),
-          // El dueño no es suspendible ni reseteable (OWNER_* en
-          // backend) — sin ⋮ no hay acciones que siempre fallarían.
-          if (!member.isOwner)
+          // Sin ⋮ donde no hay acción útil: el dueño no es suspendible
+          // ni reseteable (OWNER_* en backend) y la card propia tampoco
+          // (SELF_SUSPENSION garantizado; resetearse revocaría la
+          // sesión propia — auto-logout confuso). Con un PATCH en
+          // vuelo el ⋮ cede al loader chico de marca (§52).
+          if (isBusy)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: QuesivoLoader(
+                size: 20,
+                variant: QuesivoLoaderVariant.navy,
+              ),
+            )
+          else if (!member.isOwner && !isSelf)
             MemberActionsMenu(
               member: member,
               onStatusToggle: onStatusToggle,

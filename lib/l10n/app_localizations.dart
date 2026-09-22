@@ -1018,6 +1018,36 @@ abstract class AppLocalizations {
   /// **'Ese correo es dueño de otra quesera — no puede vincularse'**
   String get userIsOwnerError;
 
+  /// No description provided for @selfSuspensionError.
+  ///
+  /// In es, this message translates to:
+  /// **'No podés suspender tu propia membresía'**
+  String get selfSuspensionError;
+
+  /// No description provided for @ownerSuspensionError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede suspender al dueño de la organización'**
+  String get ownerSuspensionError;
+
+  /// No description provided for @lastAdminError.
+  ///
+  /// In es, this message translates to:
+  /// **'Es el último administrador activo — nombrá otro admin antes'**
+  String get lastAdminError;
+
+  /// No description provided for @ownerPasswordResetError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede restablecer la contraseña del dueño'**
+  String get ownerPasswordResetError;
+
+  /// No description provided for @memberNotFoundError.
+  ///
+  /// In es, this message translates to:
+  /// **'El usuario ya no pertenece a esta organización'**
+  String get memberNotFoundError;
+
   /// No description provided for @usersForbiddenError.
   ///
   /// In es, this message translates to:

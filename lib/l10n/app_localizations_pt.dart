@@ -517,6 +517,26 @@ class AppLocalizationsPt extends AppLocalizations {
       'Esse e-mail é dono de outra queijaria — não pode ser vinculado';
 
   @override
+  String get selfSuspensionError =>
+      'Você não pode suspender a própria associação';
+
+  @override
+  String get ownerSuspensionError =>
+      'O proprietário da organização não pode ser suspenso';
+
+  @override
+  String get lastAdminError =>
+      'É o último administrador ativo — nomeie outro antes';
+
+  @override
+  String get ownerPasswordResetError =>
+      'A senha do proprietário não pode ser redefinida';
+
+  @override
+  String get memberNotFoundError =>
+      'O usuário não pertence mais a esta organização';
+
+  @override
   String get usersForbiddenError =>
       'Você não tem permissão para gerenciar usuários';
 

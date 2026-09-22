@@ -52,6 +52,43 @@ class UserIsOwnerFailure extends UsersFailure {
     : super('Ese correo es dueño de otra quesera — no puede vincularse.');
 }
 
+/// `400 + SELF_SUSPENSION` — el admin intentó suspender su propia
+/// membresía (doc 009). Defensivo: la card propia no muestra ⋮.
+class SelfSuspensionFailure extends UsersFailure {
+  const SelfSuspensionFailure()
+    : super('No podés suspender tu propia membresía.');
+}
+
+/// `400 + OWNER_SUSPENSION` — el target es dueño de la org (doc 009,
+/// propuesta backend 056). Defensivo: la card del dueño no muestra ⋮.
+class OwnerSuspensionFailure extends UsersFailure {
+  const OwnerSuspensionFailure()
+    : super('No se puede suspender al dueño de la organización.');
+}
+
+/// `400 + LAST_ADMIN` — suspenderlo dejaría la org sin administrador
+/// activo (doc 009, decisión 004 §6.4).
+class LastAdminFailure extends UsersFailure {
+  const LastAdminFailure()
+    : super('Es el último administrador activo — nombrá otro admin antes.');
+}
+
+/// `400 + OWNER_PASSWORD_RESET` — resetear el password del dueño es un
+/// takeover de su cuenta global (doc 010, propuesta backend 057).
+/// Defensivo: la card del dueño no muestra ⋮.
+class OwnerPasswordResetFailure extends UsersFailure {
+  const OwnerPasswordResetFailure()
+    : super('No se puede restablecer la contraseña del dueño.');
+}
+
+/// `404 + MEMBERSHIP_NOT_FOUND` — el target ya no tiene membresía en la
+/// org (card stale: la acción llegó después de que salió — ej. otro
+/// cliente la modificó). Distinto de `UserNotFoundFailure` (link).
+class MemberNotFoundFailure extends UsersFailure {
+  const MemberNotFoundFailure()
+    : super('El usuario ya no pertenece a esta organización.');
+}
+
 /// `403` — el JWT no trae rol `ADMIN`. Defensivo: la gestión solo se
 /// muestra a admins, pero el rol pudo cambiar desde otro cliente.
 class UsersForbiddenFailure extends UsersFailure {
@@ -59,7 +96,7 @@ class UsersForbiddenFailure extends UsersFailure {
     : super('No tenés permisos para gestionar usuarios.');
 }
 
-/// `429` — rate limit del endpoint (10 req/min).
+/// `429` — rate limit del endpoint (varía por ruta — backend 060).
 class UsersRateLimitFailure extends UsersFailure {
   const UsersRateLimitFailure()
     : super('Demasiados intentos. Esperá un momento e intentalo de nuevo.');

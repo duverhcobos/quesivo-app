@@ -517,6 +517,25 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ese correo es dueño de otra quesera — no puede vincularse';
 
   @override
+  String get selfSuspensionError => 'No podés suspender tu propia membresía';
+
+  @override
+  String get ownerSuspensionError =>
+      'No se puede suspender al dueño de la organización';
+
+  @override
+  String get lastAdminError =>
+      'Es el último administrador activo — nombrá otro admin antes';
+
+  @override
+  String get ownerPasswordResetError =>
+      'No se puede restablecer la contraseña del dueño';
+
+  @override
+  String get memberNotFoundError =>
+      'El usuario ya no pertenece a esta organización';
+
+  @override
   String get usersForbiddenError => 'No tenés permisos para gestionar usuarios';
 
   @override

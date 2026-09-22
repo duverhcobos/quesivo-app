@@ -41,4 +41,22 @@ abstract class IUsersRepository {
     required String email,
     required UserRole role,
   });
+
+  /// `PATCH /auth/users/:id/status` — activa/suspende la membresía (doc
+  /// 009). Errores del contrato: `SelfSuspensionFailure`,
+  /// `OwnerSuspensionFailure`, `LastAdminFailure` (400),
+  /// `MemberNotFoundFailure` (404), `UsersForbiddenFailure` (403),
+  /// `UsersRateLimitFailure` (429), `UsersNetworkFailure` sin conexión.
+  Future<Either<UsersFailure, OrgMember>> updateUserStatus({
+    required String userId,
+    required MemberStatus status,
+  });
+
+  /// `PATCH /auth/users/:id/password` — reset manual por admin (doc
+  /// 010). Errores: `OwnerPasswordResetFailure`/`InvalidMemberDataFailure`
+  /// (400), `MemberNotFoundFailure` (404), 403/429/red como arriba.
+  Future<Either<UsersFailure, OrgMember>> updateUserPassword({
+    required String userId,
+    required String password,
+  });
 }

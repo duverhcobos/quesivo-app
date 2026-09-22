@@ -517,6 +517,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'That email owns another organization — it cannot be linked';
 
   @override
+  String get selfSuspensionError => 'You can\'t suspend your own membership';
+
+  @override
+  String get ownerSuspensionError =>
+      'The organization owner can\'t be suspended';
+
+  @override
+  String get lastAdminError =>
+      'They\'re the last active admin — appoint another admin first';
+
+  @override
+  String get ownerPasswordResetError => 'The owner\'s password can\'t be reset';
+
+  @override
+  String get memberNotFoundError =>
+      'This user no longer belongs to the organization';
+
+  @override
   String get usersForbiddenError =>
       'You don\'t have permission to manage users';
 

@@ -51,8 +51,12 @@ import '../../features/users/domain/repositories/i_users_repository.dart';
 import '../../features/users/domain/use_cases/create_user_use_case.dart';
 import '../../features/users/domain/use_cases/link_user_use_case.dart';
 import '../../features/users/domain/use_cases/list_users_use_case.dart';
+import '../../features/users/domain/use_cases/update_user_password_use_case.dart';
+import '../../features/users/domain/use_cases/update_user_status_use_case.dart';
 import '../../features/users/presentation/cubit/create_user_cubit.dart';
 import '../../features/users/presentation/cubit/link_user_cubit.dart';
+import '../../features/users/presentation/cubit/reset_password_cubit.dart'
+    as users_reset_password;
 import '../../features/users/presentation/cubit/users_list_cubit.dart';
 import '../localization/cubit/locale_cubit.dart';
 
@@ -221,12 +225,30 @@ void setupDI() {
   locator.registerLazySingleton(
     () => ListUsersUseCase(locator<IUsersRepository>()),
   );
+  locator.registerLazySingleton(
+    () => UpdateUserStatusUseCase(locator<IUsersRepository>()),
+  );
+  locator.registerLazySingleton(
+    () => UpdateUserPasswordUseCase(locator<IUsersRepository>()),
+  );
   // Cubits de sheet: factory — nacen y mueren con cada apertura.
   locator.registerFactory(() => CreateUserCubit(locator<CreateUserUseCase>()));
   locator.registerFactory(() => LinkUserCubit(locator<LinkUserUseCase>()));
+  // §52 — cubit del sheet de reset de contraseña (users). Prefijo en el
+  // import: auth ya tiene un ResetPasswordCubit propio.
+  locator.registerFactory(
+    () => users_reset_password.ResetPasswordCubit(
+      locator<UpdateUserPasswordUseCase>(),
+    ),
+  );
   // Cubit del listado (§49): factory — efímero como los demás del
   // módulo, nace con la pantalla y dispara el primer load().
-  locator.registerFactory(() => UsersListCubit(locator<ListUsersUseCase>()));
+  locator.registerFactory(
+    () => UsersListCubit(
+      locator<ListUsersUseCase>(),
+      locator<UpdateUserStatusUseCase>(),
+    ),
+  );
 
   // 6. Router Automático
   // AuthGuard se inyecta con su logger por constructor (DIP), y es

@@ -1,13 +1,18 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:formz/formz.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:quesivo/core/di/setup_di.dart';
 import 'package:quesivo/core/widgets/quesivo_loader.dart';
+import 'package:quesivo/features/auth/domain/entities/user.dart';
+import 'package:quesivo/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:quesivo/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/domain/entities/user_role.dart';
 import 'package:quesivo/features/users/domain/failures/users_failure.dart';
@@ -35,6 +40,11 @@ class MockLinkUserCubit extends MockCubit<LinkUserState>
 class MockUsersListCubit extends MockCubit<UsersListState>
     implements UsersListCubit {}
 
+// §52 — `UsersListBody` lee `AuthCubit` (context.select) para ocultar el
+// ⋮ en la card propia (isSelf) — sin proveerlo el árbol de test explota
+// con ProviderNotFoundException.
+class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
+
 void main() {
   // La screen resuelve UsersListCubit por `locator` (BlocProvider del
   // shell) y los sheets los suyos — se registran mocks en setUp para
@@ -47,6 +57,15 @@ void main() {
   late StreamController<CreateUserState> stateController;
   late MockLinkUserCubit mockLinkCubit;
   late StreamController<LinkUserState> linkStateController;
+  // Usuario logueado ficticio para el `AuthCubit` mockeado — ningún
+  // fixture de card usa este id, así que `isSelf` es false salvo que un
+  // test lo pise a propósito.
+  late MockAuthCubit mockAuthCubit;
+  const tCurrentUser = User(
+    id: 'current-admin',
+    email: 'admin@mail.com',
+    name: 'Admin',
+  );
 
   const tCreated = OrgMember(
     id: 'uuid-backend-1',
@@ -110,6 +129,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(UserRole.operator);
+    registerFallbackValue(MemberStatus.active);
     registerFallbackValue(
       const OrgMember(
         id: 'fb',
@@ -142,7 +162,24 @@ void main() {
     when(() => mockListCubit.setRole(any())).thenReturn(null);
     when(() => mockListCubit.prependMember(any())).thenReturn(null);
     when(() => mockListCubit.updateMember(any())).thenReturn(null);
+    // §52 — default: éxito, mergea el status pedido sobre el member
+    // recibido (mismo comportamiento del cubit real con el 200 del
+    // PATCH). Los tests de la regla de negocio lo pisan con su propio
+    // stub cuando necesitan un failure.
+    when(() => mockListCubit.setMemberStatus(any(), any())).thenAnswer((
+      invocation,
+    ) async {
+      final member = invocation.positionalArguments[0] as OrgMember;
+      final status = invocation.positionalArguments[1] as MemberStatus;
+      return Right(member.copyWith(status: status));
+    });
     locator.registerFactory<UsersListCubit>(() => mockListCubit);
+
+    // ── AuthCubit — solo lo lee `UsersListBody` para `isSelf` (§52) ──
+    mockAuthCubit = MockAuthCubit();
+    when(() => mockAuthCubit.stream).thenAnswer((_) => const Stream.empty());
+    when(() => mockAuthCubit.state).thenReturn(const AuthSuccess(tCurrentUser));
+    when(() => mockAuthCubit.close()).thenAnswer((_) async {});
 
     mockCubit = MockCreateUserCubit();
     // Broadcast: el BlocConsumer se suscribe dos veces a bloc.stream
@@ -190,11 +227,16 @@ void main() {
     locator.reset();
   });
 
-  Widget buildApp() => const MaterialApp(
-    locale: Locale('es'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: UsersScreen(),
+  // `UsersListBody` (§52) lee `AuthCubit` vía context.select — se provee
+  // por fuera del MaterialApp, mismo lugar que en producción (main.dart).
+  Widget buildApp() => BlocProvider<AuthCubit>.value(
+    value: mockAuthCubit,
+    child: const MaterialApp(
+      locale: Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: UsersScreen(),
+    ),
   );
 
   // El viewport por defecto de flutter_test (800x600) solo alcanza para
@@ -782,7 +824,7 @@ void main() {
   );
 
   testWidgets(
-    'suspender desde el menú delega updateMember al cubit (flip local hasta el PATCH real)',
+    'suspender desde el menú dispara el PATCH real vía setMemberStatus (§52)',
     (tester) async {
       useTallSurface(tester);
       currentListState = loadedState();
@@ -806,17 +848,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('¿Suspender a User 1?'), findsOneWidget);
 
-      // CTA del diálogo → confirma; la screen pide updateMember al cubit.
+      // CTA del diálogo → confirma; la screen dispara el PATCH real vía
+      // el cubit (§52). El stub default de setUp resuelve con éxito.
       await tester.tap(find.text('Suspender usuario'));
       await tester.pumpAndSettle();
 
-      final updated =
-          verify(() => mockListCubit.updateMember(captureAny())).captured.single
-              as OrgMember;
-      expect(updated.id, 'u1');
-      expect(updated.status, MemberStatus.suspended);
+      final captured = verify(
+        () => mockListCubit.setMemberStatus(captureAny(), captureAny()),
+      ).captured;
+      expect((captured[0] as OrgMember).id, 'u1');
+      expect(captured[1], MemberStatus.suspended);
 
-      // Con el estado actualizado la card flippea el chip a Suspendido.
+      // Éxito del PATCH → warning ámbar (mismo criterio que §45).
+      expect(find.text('Membresía suspendida'), findsOneWidget);
+
+      // El cubit real mergea el ítem fresco del 200 y emite el nuevo
+      // estado — se simula acá para probar que la card refleja el flip.
       final members = tMembers(15);
       emitListState(
         loadedState(
@@ -829,10 +876,50 @@ void main() {
       );
       await tester.pump();
       await tester.pump();
-      expect(find.text('Membresía suspendida'), findsOneWidget);
       expect(
         find.descendant(of: card, matching: find.text('Suspendido')),
         findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'suspender con failure del backend muestra el toast mapeado, sin flip',
+    (tester) async {
+      useTallSurface(tester);
+      currentListState = loadedState();
+      when(
+        () => mockListCubit.setMemberStatus(any(), any()),
+      ).thenAnswer((_) async => const Left(LastAdminFailure()));
+      await tester.pumpWidget(buildApp());
+
+      final card = find.byType(OrgMemberCard).at(1);
+      final menuButton = find.descendant(
+        of: card,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      await tester.ensureVisible(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Suspender usuario'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Suspender usuario'));
+      await tester.pumpAndSettle();
+
+      // El toast rojo traduce el error de dominio — no el genérico.
+      expect(
+        find.text(
+          'Es el último administrador activo — nombrá otro admin antes',
+        ),
+        findsOneWidget,
+      );
+      // Sin flip: la card sigue activa (el cubit no mergeó nada).
+      expect(
+        find.descendant(of: card, matching: find.text('Suspendido')),
+        findsNothing,
       );
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();

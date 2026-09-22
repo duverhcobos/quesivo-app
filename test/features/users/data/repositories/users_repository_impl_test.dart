@@ -42,6 +42,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(UserRole.operator);
+    registerFallbackValue(MemberStatus.suspended);
     registerFallbackValue(StackTrace.empty);
   });
 
@@ -493,4 +494,238 @@ void main() {
       expect(result, const Left(UsersServerFailure()));
     });
   });
+
+  group('updateUserStatus (PATCH /auth/users/:id/status — §52, doc 009)', () {
+    void stubStatusThrow(Object error) {
+      when(
+        () => mockRemoteDataSource.updateUserStatus(
+          userId: any(named: 'userId'),
+          status: any(named: 'status'),
+        ),
+      ).thenThrow(error);
+    }
+
+    Future<Either<UsersFailure, OrgMember>> callUpdateStatus() => repository
+        .updateUserStatus(userId: 'uuid-1', status: MemberStatus.suspended);
+
+    test('retorna UsersNetworkFailure si no hay conexión', () async {
+      mockConnected(false);
+
+      final result = await callUpdateStatus();
+
+      expect(result, const Left(UsersNetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.updateUserStatus(
+          userId: any(named: 'userId'),
+          status: any(named: 'status'),
+        ),
+      );
+    });
+
+    test('retorna Right(member) con el ítem fresco del 200', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.updateUserStatus(
+          userId: any(named: 'userId'),
+          status: any(named: 'status'),
+        ),
+      ).thenAnswer((_) async => tMemberModel);
+
+      final result = await callUpdateStatus();
+
+      expect(result, const Right(tMemberModel));
+    });
+
+    // Las reglas de dominio del PATCH viajan como 400 + errorCode —
+    // cada una tiene failure propio para el toast de la screen.
+    for (final (code, expected) in [
+      ('SELF_SUSPENSION', const SelfSuspensionFailure()),
+      ('OWNER_SUSPENSION', const OwnerSuspensionFailure()),
+      ('LAST_ADMIN', const LastAdminFailure()),
+      ('INVALID_PASSWORD', const InvalidMemberDataFailure()),
+    ]) {
+      test('400 + $code → ${expected.runtimeType}', () async {
+        mockConnected(true);
+        stubStatusThrow(
+          RestApiException(statusCode: 400, message: 'x', errorCode: code),
+        );
+
+        final result = await callUpdateStatus();
+
+        expect(result, Left(expected));
+      });
+    }
+
+    test(
+      '400 sin errorCode conocido → UsersServerFailure con el mensaje',
+      () async {
+        mockConnected(true);
+        stubStatusThrow(
+          RestApiException(statusCode: 400, message: 'Validación rara'),
+        );
+
+        final result = await callUpdateStatus();
+
+        expect(result, const Left(UsersServerFailure('Validación rara')));
+      },
+    );
+
+    test(
+      '404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure (card stale)',
+      () async {
+        mockConnected(true);
+        stubStatusThrow(
+          RestApiException(
+            statusCode: 404,
+            message: 'x',
+            errorCode: 'MEMBERSHIP_NOT_FOUND',
+          ),
+        );
+
+        final result = await callUpdateStatus();
+
+        expect(result, const Left(MemberNotFoundFailure()));
+      },
+    );
+
+    test('403 → UsersForbiddenFailure', () async {
+      mockConnected(true);
+      stubStatusThrow(RestApiException(statusCode: 403, message: 'x'));
+
+      final result = await callUpdateStatus();
+
+      expect(result, const Left(UsersForbiddenFailure()));
+    });
+
+    test('429 → UsersRateLimitFailure', () async {
+      mockConnected(true);
+      stubStatusThrow(RestApiException(statusCode: 429, message: 'x'));
+
+      final result = await callUpdateStatus();
+
+      expect(result, const Left(UsersRateLimitFailure()));
+    });
+  });
+
+  group(
+    'updateUserPassword (PATCH /auth/users/:id/password — §52, doc 010)',
+    () {
+      void stubPasswordThrow(Object error) {
+        when(
+          () => mockRemoteDataSource.updateUserPassword(
+            userId: any(named: 'userId'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(error);
+      }
+
+      Future<Either<UsersFailure, OrgMember>> callUpdatePassword() =>
+          repository.updateUserPassword(userId: 'uuid-1', password: 'Nueva123');
+
+      test('retorna UsersNetworkFailure si no hay conexión', () async {
+        mockConnected(false);
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Left(UsersNetworkFailure()));
+        verifyNever(
+          () => mockRemoteDataSource.updateUserPassword(
+            userId: any(named: 'userId'),
+            password: any(named: 'password'),
+          ),
+        );
+      });
+
+      test('retorna Right(member) en éxito', () async {
+        mockConnected(true);
+        when(
+          () => mockRemoteDataSource.updateUserPassword(
+            userId: any(named: 'userId'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => tMemberModel);
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Right(tMemberModel));
+      });
+
+      test('400 + OWNER_PASSWORD_RESET → OwnerPasswordResetFailure', () async {
+        mockConnected(true);
+        stubPasswordThrow(
+          RestApiException(
+            statusCode: 400,
+            message: 'x',
+            errorCode: 'OWNER_PASSWORD_RESET',
+          ),
+        );
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Left(OwnerPasswordResetFailure()));
+      });
+
+      test('400 + INVALID_PASSWORD → InvalidMemberDataFailure', () async {
+        mockConnected(true);
+        stubPasswordThrow(
+          RestApiException(
+            statusCode: 400,
+            message: 'x',
+            errorCode: 'INVALID_PASSWORD',
+          ),
+        );
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Left(InvalidMemberDataFailure()));
+      });
+
+      test('404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure', () async {
+        mockConnected(true);
+        stubPasswordThrow(
+          RestApiException(
+            statusCode: 404,
+            message: 'x',
+            errorCode: 'MEMBERSHIP_NOT_FOUND',
+          ),
+        );
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Left(MemberNotFoundFailure()));
+      });
+
+      test(
+        '400 sin errorCode conocido → UsersServerFailure con el mensaje',
+        () async {
+          mockConnected(true);
+          stubPasswordThrow(
+            RestApiException(statusCode: 400, message: 'Validación rara'),
+          );
+
+          final result = await callUpdatePassword();
+
+          expect(result, const Left(UsersServerFailure('Validación rara')));
+        },
+      );
+
+      test('403 → UsersForbiddenFailure', () async {
+        mockConnected(true);
+        stubPasswordThrow(RestApiException(statusCode: 403, message: 'x'));
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Left(UsersForbiddenFailure()));
+      });
+
+      test('429 → UsersRateLimitFailure', () async {
+        mockConnected(true);
+        stubPasswordThrow(RestApiException(statusCode: 429, message: 'x'));
+
+        final result = await callUpdatePassword();
+
+        expect(result, const Left(UsersRateLimitFailure()));
+      });
+    },
+  );
 }

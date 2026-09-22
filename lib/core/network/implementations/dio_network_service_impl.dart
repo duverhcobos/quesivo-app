@@ -31,6 +31,18 @@ class DioNetworkServiceImpl implements INetworkService {
     }
   }
 
+  @override
+  Future<T> patch<T>(String path, {Map<String, dynamic>? data}) async {
+    try {
+      final response = await dio.patch<T>(path, data: data);
+      return response.data as T;
+    } on DioException catch (e) {
+      _handleDioError(e);
+    } catch (e) {
+      throw ServerException();
+    }
+  }
+
   Never _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response!.statusCode ?? 500;

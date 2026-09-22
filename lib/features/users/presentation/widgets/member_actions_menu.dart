@@ -8,8 +8,9 @@ import 'reset_password_sheet.dart';
 
 /// Menú ⋮ de acciones por fila (§45): "Suspender/Reactivar" abre
 /// `MemberStatusDialog` y "Restablecer contraseña" abre
-/// `ResetPasswordSheet`. Los resultados suben por callback — la
-/// pantalla decide la mutación local hoy y el PATCH mañana.
+/// `ResetPasswordSheet`. Desde §52 las acciones ya son reales: el
+/// dialog confirma y la screen dispara el PATCH de status; el sheet de
+/// reset lo hace dentro con su cubit y devuelve el miembro del 200.
 /// "Suspender usuario" se tiñe `quesivoError` (acción destructiva —
 /// mismo criterio que logout en el drawer).
 class MemberActionsMenu extends StatelessWidget {
@@ -26,8 +27,8 @@ class MemberActionsMenu extends StatelessWidget {
   /// Recibe el nuevo `MemberStatus` si el admin confirmó el diálogo.
   final ValueChanged<MemberStatus> onStatusToggle;
 
-  /// Recibe el password ingresado si el admin completó el sheet.
-  final ValueChanged<String> onPasswordReset;
+  /// Recibe el `OrgMember` del 200 cuando el sheet completó el reset.
+  final ValueChanged<OrgMember> onPasswordReset;
 
   /// Tope del `ResetPasswordSheet` (borde inferior del hero navy) —
   /// lo mide la pantalla y viaja por la card hasta acá.
@@ -44,13 +45,15 @@ class MemberActionsMenu extends StatelessWidget {
               : MemberStatus.active,
         );
       case 'password':
-        final password = await ResetPasswordSheet.show(
+        // §52 — el sheet hace el PATCH real con su propio cubit y
+        // devuelve el miembro del 200 (o null al cancelar/fallar).
+        final resetMember = await ResetPasswordSheet.show(
           context,
           member,
           topInset: sheetTopInset,
         );
-        if (password == null || !context.mounted) return;
-        onPasswordReset(password);
+        if (resetMember == null || !context.mounted) return;
+        onPasswordReset(resetMember);
     }
   }
 

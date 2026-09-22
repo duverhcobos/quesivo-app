@@ -1,8 +1,11 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
+import '../../domain/failures/users_failure.dart';
 import '../../domain/use_cases/list_users_use_case.dart';
+import '../../domain/use_cases/update_user_status_use_case.dart';
 import 'users_list_state.dart';
 
 /// Cubit del `UsersScreen` — orquesta el listado real contra
@@ -12,15 +15,16 @@ import 'users_list_state.dart';
 ///
 /// Modelo de estado: `load()` resetea a página 1 con el
 /// `query`/`roleFilter` actuales; `loadMore()` apila `page+1` cuando
-/// `hasMore`; `prependMember`/`updateMember` son las mutaciones
-/// optimistas locales (create/link insertan al tope; el flip de status
-/// sigue local hasta que una propuesta posterior lo conecte al PATCH).
+/// `hasMore`; `prependMember` inserta al tope tras create/link y
+/// `setMemberStatus` pega al PATCH real (§52) y mergea el ítem del
+/// response.
 class UsersListCubit extends Cubit<UsersListState> {
   /// Tamaño de página del listado — mismo chunk que usaba la paginación
   /// local de §43; dentro del `Max(100)` del backend (doc 008).
   static const _pageSize = 15;
 
   final ListUsersUseCase _listUsers;
+  final UpdateUserStatusUseCase _updateUserStatus;
 
   /// Generación de la carga inicial: cada `load()` la incrementa y una
   /// respuesta que vuelve con un token viejo se descarta — es el guard
@@ -30,7 +34,8 @@ class UsersListCubit extends Cubit<UsersListState> {
   /// vivía en la screen.
   int _loadToken = 0;
 
-  UsersListCubit(this._listUsers) : super(const UsersListState());
+  UsersListCubit(this._listUsers, this._updateUserStatus)
+    : super(const UsersListState());
 
   String? get _search => state.query.isEmpty ? null : state.query;
 
@@ -168,8 +173,8 @@ class UsersListCubit extends Cubit<UsersListState> {
     );
   }
 
-  /// Reemplaza por `id` — el flip de status local de la screen (hasta
-  /// propuesta posterior) y luego el ítem que devuelva el PATCH.
+  /// Reemplaza por `id` — merge del ítem fresco que devuelve el PATCH
+  /// de status (§52) en el dataset del listado.
   void updateMember(OrgMember member) {
     if (isClosed) return;
     final index = state.members.indexWhere((m) => m.id == member.id);
@@ -177,5 +182,41 @@ class UsersListCubit extends Cubit<UsersListState> {
     final updated = [...state.members];
     updated[index] = member;
     emit(state.copyWith(members: updated));
+  }
+
+  /// `PATCH /auth/users/:id/status` real (§52, doc 009): marca la card
+  /// busy mientras vuela y devuelve el `Either` crudo — la screen lo
+  /// traduce a toast (warning al suspender, success al reactivar,
+  /// error mapeado al fallar). En éxito mergea el `OrgMember` fresco
+  /// del response (mismo shape que el ítem del listado — nada de flip
+  /// local optimista). Defensivo: una segunda acción sobre la misma
+  /// card con el PATCH en vuelo es no-op (el ⋮ ya está inerte).
+  Future<Either<UsersFailure, OrgMember>> setMemberStatus(
+    OrgMember member,
+    MemberStatus status,
+  ) async {
+    if (state.busyMemberIds.contains(member.id)) {
+      // Inalcanzable por UI (el ⋮ cede al loader mientras está busy) —
+      // defensivo: el miembro no cambió, devolverlo es honesto (nada
+      // pasó) y la screen no muestra toast de error engañoso.
+      return Right(member);
+    }
+    emit(state.copyWith(busyMemberIds: {...state.busyMemberIds, member.id}));
+    final result = await _updateUserStatus(userId: member.id, status: status);
+    // La pantalla pudo cerrarse con el PATCH en vuelo — el cambio ya
+    // quedó aplicado en el servidor; el próximo load() lo refleja.
+    if (isClosed) return result;
+    emit(
+      state.copyWith(
+        busyMemberIds: {...state.busyMemberIds}..remove(member.id),
+      ),
+    );
+    switch (result) {
+      case Right(value: final fresh):
+        updateMember(fresh);
+      case Left():
+        break;
+    }
+    return result;
   }
 }

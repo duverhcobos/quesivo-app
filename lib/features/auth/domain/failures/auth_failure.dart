@@ -34,6 +34,16 @@ class AccountSuspendedFailure extends AuthFailure {
       );
 }
 
+/// La cuenta existe y el password es correcto, pero la membresía tiene
+/// rol distinto a ADMIN (HTTP 403 + errorCode ROLE_NOT_ALLOWED — backend
+/// propuesta 062). El MVP solo tiene UI de administrador.
+class RoleNotAllowedFailure extends AuthFailure {
+  const RoleNotAllowedFailure()
+    : super(
+        'Esta app es solo para administradores. Tu cuenta está activa pero no tiene ese rol en la organización.',
+      );
+}
+
 /// Ocurre cuando el rate limit del backend rechaza el intento (HTTP 429).
 class TooManyAttemptsFailure extends AuthFailure {
   const TooManyAttemptsFailure()

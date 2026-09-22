@@ -1,3 +1,4 @@
+import '../../../domain/entities/org_member.dart';
 import '../../../domain/entities/user_role.dart';
 import '../../models/org_member_model.dart';
 import '../../models/users_page_model.dart';
@@ -29,5 +30,19 @@ abstract class IRemoteUsersDataSource {
   Future<OrgMemberModel> linkUser({
     required String email,
     required UserRole role,
+  });
+
+  /// `PATCH /auth/users/:id/status` — flip de la membresía (doc 009).
+  /// Devuelve el `OrgMemberModel` fresco (mismo shape que el listado).
+  Future<OrgMemberModel> updateUserStatus({
+    required String userId,
+    required MemberStatus status,
+  });
+
+  /// `PATCH /auth/users/:id/password` — reset por admin (doc 010):
+  /// revoca las sesiones del target en esta org y levanta el lockout.
+  Future<OrgMemberModel> updateUserPassword({
+    required String userId,
+    required String password,
   });
 }

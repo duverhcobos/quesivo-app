@@ -114,6 +114,61 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
+  /// `PATCH /auth/users/:id/status` — doc 009. Mismo try/catch +
+  /// `_mapError` de `createUser`/`linkUser`.
+  @override
+  Future<Either<UsersFailure, OrgMember>> updateUserStatus({
+    required String userId,
+    required MemberStatus status,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(UsersNetworkFailure());
+    }
+    try {
+      final member = await remoteDataSource.updateUserStatus(
+        userId: userId,
+        status: status,
+      );
+      return Right(member);
+    } on RestApiException catch (e, stackTrace) {
+      return Left(_mapError(e, stackTrace));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado cambiando estado de membresía',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(UsersServerFailure());
+    }
+  }
+
+  /// `PATCH /auth/users/:id/password` — doc 010. Ídem.
+  @override
+  Future<Either<UsersFailure, OrgMember>> updateUserPassword({
+    required String userId,
+    required String password,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(UsersNetworkFailure());
+    }
+    try {
+      final member = await remoteDataSource.updateUserPassword(
+        userId: userId,
+        password: password,
+      );
+      return Right(member);
+    } on RestApiException catch (e, stackTrace) {
+      return Left(_mapError(e, stackTrace));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado restableciendo contraseña',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(UsersServerFailure());
+    }
+  }
+
   /// Un 401 que llega hasta acá ya pasó por el RefreshTokenInterceptor:
   /// si el refresh también falló, la sesión se está cerrando vía
   /// SessionExpiredNotifier — se reporta genérico, no hay acción de UI.
@@ -124,21 +179,55 @@ class UsersRepositoryImpl implements IUsersRepository {
   /// (link — el email no tiene cuenta global).
   UsersFailure _mapError(RestApiException e, StackTrace stackTrace) {
     switch (e.statusCode) {
+      case 400:
+        // Los PATCH de fila traen sus reglas de dominio como 400 +
+        // errorCode (docs 009/010); INVALID_PASSWORD es la segunda
+        // línea del VO — la sheet ya validó.
+        final mapped = switch (e.errorCode) {
+          'SELF_SUSPENSION' => const SelfSuspensionFailure(),
+          'OWNER_SUSPENSION' => const OwnerSuspensionFailure(),
+          'LAST_ADMIN' => const LastAdminFailure(),
+          'OWNER_PASSWORD_RESET' => const OwnerPasswordResetFailure(),
+          'INVALID_PASSWORD' => const InvalidMemberDataFailure(),
+          _ => null,
+        };
+        if (mapped != null) return mapped;
+        logger.error(
+          'Error de API en gestión de usuarios',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return UsersServerFailure(e.message);
       case 403:
         return const UsersForbiddenFailure();
       case 404:
-        return switch (e.errorCode) {
+        final mapped404 = switch (e.errorCode) {
           'USER_NOT_FOUND' => const UserNotFoundFailure(),
-          _ => UsersServerFailure(e.message),
+          'MEMBERSHIP_NOT_FOUND' => const MemberNotFoundFailure(),
+          _ => null,
         };
+        if (mapped404 != null) return mapped404;
+        logger.error(
+          'Error de API en gestión de usuarios',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return UsersServerFailure(e.message);
       case 409:
-        return switch (e.errorCode) {
+        final mapped409 = switch (e.errorCode) {
           'MEMBERSHIP_ALREADY_EXISTS' => const MembershipAlreadyExistsFailure(),
           'USER_SUSPENDED' => const LinkedUserSuspendedFailure(),
           'EMAIL_ALREADY_EXISTS' => const EmailAlreadyExistsFailure(),
           'USER_IS_OWNER' => const UserIsOwnerFailure(),
-          _ => UsersServerFailure(e.message),
+          _ => null,
         };
+        if (mapped409 != null) return mapped409;
+        logger.error(
+          'Error de API en gestión de usuarios',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return UsersServerFailure(e.message);
       case 429:
         return const UsersRateLimitFailure();
       default:
