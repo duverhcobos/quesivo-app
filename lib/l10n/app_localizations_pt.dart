@@ -482,6 +482,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get memberReactivatedFeedback => 'Associação reativada';
 
   @override
+  String get changeRoleAction => 'Alterar função';
+
+  @override
+  String changeRoleTitle(String name) {
+    return 'Alterar função de $name';
+  }
+
+  @override
+  String get changeRoleMessage =>
+      'A nova função é aplicada no próximo acesso — a sessão do membro nesta organização será encerrada.';
+
+  @override
+  String get changeRoleConfirm => 'Alterar';
+
+  @override
+  String memberRoleChangedFeedback(String name) {
+    return 'Função de $name atualizada — aplica-se no próximo acesso';
+  }
+
+  @override
   String resetPasswordSheetHint(String name) {
     return 'Nova senha temporária para $name — entrará com ela.';
   }
@@ -523,6 +543,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get ownerSuspensionError =>
       'O proprietário da organização não pode ser suspenso';
+
+  @override
+  String get selfRoleChangeError => 'Você não pode alterar a própria função';
+
+  @override
+  String get ownerRoleChangeError =>
+      'Não é possível alterar a função do proprietário da organização';
 
   @override
   String get lastAdminError =>

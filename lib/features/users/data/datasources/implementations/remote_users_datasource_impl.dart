@@ -97,4 +97,19 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     );
     return OrgMemberModel.fromJson(data);
   }
+
+  /// `PATCH /auth/users/:id/role` real (doc 012) — mismo molde que
+  /// `updateUserStatus`: la org la infiere el backend del JWT y el 200
+  /// trae el ítem fresco para mergear.
+  @override
+  Future<OrgMemberModel> updateUserRole({
+    required String userId,
+    required UserRole role,
+  }) async {
+    final data = await networkService.patch<Map<String, dynamic>>(
+      '/auth/users/$userId/role',
+      data: {'role': role.apiValue},
+    );
+    return OrgMemberModel.fromJson(data);
+  }
 }

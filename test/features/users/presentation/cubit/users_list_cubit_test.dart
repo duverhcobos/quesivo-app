@@ -10,6 +10,7 @@ import 'package:quesivo/features/users/domain/entities/user_role.dart';
 import 'package:quesivo/features/users/domain/entities/users_page.dart';
 import 'package:quesivo/features/users/domain/failures/users_failure.dart';
 import 'package:quesivo/features/users/domain/use_cases/list_users_use_case.dart';
+import 'package:quesivo/features/users/domain/use_cases/update_user_role_use_case.dart';
 import 'package:quesivo/features/users/domain/use_cases/update_user_status_use_case.dart';
 import 'package:quesivo/features/users/presentation/cubit/users_list_cubit.dart';
 import 'package:quesivo/features/users/presentation/cubit/users_list_state.dart';
@@ -20,10 +21,13 @@ class MockListUsersUseCase extends Mock implements ListUsersUseCase {}
 class MockUpdateUserStatusUseCase extends Mock
     implements UpdateUserStatusUseCase {}
 
+class MockUpdateUserRoleUseCase extends Mock implements UpdateUserRoleUseCase {}
+
 void main() {
   late UsersListCubit cubit;
   late MockListUsersUseCase mockListUsers;
   late MockUpdateUserStatusUseCase mockUpdateStatus;
+  late MockUpdateUserRoleUseCase mockUpdateRole;
 
   /// Gate manual para demorar una respuesta del use case — permite
   /// probar el token de generación (respuesta vieja que vuelve tarde).
@@ -117,12 +121,14 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(MemberStatus.suspended);
+    registerFallbackValue(UserRole.operator);
   });
 
   setUp(() {
     mockListUsers = MockListUsersUseCase();
     mockUpdateStatus = MockUpdateUserStatusUseCase();
-    cubit = UsersListCubit(mockListUsers, mockUpdateStatus);
+    mockUpdateRole = MockUpdateUserRoleUseCase();
+    cubit = UsersListCubit(mockListUsers, mockUpdateStatus, mockUpdateRole);
     loadMoreGate = Completer<Either<UsersFailure, UsersPage>>();
   });
 
@@ -787,6 +793,131 @@ void main() {
 
         // El PATCH pudo aplicarse en el backend igual — el guard isClosed
         // evita el StateError del emit sobre el cubit muerto.
+        await expectLater(pending, completes);
+      },
+    );
+  });
+
+  group('setMemberRole (§54 — PATCH /role real)', () {
+    const tCollectorM1 = OrgMember(
+      id: 'u1',
+      email: 'ana@mail.com',
+      name: 'Ana Pérez',
+      role: UserRole.collector,
+      status: MemberStatus.active,
+      organizationId: 'org-1',
+    );
+
+    void stubUpdateRole(Future<Either<UsersFailure, OrgMember>> answer) {
+      when(
+        () => mockUpdateRole(
+          userId: any(named: 'userId'),
+          role: any(named: 'role'),
+        ),
+      ).thenAnswer((_) => answer);
+    }
+
+    blocTest<UsersListCubit, UsersListState>(
+      'éxito: marca busy, llama al use case, mergea el ítem del 200 y libera busy',
+      build: () {
+        stubUpdateRole(Future.value(const Right(tCollectorM1)));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) => c.setMemberRole(tM1, UserRole.collector),
+      expect: () => [
+        // busy ON — la card muestra loader en vez del ⋮
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        // busy OFF
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          isNot(contains('u1')),
+        ),
+        // merge del ítem fresco — rol collector en la lista
+        isA<UsersListState>().having(
+          (s) => s.members.firstWhere((m) => m.id == 'u1').role,
+          'members[u1].role',
+          UserRole.collector,
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => mockUpdateRole(userId: 'u1', role: UserRole.collector),
+        ).called(1);
+      },
+    );
+
+    blocTest<UsersListCubit, UsersListState>(
+      'failure: libera busy y NO toca el miembro (la screen tosta el error)',
+      build: () {
+        stubUpdateRole(Future.value(const Left(OwnerRoleChangeFailure())));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) async {
+        final result = await c.setMemberRole(tM1, UserRole.admin);
+        // El Either crudo vuelve a la screen para el toast mapeado.
+        expect(result, const Left(OwnerRoleChangeFailure()));
+      },
+      expect: () => [
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          isNot(contains('u1')),
+        ),
+      ],
+      verify: (c) {
+        // El miembro quedó intacto — nada de flip optimista.
+        expect(
+          c.state.members.firstWhere((m) => m.id == 'u1').role,
+          UserRole.operator,
+        );
+      },
+    );
+
+    test(
+      'segunda acción sobre la misma card con PATCH en vuelo es no-op defensivo',
+      () async {
+        final gate = Completer<Either<UsersFailure, OrgMember>>();
+        stubUpdateRole(gate.future);
+
+        final first = cubit.setMemberRole(tM1, UserRole.collector);
+        await pumpEventQueue(); // deja emitir el busy
+        expect(cubit.state.busyMemberIds, contains('u1'));
+
+        // Segunda llamada: no invoca el use case de nuevo y devuelve el
+        // miembro intacto (no un error falso).
+        final second = await cubit.setMemberRole(tM1, UserRole.admin);
+        expect(second, const Right(tM1));
+        verify(
+          () => mockUpdateRole(
+            userId: any(named: 'userId'),
+            role: any(named: 'role'),
+          ),
+        ).called(1);
+
+        gate.complete(const Right(tCollectorM1));
+        await first;
+      },
+    );
+
+    test(
+      'setMemberRole completado tras cerrar la pantalla no emite ni lanza',
+      () async {
+        stubUpdateRole(Future.value(const Right(tCollectorM1)));
+        final pending = cubit.setMemberRole(tM1, UserRole.collector);
+        await cubit.close();
+
         await expectLater(pending, completes);
       },
     );

@@ -482,6 +482,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memberReactivatedFeedback => 'Membresía reactivada';
 
   @override
+  String get changeRoleAction => 'Cambiar rol';
+
+  @override
+  String changeRoleTitle(String name) {
+    return 'Cambiar rol de $name';
+  }
+
+  @override
+  String get changeRoleMessage =>
+      'El nuevo rol aplica cuando vuelva a ingresar — su sesión en esta quesera se cerrará.';
+
+  @override
+  String get changeRoleConfirm => 'Cambiar';
+
+  @override
+  String memberRoleChangedFeedback(String name) {
+    return 'Rol de $name actualizado — reingresa con el rol nuevo';
+  }
+
+  @override
   String resetPasswordSheetHint(String name) {
     return 'Nueva contraseña temporal para $name — ingresará con ella.';
   }
@@ -522,6 +542,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get ownerSuspensionError =>
       'No se puede suspender al dueño de la organización';
+
+  @override
+  String get selfRoleChangeError => 'No podés cambiar tu propio rol';
+
+  @override
+  String get ownerRoleChangeError =>
+      'No se puede cambiar el rol del dueño de la organización';
 
   @override
   String get lastAdminError =>

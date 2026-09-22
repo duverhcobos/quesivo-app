@@ -728,4 +728,123 @@ void main() {
       });
     },
   );
+
+  group('updateUserRole (PATCH /auth/users/:id/role — §54, doc 012)', () {
+    void stubRoleThrow(Object error) {
+      when(
+        () => mockRemoteDataSource.updateUserRole(
+          userId: any(named: 'userId'),
+          role: any(named: 'role'),
+        ),
+      ).thenThrow(error);
+    }
+
+    Future<Either<UsersFailure, OrgMember>> callUpdateRole() =>
+        repository.updateUserRole(userId: 'uuid-1', role: UserRole.collector);
+
+    test('retorna UsersNetworkFailure si no hay conexión', () async {
+      mockConnected(false);
+
+      final result = await callUpdateRole();
+
+      expect(result, const Left(UsersNetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.updateUserRole(
+          userId: any(named: 'userId'),
+          role: any(named: 'role'),
+        ),
+      );
+    });
+
+    test('retorna Right(member) con el ítem fresco del 200', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.updateUserRole(
+          userId: any(named: 'userId'),
+          role: any(named: 'role'),
+        ),
+      ).thenAnswer((_) async => tMemberModel);
+
+      final result = await callUpdateRole();
+
+      expect(result, const Right(tMemberModel));
+      // El datasource recibió el userId y el rol pedidos (el body del
+      // PATCH lleva role.apiValue — verificado en el datasource).
+      verify(
+        () => mockRemoteDataSource.updateUserRole(
+          userId: 'uuid-1',
+          role: UserRole.collector,
+        ),
+      ).called(1);
+    });
+
+    // Las reglas de dominio del PATCH viajan como 400 + errorCode —
+    // cada una tiene failure propio para el toast de la screen.
+    for (final (code, expected) in [
+      ('SELF_ROLE_CHANGE', const SelfRoleChangeFailure()),
+      ('OWNER_ROLE_CHANGE', const OwnerRoleChangeFailure()),
+      ('LAST_ADMIN', const LastAdminFailure()),
+    ]) {
+      test('400 + $code → ${expected.runtimeType}', () async {
+        mockConnected(true);
+        stubRoleThrow(
+          RestApiException(statusCode: 400, message: 'x', errorCode: code),
+        );
+
+        final result = await callUpdateRole();
+
+        expect(result, Left(expected));
+      });
+    }
+
+    test(
+      '400 sin errorCode conocido → UsersServerFailure con el mensaje',
+      () async {
+        mockConnected(true);
+        stubRoleThrow(
+          RestApiException(statusCode: 400, message: 'Validación rara'),
+        );
+
+        final result = await callUpdateRole();
+
+        expect(result, const Left(UsersServerFailure('Validación rara')));
+      },
+    );
+
+    test(
+      '404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure (card stale)',
+      () async {
+        mockConnected(true);
+        stubRoleThrow(
+          RestApiException(
+            statusCode: 404,
+            message: 'x',
+            errorCode: 'MEMBERSHIP_NOT_FOUND',
+          ),
+        );
+
+        final result = await callUpdateRole();
+
+        expect(result, const Left(MemberNotFoundFailure()));
+      },
+    );
+
+    test('403 → UsersForbiddenFailure', () async {
+      mockConnected(true);
+      stubRoleThrow(RestApiException(statusCode: 403, message: 'x'));
+
+      final result = await callUpdateRole();
+
+      expect(result, const Left(UsersForbiddenFailure()));
+    });
+
+    test('429 → UsersRateLimitFailure', () async {
+      mockConnected(true);
+      stubRoleThrow(RestApiException(statusCode: 429, message: 'x'));
+
+      final result = await callUpdateRole();
+
+      expect(result, const Left(UsersRateLimitFailure()));
+    });
+  });
 }

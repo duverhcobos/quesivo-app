@@ -180,6 +180,25 @@
   "reactivateMemberMessage": "Recuperará el acceso a esta organización.",
   "memberSuspendedFeedback": "Membresía suspendida",
   "memberReactivatedFeedback": "Membresía reactivada",
+  "changeRoleAction": "Cambiar rol",
+  "changeRoleTitle": "Cambiar rol de {name}",
+  "@changeRoleTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "changeRoleMessage": "El nuevo rol aplica cuando vuelva a ingresar — su sesión en esta quesera se cerrará.",
+  "changeRoleConfirm": "Cambiar",
+  "memberRoleChangedFeedback": "Rol de {name} actualizado — reingresa con el rol nuevo",
+  "@memberRoleChangedFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "resetPasswordSheetHint": "Nueva contraseña temporal para {name} — ingresará con ella.",
   "@resetPasswordSheetHint": {
     "placeholders": {
@@ -211,6 +230,8 @@
   "userIsOwnerError": "Ese correo es dueño de otra quesera — no puede vincularse",
   "selfSuspensionError": "No podés suspender tu propia membresía",
   "ownerSuspensionError": "No se puede suspender al dueño de la organización",
+  "selfRoleChangeError": "No podés cambiar tu propio rol",
+  "ownerRoleChangeError": "No se puede cambiar el rol del dueño de la organización",
   "lastAdminError": "Es el último administrador activo — nombrá otro admin antes",
   "ownerPasswordResetError": "No se puede restablecer la contraseña del dueño",
   "memberNotFoundError": "El usuario ya no pertenece a esta organización",

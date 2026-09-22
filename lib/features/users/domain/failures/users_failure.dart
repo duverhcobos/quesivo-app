@@ -81,6 +81,21 @@ class OwnerPasswordResetFailure extends UsersFailure {
     : super('No se puede restablecer la contraseña del dueño.');
 }
 
+/// `400 + SELF_ROLE_CHANGE` — el admin intentó cambiar su propio rol
+/// (doc 012, propuesta backend 063). Defensivo: la card propia no
+/// muestra ⋮.
+class SelfRoleChangeFailure extends UsersFailure {
+  const SelfRoleChangeFailure() : super('No podés cambiar tu propio rol.');
+}
+
+/// `400 + OWNER_ROLE_CHANGE` — el target es dueño de la org: quitarle
+/// el rol ADMIN equivale a un takeover (doc 012, propuesta backend
+/// 063). Defensivo: la card del dueño no muestra ⋮.
+class OwnerRoleChangeFailure extends UsersFailure {
+  const OwnerRoleChangeFailure()
+    : super('No se puede cambiar el rol del dueño de la organización.');
+}
+
 /// `404 + MEMBERSHIP_NOT_FOUND` — el target ya no tiene membresía en la
 /// org (card stale: la acción llegó después de que salió — ej. otro
 /// cliente la modificó). Distinto de `UserNotFoundFailure` (link).

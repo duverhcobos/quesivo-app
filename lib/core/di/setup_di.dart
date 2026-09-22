@@ -52,6 +52,7 @@ import '../../features/users/domain/use_cases/create_user_use_case.dart';
 import '../../features/users/domain/use_cases/link_user_use_case.dart';
 import '../../features/users/domain/use_cases/list_users_use_case.dart';
 import '../../features/users/domain/use_cases/update_user_password_use_case.dart';
+import '../../features/users/domain/use_cases/update_user_role_use_case.dart';
 import '../../features/users/domain/use_cases/update_user_status_use_case.dart';
 import '../../features/users/presentation/cubit/create_user_cubit.dart';
 import '../../features/users/presentation/cubit/link_user_cubit.dart';
@@ -231,6 +232,9 @@ void setupDI() {
   locator.registerLazySingleton(
     () => UpdateUserPasswordUseCase(locator<IUsersRepository>()),
   );
+  locator.registerLazySingleton(
+    () => UpdateUserRoleUseCase(locator<IUsersRepository>()),
+  );
   // Cubits de sheet: factory — nacen y mueren con cada apertura.
   locator.registerFactory(() => CreateUserCubit(locator<CreateUserUseCase>()));
   locator.registerFactory(() => LinkUserCubit(locator<LinkUserUseCase>()));
@@ -247,6 +251,7 @@ void setupDI() {
     () => UsersListCubit(
       locator<ListUsersUseCase>(),
       locator<UpdateUserStatusUseCase>(),
+      locator<UpdateUserRoleUseCase>(),
     ),
   );
 

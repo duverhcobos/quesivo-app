@@ -5,6 +5,7 @@ import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
 import '../../domain/failures/users_failure.dart';
 import '../../domain/use_cases/list_users_use_case.dart';
+import '../../domain/use_cases/update_user_role_use_case.dart';
 import '../../domain/use_cases/update_user_status_use_case.dart';
 import 'users_list_state.dart';
 
@@ -25,6 +26,7 @@ class UsersListCubit extends Cubit<UsersListState> {
 
   final ListUsersUseCase _listUsers;
   final UpdateUserStatusUseCase _updateUserStatus;
+  final UpdateUserRoleUseCase _updateUserRole;
 
   /// Generación de la carga inicial: cada `load()` la incrementa y una
   /// respuesta que vuelve con un token viejo se descarta — es el guard
@@ -34,7 +36,7 @@ class UsersListCubit extends Cubit<UsersListState> {
   /// vivía en la screen.
   int _loadToken = 0;
 
-  UsersListCubit(this._listUsers, this._updateUserStatus)
+  UsersListCubit(this._listUsers, this._updateUserStatus, this._updateUserRole)
     : super(const UsersListState());
 
   String? get _search => state.query.isEmpty ? null : state.query;
@@ -205,6 +207,36 @@ class UsersListCubit extends Cubit<UsersListState> {
     final result = await _updateUserStatus(userId: member.id, status: status);
     // La pantalla pudo cerrarse con el PATCH en vuelo — el cambio ya
     // quedó aplicado en el servidor; el próximo load() lo refleja.
+    if (isClosed) return result;
+    emit(
+      state.copyWith(
+        busyMemberIds: {...state.busyMemberIds}..remove(member.id),
+      ),
+    );
+    switch (result) {
+      case Right(value: final fresh):
+        updateMember(fresh);
+      case Left():
+        break;
+    }
+    return result;
+  }
+
+  /// `PATCH /auth/users/:id/role` real (§54, doc 012): mismo contrato
+  /// que `setMemberStatus` — busy mientras vuela, Either crudo a la
+  /// screen, merge del `OrgMember` fresco en éxito, no-op defensivo si
+  /// la card ya está busy. El backend revoca las sesiones del miembro
+  /// en la org (el JWT lleva `roles` — re-ingresa con el rol nuevo).
+  Future<Either<UsersFailure, OrgMember>> setMemberRole(
+    OrgMember member,
+    UserRole role,
+  ) async {
+    if (state.busyMemberIds.contains(member.id)) {
+      // Inalcanzable por UI (el ⋮ cede al loader) — ver setMemberStatus.
+      return Right(member);
+    }
+    emit(state.copyWith(busyMemberIds: {...state.busyMemberIds, member.id}));
+    final result = await _updateUserRole(userId: member.id, role: role);
     if (isClosed) return result;
     emit(
       state.copyWith(

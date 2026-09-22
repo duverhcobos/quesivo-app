@@ -181,6 +181,25 @@
   "reactivateMemberMessage": "They will regain access to this organization.",
   "memberSuspendedFeedback": "Membership suspended",
   "memberReactivatedFeedback": "Membership reactivated",
+  "changeRoleAction": "Change role",
+  "changeRoleTitle": "Change {name}'s role",
+  "@changeRoleTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "changeRoleMessage": "The new role applies on next sign-in — the member's session in this organization will be closed.",
+  "changeRoleConfirm": "Change",
+  "memberRoleChangedFeedback": "{name}'s role updated — applies on next sign-in",
+  "@memberRoleChangedFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "resetPasswordSheetHint": "New temporary password for {name} — they will sign in with it.",
   "@resetPasswordSheetHint": {
     "placeholders": {
@@ -212,6 +231,8 @@
   "userIsOwnerError": "That email owns another organization — it cannot be linked",
   "selfSuspensionError": "You can't suspend your own membership",
   "ownerSuspensionError": "The organization owner can't be suspended",
+  "selfRoleChangeError": "You can't change your own role",
+  "ownerRoleChangeError": "Can't change the organization owner's role",
   "lastAdminError": "They're the last active admin — appoint another admin first",
   "ownerPasswordResetError": "The owner's password can't be reset",
   "memberNotFoundError": "This user no longer belongs to the organization",

@@ -45,4 +45,12 @@ abstract class IRemoteUsersDataSource {
     required String userId,
     required String password,
   });
+
+  /// `PATCH /auth/users/:id/role` — cambio de rol de la membresía (doc
+  /// 012). Devuelve el `OrgMemberModel` fresco. El backend revoca las
+  /// sesiones del target en la org (el JWT lleva `roles` adentro).
+  Future<OrgMemberModel> updateUserRole({
+    required String userId,
+    required UserRole role,
+  });
 }

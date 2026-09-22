@@ -59,4 +59,14 @@ abstract class IUsersRepository {
     required String userId,
     required String password,
   });
+
+  /// `PATCH /auth/users/:id/role` — cambia el rol de la membresía (doc
+  /// 012, propuesta backend 063). El backend revoca las sesiones del
+  /// target en la org. Errores: `SelfRoleChangeFailure`/
+  /// `OwnerRoleChangeFailure`/`LastAdminFailure` (400),
+  /// `MemberNotFoundFailure` (404), 403/429/red como arriba.
+  Future<Either<UsersFailure, OrgMember>> updateUserRole({
+    required String userId,
+    required UserRole role,
+  });
 }

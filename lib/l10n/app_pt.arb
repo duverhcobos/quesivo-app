@@ -181,6 +181,25 @@
   "reactivateMemberMessage": "Recuperará o acesso a esta organização.",
   "memberSuspendedFeedback": "Associação suspensa",
   "memberReactivatedFeedback": "Associação reativada",
+  "changeRoleAction": "Alterar função",
+  "changeRoleTitle": "Alterar função de {name}",
+  "@changeRoleTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "changeRoleMessage": "A nova função é aplicada no próximo acesso — a sessão do membro nesta organização será encerrada.",
+  "changeRoleConfirm": "Alterar",
+  "memberRoleChangedFeedback": "Função de {name} atualizada — aplica-se no próximo acesso",
+  "@memberRoleChangedFeedback": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "resetPasswordSheetHint": "Nova senha temporária para {name} — entrará com ela.",
   "@resetPasswordSheetHint": {
     "placeholders": {
@@ -212,6 +231,8 @@
   "userIsOwnerError": "Esse e-mail é dono de outra queijaria — não pode ser vinculado",
   "selfSuspensionError": "Você não pode suspender a própria associação",
   "ownerSuspensionError": "O proprietário da organização não pode ser suspenso",
+  "selfRoleChangeError": "Você não pode alterar a própria função",
+  "ownerRoleChangeError": "Não é possível alterar a função do proprietário da organização",
   "lastAdminError": "É o último administrador ativo — nomeie outro antes",
   "ownerPasswordResetError": "A senha do proprietário não pode ser redefinida",
   "memberNotFoundError": "O usuário não pertence mais a esta organização",

@@ -169,6 +169,33 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
+  /// `PATCH /auth/users/:id/role` — doc 012. Ídem `updateUserStatus`.
+  @override
+  Future<Either<UsersFailure, OrgMember>> updateUserRole({
+    required String userId,
+    required UserRole role,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(UsersNetworkFailure());
+    }
+    try {
+      final member = await remoteDataSource.updateUserRole(
+        userId: userId,
+        role: role,
+      );
+      return Right(member);
+    } on RestApiException catch (e, stackTrace) {
+      return Left(_mapError(e, stackTrace));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado cambiando rol de membresía',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(UsersServerFailure());
+    }
+  }
+
   /// Un 401 que llega hasta acá ya pasó por el RefreshTokenInterceptor:
   /// si el refresh también falló, la sesión se está cerrando vía
   /// SessionExpiredNotifier — se reporta genérico, no hay acción de UI.
@@ -189,6 +216,8 @@ class UsersRepositoryImpl implements IUsersRepository {
           'LAST_ADMIN' => const LastAdminFailure(),
           'OWNER_PASSWORD_RESET' => const OwnerPasswordResetFailure(),
           'INVALID_PASSWORD' => const InvalidMemberDataFailure(),
+          'SELF_ROLE_CHANGE' => const SelfRoleChangeFailure(),
+          'OWNER_ROLE_CHANGE' => const OwnerRoleChangeFailure(),
           _ => null,
         };
         if (mapped != null) return mapped;

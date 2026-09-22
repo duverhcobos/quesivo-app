@@ -8,6 +8,7 @@ import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
 import '../../../shell/presentation/widgets/shell_insets.dart';
 import '../../domain/entities/org_member.dart';
+import '../../domain/entities/user_role.dart';
 import '../../domain/failures/users_failure.dart';
 import '../cubit/users_list_cubit.dart';
 import '../cubit/users_list_state.dart';
@@ -34,6 +35,7 @@ class UsersListBody extends StatelessWidget {
     required this.sheetTopInset,
     required this.onStatusToggle,
     required this.onPasswordReset,
+    required this.onRoleChange,
   });
 
   final UsersListState state;
@@ -49,6 +51,10 @@ class UsersListBody extends StatelessWidget {
   /// El `ResetPasswordSheet` completó el PATCH y devolvió el miembro
   /// del 200 — la screen solo muestra el toast de éxito.
   final ValueChanged<OrgMember> onPasswordReset;
+
+  /// El admin confirmó el `ChangeRoleDialog` — la screen dispara
+  /// `PATCH /auth/users/:id/role` (§54).
+  final void Function(OrgMember member, UserRole role) onRoleChange;
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +141,7 @@ class UsersListBody extends StatelessWidget {
             isBusy: state.busyMemberIds.contains(member.id),
             onStatusToggle: (s) => onStatusToggle(member, s),
             onPasswordReset: onPasswordReset,
+            onRoleChange: (r) => onRoleChange(member, r),
             sheetTopInset: sheetTopInset,
           );
         },

@@ -3,14 +3,18 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/org_member.dart';
+import '../../domain/entities/user_role.dart';
+import 'change_role_dialog.dart';
 import 'member_status_dialog.dart';
 import 'reset_password_sheet.dart';
 
 /// Menú ⋮ de acciones por fila (§45): "Suspender/Reactivar" abre
-/// `MemberStatusDialog` y "Restablecer contraseña" abre
-/// `ResetPasswordSheet`. Desde §52 las acciones ya son reales: el
-/// dialog confirma y la screen dispara el PATCH de status; el sheet de
-/// reset lo hace dentro con su cubit y devuelve el miembro del 200.
+/// `MemberStatusDialog`, §54 agrega "Cambiar rol" (ítem neutro entre
+/// ambas) que abre `ChangeRoleDialog` — devuelve el `UserRole` nuevo o
+/// null — y "Restablecer contraseña" abre `ResetPasswordSheet`. Desde
+/// §52/§54 las acciones ya son reales: los dialogs confirman y la
+/// screen dispara el PATCH; el sheet de reset lo hace dentro con su
+/// cubit y devuelve el miembro del 200.
 /// "Suspender usuario" se tiñe `quesivoError` (acción destructiva —
 /// mismo criterio que logout en el drawer).
 class MemberActionsMenu extends StatelessWidget {
@@ -19,6 +23,7 @@ class MemberActionsMenu extends StatelessWidget {
     required this.member,
     required this.onStatusToggle,
     required this.onPasswordReset,
+    required this.onRoleChange,
     this.sheetTopInset = 0,
   });
 
@@ -26,6 +31,10 @@ class MemberActionsMenu extends StatelessWidget {
 
   /// Recibe el nuevo `MemberStatus` si el admin confirmó el diálogo.
   final ValueChanged<MemberStatus> onStatusToggle;
+
+  /// Recibe el `UserRole` nuevo si el admin confirmó `ChangeRoleDialog`
+  /// (§54) — la screen dispara el PATCH real.
+  final ValueChanged<UserRole> onRoleChange;
 
   /// Recibe el `OrgMember` del 200 cuando el sheet completó el reset.
   final ValueChanged<OrgMember> onPasswordReset;
@@ -44,6 +53,12 @@ class MemberActionsMenu extends StatelessWidget {
               ? MemberStatus.suspended
               : MemberStatus.active,
         );
+      case 'role':
+        // §54 — el diálogo devuelve el rol nuevo o null (canceló o no
+        // cambió); la screen dispara el PATCH real.
+        final role = await ChangeRoleDialog.show(context, member);
+        if (role == null || !context.mounted) return;
+        onRoleChange(role);
       case 'password':
         // §52 — el sheet hace el PATCH real con su propio cubit y
         // devuelve el miembro del 200 (o null al cancelar/fallar).
@@ -104,6 +119,29 @@ class MemberActionsMenu extends StatelessWidget {
                     color: suspended
                         ? AppColors.quesivoSuccess
                         : AppColors.quesivoError,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'role',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.manage_accounts_outlined,
+                size: 20,
+                color: AppColors.quesivoDarkText,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.changeRoleAction,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.quesivoDarkText,
                   ),
                 ),
               ),

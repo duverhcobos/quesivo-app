@@ -31,6 +31,7 @@ void main() {
           member: member,
           onStatusToggle: (_) {},
           onPasswordReset: (_) {},
+          onRoleChange: (_) {},
         ),
       ),
     );
@@ -54,6 +55,7 @@ void main() {
           ),
           onStatusToggle: (_) {},
           onPasswordReset: (_) {},
+          onRoleChange: (_) {},
         ),
       ),
     );
@@ -68,6 +70,7 @@ void main() {
           member: member,
           onStatusToggle: (_) {},
           onPasswordReset: (_) {},
+          onRoleChange: (_) {},
         ),
       ),
     );
@@ -84,6 +87,7 @@ void main() {
             isSelf: true,
             onStatusToggle: (_) {},
             onPasswordReset: (_) {},
+            onRoleChange: (_) {},
           ),
         ),
       );
@@ -101,6 +105,7 @@ void main() {
             isBusy: true,
             onStatusToggle: (_) {},
             onPasswordReset: (_) {},
+            onRoleChange: (_) {},
           ),
         ),
       );
@@ -125,6 +130,7 @@ void main() {
           ),
           onStatusToggle: (_) {},
           onPasswordReset: (_) {},
+          onRoleChange: (_) {},
         ),
       ),
     );

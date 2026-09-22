@@ -173,6 +173,15 @@ void main() {
       final status = invocation.positionalArguments[1] as MemberStatus;
       return Right(member.copyWith(status: status));
     });
+    // §54 — mismo default que setMemberStatus: éxito con el rol pedido
+    // mergeado sobre el member (comportamiento del cubit real con el 200).
+    when(() => mockListCubit.setMemberRole(any(), any())).thenAnswer((
+      invocation,
+    ) async {
+      final member = invocation.positionalArguments[0] as OrgMember;
+      final role = invocation.positionalArguments[1] as UserRole;
+      return Right(member.copyWith(role: role));
+    });
     locator.registerFactory<UsersListCubit>(() => mockListCubit);
 
     // ── AuthCubit — solo lo lee `UsersListBody` para `isSelf` (§52) ──
@@ -920,6 +929,129 @@ void main() {
       expect(
         find.descendant(of: card, matching: find.text('Suspendido')),
         findsNothing,
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    '"Cambiar rol" abre el diálogo y dispara setMemberRole con el rol elegido (§54)',
+    (tester) async {
+      useTallSurface(tester);
+      currentListState = loadedState();
+      await tester.pumpWidget(buildApp());
+
+      // Segunda card (User 1, activa) — su ⋮ ofrece "Cambiar rol".
+      final card = find.byType(OrgMemberCard).at(1);
+      final menuButton = find.descendant(
+        of: card,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      await tester.ensureVisible(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+
+      // Ítem neutro entre Suspender y Restablecer — abre ChangeRoleDialog.
+      await tester.tap(find.text('Cambiar rol'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cambiar rol de User 1'), findsOneWidget);
+      // El rol actual (Operador) viene preseleccionado → el CTA arranca
+      // deshabilitado (mismo rol = no-op, ni PATCH ni toast).
+      expect(
+        tester
+            .widget<ElevatedButton>(
+              find.widgetWithText(ElevatedButton, 'Cambiar'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      // Se elige Recolector → CTA habilitado → confirmar dispara el PATCH.
+      // (scoped al diálogo — los RoleFilterChips del header repiten el
+      // mismo label).
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Recolector'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Cambiar'));
+      await tester.pumpAndSettle();
+
+      final captured = verify(
+        () => mockListCubit.setMemberRole(captureAny(), captureAny()),
+      ).captured;
+      expect((captured[0] as OrgMember).id, 'u1');
+      expect(captured[1], UserRole.collector);
+
+      // Éxito → toast con el feedback de reingreso (doc 012: el backend
+      // revocó la sesión del miembro — el rol nuevo aplica al entrar).
+      expect(
+        find.text('Rol de User 1 actualizado — reingresa con el rol nuevo'),
+        findsOneWidget,
+      );
+
+      // El cubit real mergea el ítem fresco — se simula la emisión y la
+      // card muestra el chip del rol nuevo.
+      final members = tMembers(15);
+      emitListState(
+        loadedState(
+          members: [
+            members[0],
+            members[1].copyWith(role: UserRole.collector),
+            ...members.sublist(2),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(
+        find.descendant(of: card, matching: find.text('Recolector')),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'cambio de rol con failure del backend muestra el toast mapeado',
+    (tester) async {
+      useTallSurface(tester);
+      currentListState = loadedState();
+      when(
+        () => mockListCubit.setMemberRole(any(), any()),
+      ).thenAnswer((_) async => const Left(OwnerRoleChangeFailure()));
+      await tester.pumpWidget(buildApp());
+
+      final card = find.byType(OrgMemberCard).at(1);
+      final menuButton = find.descendant(
+        of: card,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      await tester.ensureVisible(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cambiar rol'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Administrador'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Cambiar'));
+      await tester.pumpAndSettle();
+
+      // El toast rojo traduce el error de dominio — no el genérico.
+      expect(
+        find.text('No se puede cambiar el rol del dueño de la organización'),
+        findsOneWidget,
       );
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();

@@ -970,6 +970,36 @@ abstract class AppLocalizations {
   /// **'Membresía reactivada'**
   String get memberReactivatedFeedback;
 
+  /// No description provided for @changeRoleAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar rol'**
+  String get changeRoleAction;
+
+  /// No description provided for @changeRoleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar rol de {name}'**
+  String changeRoleTitle(String name);
+
+  /// No description provided for @changeRoleMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'El nuevo rol aplica cuando vuelva a ingresar — su sesión en esta quesera se cerrará.'**
+  String get changeRoleMessage;
+
+  /// No description provided for @changeRoleConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar'**
+  String get changeRoleConfirm;
+
+  /// No description provided for @memberRoleChangedFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Rol de {name} actualizado — reingresa con el rol nuevo'**
+  String memberRoleChangedFeedback(String name);
+
   /// No description provided for @resetPasswordSheetHint.
   ///
   /// In es, this message translates to:
@@ -1029,6 +1059,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se puede suspender al dueño de la organización'**
   String get ownerSuspensionError;
+
+  /// No description provided for @selfRoleChangeError.
+  ///
+  /// In es, this message translates to:
+  /// **'No podés cambiar tu propio rol'**
+  String get selfRoleChangeError;
+
+  /// No description provided for @ownerRoleChangeError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede cambiar el rol del dueño de la organización'**
+  String get ownerRoleChangeError;
 
   /// No description provided for @lastAdminError.
   ///

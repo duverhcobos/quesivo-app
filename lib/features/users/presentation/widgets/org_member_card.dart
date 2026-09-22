@@ -5,13 +5,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_loader.dart';
 import '../../../../core/widgets/user_initials_avatar.dart';
 import '../../domain/entities/org_member.dart';
+import '../../domain/entities/user_role.dart';
 import 'member_actions_menu.dart';
 import 'member_role_chip.dart';
 import 'member_status_chip.dart';
 
 /// Card de un miembro de la organización en el listado de Usuarios:
 /// avatar de iniciales + nombre + email + chips de rol/estado + menú de
-/// acciones ⋮ que abre `MemberStatusDialog` / `ResetPasswordSheet` (§45).
+/// acciones ⋮ que abre `MemberStatusDialog` / `ChangeRoleDialog` (§54) /
+/// `ResetPasswordSheet` (§45).
 ///
 /// §49: cuando `member.isOwner` el Wrap de chips gana el badge "Dueño"
 /// (pill con borde navy — la marca distintiva del owner, `isOwner` del
@@ -27,6 +29,7 @@ class OrgMemberCard extends StatelessWidget {
     required this.member,
     required this.onStatusToggle,
     required this.onPasswordReset,
+    required this.onRoleChange,
     this.sheetTopInset = 0,
     this.isSelf = false,
     this.isBusy = false,
@@ -36,12 +39,16 @@ class OrgMemberCard extends StatelessWidget {
   final ValueChanged<MemberStatus> onStatusToggle;
   final ValueChanged<OrgMember> onPasswordReset;
 
+  /// Recibe el `UserRole` nuevo del `ChangeRoleDialog` (§54) — la
+  /// screen dispara el PATCH real.
+  final ValueChanged<UserRole> onRoleChange;
+
   /// Tope del `ResetPasswordSheet` — lo mide la pantalla sobre el hero.
   final double sheetTopInset;
 
   /// `true` cuando la card es del propio admin logueado (§52) — sin ⋮:
-  /// suspenderse es SELF_SUSPENSION y resetearse revocaría la sesión
-  /// propia.
+  /// suspenderse es SELF_SUSPENSION, cambiarse el rol es
+  /// SELF_ROLE_CHANGE (§54) y resetearse revocaría la sesión propia.
   final bool isSelf;
 
   /// `true` mientras un PATCH de la fila está en vuelo (§52) — el ⋮
@@ -124,6 +131,7 @@ class OrgMemberCard extends StatelessWidget {
               member: member,
               onStatusToggle: onStatusToggle,
               onPasswordReset: onPasswordReset,
+              onRoleChange: onRoleChange,
               sheetTopInset: sheetTopInset,
             ),
         ],

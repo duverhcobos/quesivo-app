@@ -213,13 +213,42 @@ class _UsersViewState extends State<_UsersView> {
     }
   }
 
-  /// Traducción de los failures del PATCH de status (doc 009) — los
-  /// primeros tres son defensivos (la UI ya no ofrece el ⋮ al dueño ni
-  /// a la card propia, y LAST_ADMIN solo se da con datos stale).
+  /// §54 — cambio de rol REAL vía `PATCH /auth/users/:id/role`: el cubit
+  /// pone la card en busy y devuelve el Either — éxito mergea el miembro
+  /// fresco; error → toast con el mensaje de la regla (doc 012). El
+  /// miembro queda deslogueado de la org (el backend revoca sus
+  /// sesiones) — re-ingresa con el rol nuevo.
+  Future<void> _setMemberRole(OrgMember member, UserRole role) async {
+    final result = await context.read<UsersListCubit>().setMemberRole(
+      member,
+      role,
+    );
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    switch (result) {
+      case Left(value: final failure):
+        QuesivoToast.error(
+          context,
+          message: _memberActionErrorText(l10n, failure),
+        );
+      case Right():
+        QuesivoToast.success(
+          context,
+          message: l10n.memberRoleChangedFeedback(member.name),
+        );
+    }
+  }
+
+  /// Traducción de los failures de los PATCH de fila (status doc 009,
+  /// role doc 012) — los de regla propia/dueño son defensivos (la UI ya
+  /// no ofrece el ⋮ al dueño ni a la card propia, y LAST_ADMIN solo se
+  /// da con datos stale).
   String _memberActionErrorText(AppLocalizations l10n, UsersFailure f) =>
       switch (f) {
         SelfSuspensionFailure() => l10n.selfSuspensionError,
         OwnerSuspensionFailure() => l10n.ownerSuspensionError,
+        SelfRoleChangeFailure() => l10n.selfRoleChangeError,
+        OwnerRoleChangeFailure() => l10n.ownerRoleChangeError,
         LastAdminFailure() => l10n.lastAdminError,
         MemberNotFoundFailure() => l10n.memberNotFoundError,
         UsersForbiddenFailure() => l10n.usersForbiddenError,
@@ -345,6 +374,7 @@ class _UsersViewState extends State<_UsersView> {
                     sheetTopInset: _sheetTopInset,
                     onStatusToggle: _setMemberStatus,
                     onPasswordReset: _resetMemberPassword,
+                    onRoleChange: _setMemberRole,
                   ),
                 ),
               ),
