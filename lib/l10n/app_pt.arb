@@ -243,5 +243,19 @@
   "ownerBadge": "Dono",
   "usersLoadError": "Não foi possível carregar a lista — verifique sua conexão",
   "retryButton": "Tentar novamente",
-  "loadingLabel": "Carregando"
+  "loadingLabel": "Carregando",
+  "personalGreeting": "Olá, {name}",
+  "@personalGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greeting": "Olá",
+  "chooseQueseraHint": "Escolha sua queijaria para entrar",
+  "queseraEnterCta": "Entrar",
+  "queseraActiveBadge": "Atual",
+  "noQueserasAvailable": "Nenhuma queijaria disponível.",
+  "queseraCardTagline": "Gerencie sua produção, inventário e mais."
 }

@@ -1,4 +1,5 @@
 // lib/features/auth/data/models/user_model.dart
+import '../../domain/entities/organization_summary.dart';
 import '../../domain/entities/user.dart';
 
 /// Modelo de Usuario que extiende la Entidad (Entity).
@@ -20,6 +21,7 @@ class UserModel extends User {
     super.organizationName,
     super.roles,
     super.status,
+    super.organizations,
   });
 
   /// Factory Data constructor — shape real de AuthResponseDto.
@@ -36,6 +38,17 @@ class UserModel extends User {
           (json['roles'] as List?)?.map((e) => e as String).toList() ??
           const [],
       status: json['status'],
+      organizations:
+          (json['organizations'] as List?)
+              ?.map(
+                (e) => OrganizationSummary(
+                  id: e['id']?.toString() ?? '',
+                  name: e['name'] ?? '',
+                  role: e['role'] ?? '',
+                ),
+              )
+              .toList() ??
+          const [],
     );
   }
 
@@ -50,6 +63,9 @@ class UserModel extends User {
       'organizationName': organizationName,
       'roles': roles,
       'status': status,
+      'organizations': organizations
+          .map((o) => {'id': o.id, 'name': o.name, 'role': o.role})
+          .toList(),
     };
   }
 }

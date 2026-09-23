@@ -87,11 +87,7 @@ void main() {
       ),
       isA<LinkUserState>()
           .having((s) => s.status, 'status', FormzSubmissionStatus.failure)
-          .having(
-            (s) => s.failure,
-            'failure',
-            const UserNotFoundFailure(),
-          ),
+          .having((s) => s.failure, 'failure', const UserNotFoundFailure()),
     ],
   );
 

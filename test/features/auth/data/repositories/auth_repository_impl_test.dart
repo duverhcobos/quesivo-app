@@ -7,8 +7,10 @@ import 'package:quesivo/core/network/interfaces/i_network_info.dart';
 import 'package:quesivo/features/auth/data/datasources/interfaces/i_local_auth_datasource.dart';
 import 'package:quesivo/features/auth/data/datasources/interfaces/i_remote_auth_datasource.dart';
 import 'package:quesivo/features/auth/data/exceptions/auth_exceptions.dart';
+import 'package:quesivo/features/auth/data/models/organization_session_model.dart';
 import 'package:quesivo/features/auth/data/models/user_model.dart';
 import 'package:quesivo/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:quesivo/features/auth/domain/entities/organization_summary.dart';
 import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
 
 class MockRemoteAuthDataSource extends Mock implements IRemoteAuthDataSource {}
@@ -682,5 +684,149 @@ void main() {
         verifyNever(() => mockLocalDataSource.saveUserSession(any()));
       },
     );
+  });
+
+  group('selectOrganization (§55 — doc 006)', () {
+    const tOrgId = 'org-1';
+    const tSession = OrganizationSessionModel(
+      accessToken: 'access-org',
+      refreshToken: 'refresh-org',
+      organizationId: tOrgId,
+      organizationName: 'Quesera Norte',
+    );
+
+    test('retorna NetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Left(NetworkFailure()));
+      verifyNever(() => mockRemoteDataSource.selectOrganization(any()));
+    });
+
+    test('en éxito persiste el par de tokens org-scoped vía saveTokens '
+        'y devuelve la sesión emitida (§63) — sin perfil cacheado no '
+        'guarda perfil', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.selectOrganization(tOrgId),
+      ).thenAnswer((_) async => tSession);
+      when(
+        () => mockLocalDataSource.saveTokens(
+          token: any(named: 'token'),
+          refreshToken: any(named: 'refreshToken'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => null);
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Right(tSession));
+      verify(
+        () => mockLocalDataSource.saveTokens(
+          token: 'access-org',
+          refreshToken: 'refresh-org',
+        ),
+      ).called(1);
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
+    });
+
+    test('en éxito con perfil cacheado lo re-guarda con la org de la '
+        'sesión nueva (§63 auditoría: un restart offline no debe '
+        'degradar al orgId viejo)', () async {
+      mockConnected(true);
+      const tCached = UserModel(
+        id: '1',
+        email: tEmail,
+        name: 'John Doe',
+        token: 'token-personal',
+        refreshToken: 'refresh-personal',
+        roles: ['PERSONAL'],
+        organizations: [
+          OrganizationSummary(
+            id: 'org-1',
+            name: 'Quesera Norte',
+            role: 'ADMIN',
+          ),
+          OrganizationSummary(
+            id: 'org-2',
+            name: 'Quesera Sur',
+            role: 'OPERATOR',
+          ),
+        ],
+      );
+      when(
+        () => mockRemoteDataSource.selectOrganization(tOrgId),
+      ).thenAnswer((_) async => tSession);
+      when(
+        () => mockLocalDataSource.saveTokens(
+          token: any(named: 'token'),
+          refreshToken: any(named: 'refreshToken'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => tCached);
+      when(
+        () => mockLocalDataSource.saveUserSession(any()),
+      ).thenAnswer((_) async {});
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Right(tSession));
+      final saved =
+          verify(
+                () => mockLocalDataSource.saveUserSession(captureAny()),
+              ).captured.single
+              as UserModel;
+      expect(saved.token, 'access-org');
+      expect(saved.refreshToken, 'refresh-org');
+      expect(saved.organizationId, tOrgId);
+      expect(saved.organizationName, 'Quesera Norte');
+      expect(saved.roles, ['ADMIN']);
+      expect(saved.organizations, tCached.organizations);
+    });
+
+    test('retorna InvalidCredentialsFailure ante UnauthorizedException (401: '
+        'membresía inexistente/suspendida)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.selectOrganization(tOrgId),
+      ).thenThrow(UnauthorizedException());
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Left(InvalidCredentialsFailure()));
+      verifyNever(
+        () => mockLocalDataSource.saveTokens(
+          token: any(named: 'token'),
+          refreshToken: any(named: 'refreshToken'),
+        ),
+      );
+    });
+
+    test('retorna ServerFailure con el mensaje del RestApiException', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.selectOrganization(tOrgId),
+      ).thenThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Left(ServerFailure('Boom')));
+    });
+
+    test('retorna ServerFailure genérico ante un error inesperado', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.selectOrganization(tOrgId),
+      ).thenThrow(Exception('cualquier cosa'));
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Left(ServerFailure('Error inesperado de red')));
+    });
   });
 }

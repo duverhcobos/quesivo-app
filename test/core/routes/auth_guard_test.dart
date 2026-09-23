@@ -17,7 +17,19 @@ void main() {
   late MockOnboardingStatusStore mockOnboardingStatus;
   late AuthGuard authGuard;
 
-  const tUser = User(id: '1', email: 'ana@test.com', name: 'Ana');
+  // Usuario org-scoped (JWT con organizationId) — §57: que el token
+  // traiga org ya NO alcanza para entrar a los módulos; hace falta
+  // `enteredOrg: true` en el AuthSuccess (tap en una card del selector).
+  const tUser = User(
+    id: '1',
+    email: 'ana@test.com',
+    name: 'Ana',
+    organizationId: 'org-1',
+  );
+
+  // Usuario con token PERSONAL: autenticado pero sin org — la única
+  // ruta alcanzable es /home (el selector de quesera vive ahí).
+  const tPersonalUser = User(id: '1', email: 'ana@test.com', name: 'Ana');
 
   setUp(() {
     mockLogger = MockLoggerService();
@@ -194,5 +206,77 @@ void main() {
         expect(result, AuthGuard.homeRoute);
       },
     );
+
+    group('sin entrar a quesera (§57) — enteredOrg=false', () {
+      test('AuthSuccess con org en el JWT pero sin entrar intentando '
+          'entrar a un módulo redirige a /home — el selector vive ahí', () {
+        final result = authGuard.evaluate(
+          AuthGuard.receptionsRoute,
+          const AuthSuccess(tUser),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+
+      test('AuthSuccess sin entrar en una ruta pública (/login) redirige '
+          'a /home — la regla de entrada corre antes que la de públicas', () {
+        final result = authGuard.evaluate(
+          AuthGuard.loginRoute,
+          const AuthSuccess(tUser),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+
+      test('AuthSuccess sin entrar en /splash redirige a /home', () {
+        final result = authGuard.evaluate(
+          AuthGuard.splashRoute,
+          const AuthSuccess(tUser),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+
+      test('AuthSuccess sin entrar ya en /home no redirige', () {
+        final result = authGuard.evaluate(
+          AuthGuard.homeRoute,
+          const AuthSuccess(tUser),
+        );
+
+        expect(result, isNull);
+      });
+
+      test('AuthSuccess con token personal (sin org) en un módulo '
+          'redirige a /home igual', () {
+        final result = authGuard.evaluate(
+          AuthGuard.receptionsRoute,
+          const AuthSuccess(tPersonalUser),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+    });
+
+    group('con quesera entrada (§57) — enteredOrg=true', () {
+      test('org en user + enteredOrg=true → los módulos quedan '
+          'permitidos (no redirige)', () {
+        final result = authGuard.evaluate(
+          AuthGuard.receptionsRoute,
+          const AuthSuccess(tUser, enteredOrg: true),
+        );
+
+        expect(result, isNull);
+      });
+
+      test('org en user + enteredOrg=true en ruta pública redirige a '
+          '/home — comportamiento normal de usuario logueado', () {
+        final result = authGuard.evaluate(
+          AuthGuard.loginRoute,
+          const AuthSuccess(tUser, enteredOrg: true),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+    });
   });
 }

@@ -27,13 +27,20 @@ class AuthLoading extends AuthState {
 }
 
 /// Estado de éxito. Pasa el User hacia la UI para navegación y guardado.
+///
+/// `enteredOrg` (§57) es estado de SESIÓN DE APP, no del JWT: nace en
+/// `false` en toda carga de sesión y solo se prende con
+/// `AuthCubit.enterOrganization()` tras el tap en una quesera. Así el
+/// selector arranca siempre limpio aunque el token guardado sea
+/// org-scoped — mismo flujo en login fresco y en sesión restaurada.
 class AuthSuccess extends AuthState {
   final User user;
+  final bool enteredOrg;
 
-  const AuthSuccess(this.user);
+  const AuthSuccess(this.user, {this.enteredOrg = false});
 
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [user, enteredOrg];
 }
 
 /// Estado de error. Pasa el mensaje literal para mostrar en un SnackBar.

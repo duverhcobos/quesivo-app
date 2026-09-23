@@ -107,10 +107,7 @@ void main() {
         isValid: true,
         status: FormzSubmissionStatus.inProgress,
       ),
-      const RegisterState(
-        isValid: true,
-        status: FormzSubmissionStatus.success,
-      ),
+      const RegisterState(isValid: true, status: FormzSubmissionStatus.success),
     ],
   );
 

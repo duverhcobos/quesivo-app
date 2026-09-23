@@ -55,18 +55,27 @@ class QuesivoDrawer extends StatelessWidget {
           : null,
     );
     final organizationName = context.select<AuthCubit, String?>(
-      (cubit) => cubit.state is AuthSuccess
+      (cubit) =>
+          cubit.state is AuthSuccess && (cubit.state as AuthSuccess).enteredOrg
           ? (cubit.state as AuthSuccess).user.organizationName
           : null,
+    );
+
+    // §57 — sin haber entrado a una quesera en esta sesión ningún
+    // módulo es navegable; §58 — las opciones generales (Inicio +
+    // logout + versión) quedan siempre visibles.
+    final hasOrgContext = context.select<AuthCubit, bool>(
+      (cubit) =>
+          cubit.state is AuthSuccess && (cubit.state as AuthSuccess).enteredOrg,
     );
 
     final trimmedName = userName?.trim() ?? '';
     final displayName = trimmedName.isNotEmpty ? trimmedName : l10n.orgName;
 
+    // §58 — null crudo a la identidad: sin quesera entrada la tarjeta
+    // muestra solo el nombre (sin org, rol, chevron ni tap).
     final trimmedOrgName = organizationName?.trim() ?? '';
-    final displayOrgName = trimmedOrgName.isNotEmpty
-        ? trimmedOrgName
-        : l10n.orgName;
+    final displayOrgName = trimmedOrgName.isNotEmpty ? trimmedOrgName : null;
 
     return Drawer(
       width: double.infinity,
@@ -102,6 +111,7 @@ class QuesivoDrawer extends StatelessWidget {
                 displayName: displayName,
                 displayOrgName: displayOrgName,
                 currentLocation: currentLocation,
+                personalMode: !hasOrgContext,
               );
             },
           );
@@ -113,8 +123,9 @@ class QuesivoDrawer extends StatelessWidget {
   Widget _buildContent(
     BuildContext context, {
     required String displayName,
-    required String displayOrgName,
+    required String? displayOrgName,
     required String currentLocation,
+    required bool personalMode,
   }) {
     return Stack(
       children: [
@@ -176,8 +187,13 @@ class QuesivoDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               // Módulos por categoría + logout al final del scroll —
-              // la lista lleva su propio padding inferior.
-              DrawerMenuList(currentLocation: currentLocation),
+              // la lista lleva su propio padding inferior. Sin haber
+              // entrado a una quesera (§58) renderiza solo las opciones
+              // generales: Inicio + logout + versión.
+              DrawerMenuList(
+                currentLocation: currentLocation,
+                personalMode: personalMode,
+              ),
             ],
           ),
         ),

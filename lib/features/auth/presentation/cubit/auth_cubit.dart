@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/session/session_expired_notifier.dart';
+import '../../domain/entities/organization_session.dart';
 import '../../domain/use_cases/login_use_case.dart';
 import '../../domain/use_cases/login_with_google_use_case.dart';
 import '../../domain/use_cases/check_auth_status_use_case.dart';
@@ -57,6 +58,71 @@ class AuthCubit extends Cubit<AuthState> {
     // nativo es tan rápido (milisegundos) que hace parpadear la pantalla.
     await Future.delayed(const Duration(seconds: 2));
 
+    await _loadSession();
+  }
+
+  /// Recarga la sesión SIN el delay del splash — para los triggers
+  /// post-login/register y post-select-organization, donde el usuario
+  /// ya está adentro y 2s de espera sería fricción. Misma fuente:
+  /// `GET /auth/me` vía `CheckAuthStatusUseCase` (propuesta backend 066).
+  Future<void> refreshSession() async {
+    emit(const AuthLoading());
+    await _loadSession();
+  }
+
+  /// Marca que el usuario entró a una quesera en esta sesión de app
+  /// (§57). Lo llama `QueseraSelectionCubit` tras un select-organization
+  /// exitoso — o directo cuando el tap cayó en la org que el JWT ya
+  /// traía (sesión restaurada, entrada gratis).
+  void enterOrganization() {
+    final current = state;
+    if (current is AuthSuccess && !current.enteredOrg) {
+      emit(AuthSuccess(current.user, enteredOrg: true));
+    }
+  }
+
+  /// Reconstruye el User en el lugar tras un select-organization
+  /// exitoso (§63): los tokens org-scoped ya están persistidos y el
+  /// response trae orgId/orgName — sin `GET /auth/me` extra. El rol
+  /// sale de `organizations` (la membresía de ESA quesera; si no está
+  /// en la lista se conservan los roles actuales). `id`, `email`,
+  /// `name`, `status` y `organizations` quedan sin cambio.
+  void enterOrganizationWithSession(OrganizationSession session) {
+    final current = state;
+    if (current is! AuthSuccess) return;
+
+    final membership = current.user.organizations.where(
+      (o) => o.id == session.organizationId,
+    );
+
+    emit(
+      AuthSuccess(
+        current.user.copyWith(
+          token: session.accessToken,
+          refreshToken: session.refreshToken,
+          organizationId: session.organizationId,
+          organizationName: session.organizationName,
+          roles: membership.isEmpty
+              ? current.user.roles
+              : [membership.first.role],
+        ),
+        enteredOrg: true,
+      ),
+    );
+  }
+
+  /// Sale de la quesera activa — vuelve al selector limpio (§57: la
+  /// selección se deja limpia al salir). El token org-scoped sigue
+  /// guardado y sirviendo; solo baja la flag de UI. Lo llama el back
+  /// del shell parado en Inicio.
+  void exitOrganization() {
+    final current = state;
+    if (current is AuthSuccess && current.enteredOrg) {
+      emit(AuthSuccess(current.user));
+    }
+  }
+
+  Future<void> _loadSession() async {
     final result = await _checkAuthStatusUseCase();
     result.fold(
       (failure) => emit(

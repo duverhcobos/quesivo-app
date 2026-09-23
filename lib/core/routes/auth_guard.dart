@@ -106,6 +106,23 @@ class AuthGuard {
 
     // Si la sesión es válida (AuthSuccess)
     if (authState is AuthSuccess) {
+      // §57 — contexto de quesera = flag de sesión, no el claim del
+      // JWT: con token restaurado sin entrar, solo /home es alcanzable.
+      final hasOrgContext = authState.enteredOrg;
+
+      // Token personal (sin org): el usuario puede existir solo en el
+      // Inicio — el carousel de queseras ES la puerta de entrada a los
+      // módulos (§56); cualquier otra ruta redirige acá.
+      if (!hasOrgContext) {
+        if (location != homeRoute) {
+          logger.info(
+            'AuthGuard -> Acción: $homeRoute (token sin org, selector en home)',
+          );
+          return homeRoute;
+        }
+        return null;
+      }
+
       // Si está logueado, no tiene por qué estar merodeando en Login o Recuprar Contraseña
       if (isGoingToPublicRoute || isGoingToSplash) {
         logger.info(

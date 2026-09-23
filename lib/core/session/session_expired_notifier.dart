@@ -12,8 +12,7 @@ import 'dart:async';
 /// Broadcast porque puede haber más de un listener a futuro (analytics,
 /// logging). No expone datos: el evento es solo "sesión muerta".
 class SessionExpiredNotifier {
-  final StreamController<void> _controller =
-      StreamController<void>.broadcast();
+  final StreamController<void> _controller = StreamController<void>.broadcast();
 
   Stream<void> get stream => _controller.stream;
 

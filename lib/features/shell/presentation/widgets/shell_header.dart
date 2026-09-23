@@ -14,8 +14,9 @@ import 'drawer/drawer_brand_decoration.dart';
 /// El header deja de mostrar el título del tab — ese contexto baja al
 /// cuerpo de cada pantalla vía `TabPageTitle` y lo refuerza el chip del
 /// nav. Acá va la identidad: avatar circular amarillo con las iniciales
-/// del usuario, el nombre arriba y la organización debajo, más la
-/// hamburguesa dentro de un círculo de borde blanco 20% que abre el
+/// del usuario y el nombre (§58 — solo el nombre: la quesera activa la
+/// comunica la hero card del Inicio, no el chrome), más la hamburguesa
+/// dentro de un círculo de borde blanco 20% que abre el
 /// `QuesivoDrawer` (endDrawer del Scaffold) a la derecha. Consume el
 /// inset superior con `SafeArea`, lleva la firma de marca — la porción
 /// de queso `DrawerBrandDecoration` asomando recortada por la esquina
@@ -38,28 +39,16 @@ class ShellHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final size = MediaQuery.sizeOf(context);
 
-    // Solo nombre + org interesan: `select` evita reconstruir el header por
+    // Solo el nombre interesa: `select` evita reconstruir el header por
     // cualquier otro cambio del AuthState.
     final userName = context.select<AuthCubit, String?>(
       (cubit) => cubit.state is AuthSuccess
           ? (cubit.state as AuthSuccess).user.name
           : null,
     );
-    final organizationName = context.select<AuthCubit, String?>(
-      (cubit) => cubit.state is AuthSuccess
-          ? (cubit.state as AuthSuccess).user.organizationName
-          : null,
-    );
 
     final trimmedName = userName?.trim() ?? '';
     final displayName = trimmedName.isNotEmpty ? trimmedName : l10n.orgName;
-
-    // La organización real llega en el JWT/perfil (propuesta 36) — el
-    // placeholder localizado solo cubre respuestas legacy sin org.
-    final trimmedOrgName = organizationName?.trim() ?? '';
-    final displayOrgName = trimmedOrgName.isNotEmpty
-        ? trimmedOrgName
-        : l10n.orgName;
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
@@ -98,43 +87,20 @@ class ShellHeader extends StatelessWidget {
                         withRing: true,
                       ),
                       const SizedBox(width: 12),
+                      // §58 — solo el nombre: la segunda línea de
+                      // quesera/hint se eliminó (la quesera activa la
+                      // comunica la hero card del Inicio). Sin Column:
+                      // el Row centra el Text igual que al avatar.
                       Expanded(
-                        child: Column(
-                          // mainAxisSize.min es necesario: al fijar la
-                          // altura del Row con el SizedBox(contentHeight)
-                          // de §39, el Column (mainAxisSize.max por
-                          // defecto) pasó a poder "llenar" esa altura
-                          // finita y alineaba el texto arriba (start) en
-                          // vez de centrado — el avatar sí se centraba
-                          // (no está en un Expanded/Column). Con `min` el
-                          // Column vuelve a medir solo su contenido y el
-                          // Row lo centra igual que al avatar.
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.quesivoWhite,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              displayOrgName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.quesivoWhite.withValues(
-                                  alpha: 0.6,
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.quesivoWhite,
+                          ),
                         ),
                       ),
                       // Trigger del QuesivoDrawer: `Scaffold.of` resuelve el
@@ -143,7 +109,7 @@ class ShellHeader extends StatelessWidget {
                       // círculo de borde blanco 20% es hermana del ✕ navy del
                       // drawer, en versión sobre navy.
                       Material(
-                        color: Colors.transparent,
+                        color: AppColors.transparent,
                         shape: CircleBorder(
                           side: BorderSide(
                             color: AppColors.quesivoWhite.withValues(

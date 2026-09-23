@@ -18,14 +18,26 @@ import 'drawer_staggered_item.dart';
 /// la ruta activa para marcar el ítem seleccionado (pastilla surface +
 /// ícono amarillo, propuesta §28).
 ///
+/// Las opciones generales (Inicio + logout + versión) quedan siempre
+/// visibles (§58); sin haber entrado a una quesera ningún módulo es
+/// navegable y las 4 categorías no se renderizan.
+///
 /// Es `StatefulWidget` por la entrada escalonada (propuesta §30): un
 /// `AnimationController` de 600ms dispara el fade + slide-up de cada
 /// bloque vía `DrawerStaggeredItem` al montarse la lista; con animaciones
 /// deshabilitadas el menú aparece completo de una.
 class DrawerMenuList extends StatefulWidget {
-  const DrawerMenuList({super.key, required this.currentLocation});
+  const DrawerMenuList({
+    super.key,
+    required this.currentLocation,
+    required this.personalMode,
+  });
 
   final String currentLocation;
+
+  /// §56/§58 — sin quesera entrada (selector): ningún módulo es
+  /// navegable, solo se renderizan las opciones generales.
+  final bool personalMode;
 
   @override
   State<DrawerMenuList> createState() => _DrawerMenuListState();
@@ -86,6 +98,9 @@ class _DrawerMenuListState extends State<DrawerMenuList>
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 48),
         children: [
+          // §58 — opciones generales siempre; los módulos de quesera se
+          // cargan al entrar (enteredOrg). Los stagger() de los bloques
+          // ocultos no corren, así los índices se comprimen solos.
           stagger(
             DrawerHomeTile(
               label: l10n.navHome,
@@ -100,191 +115,193 @@ class _DrawerMenuListState extends State<DrawerMenuList>
               },
             ),
           ),
-          const SizedBox(height: 16),
-          stagger(
-            DrawerCategoryCard(
-              title: l10n.menuSectionOperations,
-              children: [
-                DrawerMenuItemRow(
-                  icon: Icons.water_drop_outlined,
-                  label: l10n.moduleReception,
-                  route: AuthGuard.receptionsRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.receptionsRoute,
+          if (!widget.personalMode) ...[
+            const SizedBox(height: 16),
+            stagger(
+              DrawerCategoryCard(
+                title: l10n.menuSectionOperations,
+                children: [
+                  DrawerMenuItemRow(
+                    icon: Icons.water_drop_outlined,
+                    label: l10n.moduleReception,
+                    route: AuthGuard.receptionsRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.receptionsRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.precision_manufacturing_outlined,
-                  label: l10n.moduleProduction,
-                  route: AuthGuard.productionRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.productionRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.precision_manufacturing_outlined,
+                    label: l10n.moduleProduction,
+                    route: AuthGuard.productionRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.productionRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.inventory_2_outlined,
-                  label: l10n.moduleSupplies,
-                  route: AuthGuard.suppliesRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.suppliesRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.inventory_2_outlined,
+                    label: l10n.moduleSupplies,
+                    route: AuthGuard.suppliesRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.suppliesRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.shopping_bag_outlined,
-                  label: l10n.modulePurchases,
-                  route: AuthGuard.purchasesRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.purchasesRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.shopping_bag_outlined,
+                    label: l10n.modulePurchases,
+                    route: AuthGuard.purchasesRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.purchasesRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.assignment_outlined,
-                  label: l10n.moduleOrders,
-                  route: AuthGuard.ordersRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.ordersRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.assignment_outlined,
+                    label: l10n.moduleOrders,
+                    route: AuthGuard.ordersRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.ordersRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.point_of_sale_outlined,
-                  label: l10n.moduleSales,
-                  route: AuthGuard.salesRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.salesRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.point_of_sale_outlined,
+                    label: l10n.moduleSales,
+                    route: AuthGuard.salesRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.salesRoute,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          stagger(
-            DrawerCategoryCard(
-              title: l10n.menuSectionDirectory,
-              children: [
-                DrawerMenuItemRow(
-                  icon: Icons.groups_outlined,
-                  label: l10n.moduleProducers,
-                  route: AuthGuard.producersRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.producersRoute,
+            const SizedBox(height: 16),
+            stagger(
+              DrawerCategoryCard(
+                title: l10n.menuSectionDirectory,
+                children: [
+                  DrawerMenuItemRow(
+                    icon: Icons.groups_outlined,
+                    label: l10n.moduleProducers,
+                    route: AuthGuard.producersRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.producersRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.local_shipping_outlined,
-                  label: l10n.moduleCollectors,
-                  route: AuthGuard.collectorsRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.collectorsRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.local_shipping_outlined,
+                    label: l10n.moduleCollectors,
+                    route: AuthGuard.collectorsRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.collectorsRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.storefront_outlined,
-                  label: l10n.moduleSuppliers,
-                  route: AuthGuard.suppliersRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.suppliersRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.storefront_outlined,
+                    label: l10n.moduleSuppliers,
+                    route: AuthGuard.suppliersRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.suppliersRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.people_outline,
-                  label: l10n.moduleClients,
-                  route: AuthGuard.clientsRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.clientsRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.people_outline,
+                    label: l10n.moduleClients,
+                    route: AuthGuard.clientsRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.clientsRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.kitchen_outlined,
-                  label: l10n.moduleTools,
-                  route: AuthGuard.toolsRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.toolsRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.kitchen_outlined,
+                    label: l10n.moduleTools,
+                    route: AuthGuard.toolsRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.toolsRoute,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          stagger(
-            DrawerCategoryCard(
-              title: l10n.menuSectionFinances,
-              children: [
-                DrawerMenuItemRow(
-                  icon: Icons.receipt_long_outlined,
-                  label: l10n.moduleSettlements,
-                  route: AuthGuard.settlementsRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.settlementsRoute,
+            const SizedBox(height: 16),
+            stagger(
+              DrawerCategoryCard(
+                title: l10n.menuSectionFinances,
+                children: [
+                  DrawerMenuItemRow(
+                    icon: Icons.receipt_long_outlined,
+                    label: l10n.moduleSettlements,
+                    route: AuthGuard.settlementsRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.settlementsRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.request_quote_outlined,
-                  label: l10n.moduleAdvances,
-                  route: AuthGuard.advancesRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.advancesRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.request_quote_outlined,
+                    label: l10n.moduleAdvances,
+                    route: AuthGuard.advancesRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.advancesRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.payments_outlined,
-                  label: l10n.moduleProducerPayments,
-                  route: AuthGuard.producerPaymentsRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.producerPaymentsRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.payments_outlined,
+                    label: l10n.moduleProducerPayments,
+                    route: AuthGuard.producerPaymentsRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.producerPaymentsRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.money_off_outlined,
-                  label: l10n.moduleExpenses,
-                  route: AuthGuard.expensesRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.expensesRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.money_off_outlined,
+                    label: l10n.moduleExpenses,
+                    route: AuthGuard.expensesRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.expensesRoute,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          stagger(
-            DrawerCategoryCard(
-              title: l10n.menuSectionSettings,
-              children: [
-                DrawerMenuItemRow(
-                  icon: Icons.business_outlined,
-                  label: l10n.orgDataItem,
-                  route: AuthGuard.orgDataRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.orgDataRoute,
+            const SizedBox(height: 16),
+            stagger(
+              DrawerCategoryCard(
+                title: l10n.menuSectionSettings,
+                children: [
+                  DrawerMenuItemRow(
+                    icon: Icons.business_outlined,
+                    label: l10n.orgDataItem,
+                    route: AuthGuard.orgDataRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.orgDataRoute,
+                    ),
                   ),
-                ),
-                DrawerMenuItemRow(
-                  icon: Icons.group_outlined,
-                  label: l10n.orgUsersItem,
-                  route: AuthGuard.orgUsersRoute,
-                  selected: isDrawerModuleRouteActive(
-                    widget.currentLocation,
-                    AuthGuard.orgUsersRoute,
+                  DrawerMenuItemRow(
+                    icon: Icons.group_outlined,
+                    label: l10n.orgUsersItem,
+                    route: AuthGuard.orgUsersRoute,
+                    selected: isDrawerModuleRouteActive(
+                      widget.currentLocation,
+                      AuthGuard.orgUsersRoute,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 20),
           stagger(
             Column(

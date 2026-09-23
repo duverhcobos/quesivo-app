@@ -587,4 +587,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get loadingLabel => 'Cargando';
+
+  @override
+  String personalGreeting(String name) {
+    return 'Hola, $name';
+  }
+
+  @override
+  String get greeting => 'Hola';
+
+  @override
+  String get chooseQueseraHint => 'Elegí tu quesera para entrar';
+
+  @override
+  String get queseraEnterCta => 'Entrar';
+
+  @override
+  String get queseraActiveBadge => 'Actual';
+
+  @override
+  String get noQueserasAvailable => 'No tenés queseras disponibles.';
+
+  @override
+  String get queseraCardTagline => 'Gestioná tu producción, inventario y más.';
 }

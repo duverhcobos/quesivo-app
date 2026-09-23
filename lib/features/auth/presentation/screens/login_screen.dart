@@ -79,7 +79,7 @@ class _LoginView extends StatelessWidget {
                     ),
                   );
                 } else if (state.status.isSuccess) {
-                  context.read<AuthCubit>().checkSession();
+                  context.read<AuthCubit>().refreshSession();
                 }
               },
             ),

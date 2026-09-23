@@ -1,6 +1,8 @@
 // lib/features/auth/domain/entities/user.dart
 import 'package:equatable/equatable.dart';
 
+import 'organization_summary.dart';
+
 /// Usuario autenticado en la aplicación.
 ///
 /// SOLID (SRP - Single Responsibility Principle):
@@ -27,6 +29,11 @@ class User extends Equatable {
   /// traen (login/register no lo incluyen) — nunca asumirlo "active".
   final String? status;
 
+  /// Queseras del usuario — solo llegan de `GET /auth/me` (propuesta
+  /// backend 066). Con token personal `organizationId` es null: el user
+  /// está autenticado pero fuera de toda quesera (capa personal).
+  final List<OrganizationSummary> organizations;
+
   const User({
     required this.id,
     required this.email,
@@ -37,7 +44,37 @@ class User extends Equatable {
     this.organizationName,
     this.roles = const [],
     this.status,
+    this.organizations = const [],
   });
+
+  /// Update en el lugar (§63): tras un select-organization exitoso el
+  /// `AuthCubit` reconstruye el User con los tokens/org de la sesión
+  /// sin un `GET /auth/me` extra.
+  User copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? token,
+    String? refreshToken,
+    String? organizationId,
+    String? organizationName,
+    List<String>? roles,
+    String? status,
+    List<OrganizationSummary>? organizations,
+  }) {
+    return User(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      token: token ?? this.token,
+      refreshToken: refreshToken ?? this.refreshToken,
+      organizationId: organizationId ?? this.organizationId,
+      organizationName: organizationName ?? this.organizationName,
+      roles: roles ?? this.roles,
+      status: status ?? this.status,
+      organizations: organizations ?? this.organizations,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -50,5 +87,6 @@ class User extends Equatable {
     organizationName,
     roles,
     status,
+    organizations,
   ];
 }

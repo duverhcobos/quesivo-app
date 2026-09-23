@@ -587,4 +587,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingLabel => 'Loading';
+
+  @override
+  String personalGreeting(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String get greeting => 'Hello';
+
+  @override
+  String get chooseQueseraHint => 'Pick your factory to enter';
+
+  @override
+  String get queseraEnterCta => 'Enter';
+
+  @override
+  String get queseraActiveBadge => 'Current';
+
+  @override
+  String get noQueserasAvailable => 'No factories available.';
+
+  @override
+  String get queseraCardTagline =>
+      'Manage your production, inventory and more.';
 }

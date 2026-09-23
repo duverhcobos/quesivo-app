@@ -1137,6 +1137,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cargando'**
   String get loadingLabel;
+
+  /// No description provided for @personalGreeting.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola, {name}'**
+  String personalGreeting(String name);
+
+  /// No description provided for @greeting.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola'**
+  String get greeting;
+
+  /// No description provided for @chooseQueseraHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegí tu quesera para entrar'**
+  String get chooseQueseraHint;
+
+  /// No description provided for @queseraEnterCta.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar'**
+  String get queseraEnterCta;
+
+  /// No description provided for @queseraActiveBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Actual'**
+  String get queseraActiveBadge;
+
+  /// No description provided for @noQueserasAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No tenés queseras disponibles.'**
+  String get noQueserasAvailable;
+
+  /// No description provided for @queseraCardTagline.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestioná tu producción, inventario y más.'**
+  String get queseraCardTagline;
 }
 
 class _AppLocalizationsDelegate

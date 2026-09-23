@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../../auth/presentation/cubit/auth_state.dart';
 
 /// Barra de navegación firma del shell post-auth (propuesta §shell-premium).
 ///
@@ -29,6 +32,14 @@ class QuesivoNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // §58 — la nav es chrome: siempre visible. Sin quesera entrada
+    // (enteredOrg=false) los tabs de módulo no navegan (el guard los
+    // rebotaría a /home en silencio): el tap se intercepta con el hint.
+    final enteredOrg = context.select<AuthCubit, bool>(
+      (cubit) =>
+          cubit.state is AuthSuccess && (cubit.state as AuthSuccess).enteredOrg,
+    );
 
     // Cuando el SO pide reducir animaciones, el chip cambia de golpe.
     final animDuration = MediaQuery.of(context).disableAnimations
@@ -79,11 +90,21 @@ class QuesivoNavBar extends StatelessWidget {
                   label: items[i].$3,
                   isActive: i == navigationShell.currentIndex,
                   animDuration: animDuration,
-                  onTap: () => navigationShell.goBranch(
-                    i,
-                    // Re-tap sobre el tab activo vuelve a la raíz del branch.
-                    initialLocation: i == navigationShell.currentIndex,
-                  ),
+                  onTap: () {
+                    // Sin quesera entrada solo el tab Inicio (i == 0)
+                    // navega — el resto pide elegir quesera primero.
+                    if (!enteredOrg && i != 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.chooseQueseraHint)),
+                      );
+                      return;
+                    }
+                    navigationShell.goBranch(
+                      i,
+                      // Re-tap sobre el tab activo vuelve a la raíz del branch.
+                      initialLocation: i == navigationShell.currentIndex,
+                    );
+                  },
                 ),
             ],
           ),

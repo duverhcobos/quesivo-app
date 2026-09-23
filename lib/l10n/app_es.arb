@@ -242,5 +242,19 @@
   "ownerBadge": "Dueño",
   "usersLoadError": "No se pudo cargar el listado — revisá tu conexión",
   "retryButton": "Reintentar",
-  "loadingLabel": "Cargando"
+  "loadingLabel": "Cargando",
+  "personalGreeting": "Hola, {name}",
+  "@personalGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greeting": "Hola",
+  "chooseQueseraHint": "Elegí tu quesera para entrar",
+  "queseraEnterCta": "Entrar",
+  "queseraActiveBadge": "Actual",
+  "noQueserasAvailable": "No tenés queseras disponibles.",
+  "queseraCardTagline": "Gestioná tu producción, inventario y más."
 }

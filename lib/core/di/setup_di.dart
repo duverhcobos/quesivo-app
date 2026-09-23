@@ -39,6 +39,7 @@ import '../../features/auth/domain/use_cases/logout_use_case.dart';
 import '../../features/auth/domain/use_cases/forgot_password_use_case.dart';
 import '../../features/auth/domain/use_cases/register_use_case.dart';
 import '../../features/auth/domain/use_cases/reset_password_use_case.dart';
+import '../../features/auth/domain/use_cases/select_organization_use_case.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/presentation/cubit/forgot_password_cubit.dart';
@@ -59,6 +60,7 @@ import '../../features/users/presentation/cubit/link_user_cubit.dart';
 import '../../features/users/presentation/cubit/reset_password_cubit.dart'
     as users_reset_password;
 import '../../features/users/presentation/cubit/users_list_cubit.dart';
+import '../../features/queseras/presentation/cubit/quesera_selection_cubit.dart';
 import '../localization/cubit/locale_cubit.dart';
 
 final locator = GetIt.instance;
@@ -179,6 +181,9 @@ void setupDI() {
   locator.registerLazySingleton(
     () => RegisterUseCase(locator<IAuthRepository>()),
   );
+  locator.registerLazySingleton(
+    () => SelectOrganizationUseCase(locator<IAuthRepository>()),
+  );
 
   // 5. Blocs / Cubits
   // CRÍTICO: Debe ser LazySingleton para que GoRouter y la UI compartan la misma instancia.
@@ -205,6 +210,15 @@ void setupDI() {
         ResetPasswordCubit(locator<ResetPasswordUseCase>(), token: token),
   );
   locator.registerFactory(() => RegisterCubit(locator<RegisterUseCase>()));
+
+  // Capa personal (§55/§56): cubit del tap en card de quesera —
+  // factory, nace y muere con el QueseraHeroCarousel del Inicio.
+  locator.registerFactory(
+    () => QueseraSelectionCubit(
+      locator<SelectOrganizationUseCase>(),
+      locator<AuthCubit>(),
+    ),
+  );
 
   // ── Módulo Usuarios ──
   locator.registerLazySingleton<IRemoteUsersDataSource>(

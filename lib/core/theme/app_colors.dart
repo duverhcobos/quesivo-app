@@ -39,6 +39,17 @@ class AppColors {
   // usan estos valores directos — no dependen del ColorScheme ni del modo oscuro.
   static const Color quesivoNavy = Color(0xFF07275C); // primary
   static const Color quesivoYellow = Color(0xFFF7A81D); // secondary_accent
+
+  // Escalas de marca (§60): dos colores puros saturan la pantalla — los
+  // tintes dan los pasos intermedios. Navy para profundidad/acentos
+  // suaves; amarillo para superficies cálidas ("queso claro") y acentos
+  // oscuros legibles sobre fondo claro.
+  static const Color quesivoNavyMid = Color(0xFF3D5A8C); // tinte de navy
+  static const Color quesivoNavyDeep = Color(0xFF051C42); // sombra de navy
+  static const Color quesivoYellowSoft = Color(0xFFFBE7BD); // queso claro
+  static const Color quesivoAmberDeep = Color(0xFF8A5A00); // ámbar oscuro
+  static const Color quesivoCream = Color(0xFFFDF8EC); // superficie cálida
+
   static const Color quesivoWhite = Color(0xFFFFFFFF); // background
   static const Color quesivoDarkText = Color(0xFF172033); // texto principal
   static const Color quesivoSurface = Color(0xFFF7F9FC); // tarjetas / secciones

@@ -19,10 +19,6 @@ class ListUsersUseCase {
     required int limit,
     String? search,
     UserRole? role,
-  }) => repository.getUsers(
-    page: page,
-    limit: limit,
-    search: search,
-    role: role,
-  );
+  }) =>
+      repository.getUsers(page: page, limit: limit, search: search, role: role);
 }

@@ -1,5 +1,6 @@
 // lib/features/auth/domain/repositories/i_auth_repository.dart
 import 'package:dartz/dartz.dart';
+import '../entities/organization_session.dart';
 import '../entities/user.dart';
 import '../failures/auth_failure.dart';
 
@@ -37,6 +38,14 @@ abstract class IAuthRepository {
 
   /// Verifica si hay una sesión activa guardada localmente
   Future<Either<AuthFailure, User>> checkAuthStatus();
+
+  /// Entra a otra quesera: pide el par de tokens org-scoped, lo
+  /// persiste reemplazando el actual y devuelve la sesión emitida —
+  /// con ella el caller reconstruye el User localmente (§63), sin un
+  /// `GET /auth/me` extra.
+  Future<Either<AuthFailure, OrganizationSession>> selectOrganization(
+    String organizationId,
+  );
 
   /// Limpia la sesión actual. Devuelve `Either` como el resto del contrato:
   /// una falla de almacenamiento local se reporta como `CacheFailure`,

@@ -1,6 +1,7 @@
 // lib/features/auth/data/repositories/auth_repository_impl.dart
 import 'package:dartz/dartz.dart';
 
+import '../../domain/entities/organization_session.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/failures/auth_failure.dart';
 import '../../domain/repositories/i_auth_repository.dart';
@@ -209,6 +210,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         organizationName: fresh.organizationName,
         roles: fresh.roles,
         status: fresh.status,
+        organizations: fresh.organizations,
       );
       await localDataSource.saveUserSession(merged);
       return Right(merged);
@@ -237,6 +239,78 @@ class AuthRepositoryImpl implements IAuthRepository {
         stackTrace: stackTrace,
       );
       return Right(local);
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, OrganizationSession>> selectOrganization(
+    String organizationId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      final session = await remoteDataSource.selectOrganization(organizationId);
+      // CRÍTICO: reemplaza el par completo — con token personal la
+      // sesión quedó CONSUMIDA server-side; reusar su refresh token
+      // dispara TOKEN_REUSE_DETECTED y revoca TODAS las sesiones
+      // (doc 006). Con token org-scoped la sesión vieja sigue viva
+      // pero este dispositivo solo conserva la nueva.
+      await localDataSource.saveTokens(
+        token: session.accessToken,
+        refreshToken: session.refreshToken,
+      );
+      // El perfil cacheado debe reflejar la org del token NUEVO (auditoría
+      // §63): si queda el orgId viejo, un restart offline degrada a un
+      // User cuya org ya no es la que los tokens autorizan — y el
+      // shortcut de "entrada gratis" (§57) entraría a la quesera
+      // equivocada mostrando una pero pegándole a otra.
+      final cached = await localDataSource.getUserSession();
+      if (cached != null) {
+        final role = cached.organizations
+            .where((o) => o.id == session.organizationId)
+            .map((o) => o.role);
+        await localDataSource.saveUserSession(
+          UserModel(
+            id: cached.id,
+            email: cached.email,
+            name: cached.name,
+            token: session.accessToken,
+            refreshToken: session.refreshToken,
+            organizationId: session.organizationId,
+            organizationName: session.organizationName,
+            roles: role.isEmpty ? cached.roles : [role.first],
+            status: cached.status,
+            organizations: cached.organizations,
+          ),
+        );
+      }
+      return Right(session);
+    } on UnauthorizedException catch (e, stackTrace) {
+      // 401: membresía inexistente/suspendida o rol no-ADMIN — la
+      // quesera ya no es accesible; la card reporta el error y el
+      // próximo /auth/me natural la saca de la lista (§63).
+      logger.warning(
+        'select-organization rechazado',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(InvalidCredentialsFailure());
+    } on RestApiException catch (e, stackTrace) {
+      logger.error(
+        'Error de API al seleccionar organización',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(e.message));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al seleccionar organización',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(ServerFailure('Error inesperado de red'));
     }
   }
 

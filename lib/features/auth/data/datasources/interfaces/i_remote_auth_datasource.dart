@@ -1,4 +1,5 @@
 // lib/features/auth/data/datasources/i_remote_auth_datasource.dart
+import '../../models/organization_session_model.dart';
 import '../../models/user_model.dart';
 
 /// Contrato para la fuente de datos remota.
@@ -41,4 +42,10 @@ abstract class IRemoteAuthDataSource {
   /// revocar. Un 401 significa "token ya muerto" — no dispara refresh
   /// (la ruta está exenta en RefreshTokenInterceptor).
   Future<void> logout(String refreshToken);
+
+  /// Emite un par de tokens ligado a la membresía de otra quesera
+  /// (`POST /auth/select-organization`, doc 006). Con token personal
+  /// consume esa sesión; con token org-scoped la sesión anterior queda
+  /// viva (multi-org legítimo). 401 = no sos miembro activo de esa org.
+  Future<OrganizationSessionModel> selectOrganization(String organizationId);
 }

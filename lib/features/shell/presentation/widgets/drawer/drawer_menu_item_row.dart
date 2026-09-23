@@ -12,8 +12,9 @@ bool isDrawerModuleRouteActive(String currentLocation, String route) =>
 /// 15px w500 `Expanded` + chevron_right `quesivoPlaceholder` 20.
 ///
 /// La fila queda habilitada si recibe [onTap] o [route]: con [route] navega
-/// con `router.push` tras cerrar el drawer (GoRouter se captura antes del
-/// pop, mismo patrón que Inicio/logout); si ambos son `null` queda
+/// con `router.go` tras cerrar el drawer (GoRouter se captura antes del
+/// pop, mismo patrón que Inicio/logout — `go` porque los módulos son
+/// rutas top-level de branches distintas); si ambos son `null` queda
 /// deshabilitada (Opacity 0.45 y sin chevron) hasta que su feature aterrice.
 /// [color] tiñe ícono y label (logout lo usa en `quesivoError`) y
 /// [showChevron] permite quitar el chevron en acciones habilitadas que no
@@ -72,7 +73,7 @@ class DrawerMenuItemRow extends StatelessWidget {
       child: Material(
         // El fondo `surface` solo aparece cuando la fila está seleccionada;
         // `transparent` deja que el InkWell pinte el ripple igual.
-        color: Colors.transparent,
+        color: AppColors.transparent,
         borderRadius: BorderRadius.circular(selected ? 14 : 8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -89,7 +90,9 @@ class DrawerMenuItemRow extends StatelessWidget {
               vertical: selected ? 14 : 12,
             ),
             decoration: BoxDecoration(
-              color: selected ? AppColors.quesivoSurface : Colors.transparent,
+              color: selected
+                  ? AppColors.quesivoSurface
+                  : AppColors.transparent,
               borderRadius: BorderRadius.circular(selected ? 14 : 8),
             ),
             child: Row(

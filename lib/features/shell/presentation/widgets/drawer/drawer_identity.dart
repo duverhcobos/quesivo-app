@@ -14,7 +14,10 @@ import '../../../../../core/widgets/user_initials_avatar.dart';
 ///
 /// Tocarla cierra el drawer y lleva a `AuthGuard.orgDataRoute` (Datos de
 /// la organización — el destino de perfil más cercano hoy; cuando exista
-/// una pantalla de perfil real, solo se repunta esta ruta).
+/// una pantalla de perfil real, solo se repunta esta ruta). §58 — con
+/// `displayOrgName` null (selector, sin quesera entrada) la tarjeta se
+/// reduce al nombre: sin línea de org, sin chip de rol, sin chevron y sin
+/// tap (Datos de la organización no aplica sin quesera).
 class DrawerIdentity extends StatelessWidget {
   const DrawerIdentity({
     super.key,
@@ -23,7 +26,7 @@ class DrawerIdentity extends StatelessWidget {
   });
 
   final String displayName;
-  final String displayOrgName;
+  final String? displayOrgName; // null = sin quesera activa (§58)
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +39,16 @@ class DrawerIdentity extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () {
-            // GoRouter se resuelve antes del pop — cerrado el drawer, su
-            // contexto queda desactivado para lookups (mismo criterio que
-            // Inicio/logout).
-            final router = GoRouter.of(context);
-            Navigator.of(context).pop();
-            router.push(AuthGuard.orgDataRoute);
-          },
+          onTap: displayOrgName == null
+              ? null
+              : () {
+                  // GoRouter se resuelve antes del pop — cerrado el drawer, su
+                  // contexto queda desactivado para lookups (mismo criterio que
+                  // Inicio/logout).
+                  final router = GoRouter.of(context);
+                  Navigator.of(context).pop();
+                  router.push(AuthGuard.orgDataRoute);
+                },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
@@ -70,48 +75,58 @@ class DrawerIdentity extends StatelessWidget {
                           color: AppColors.quesivoWhite,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        displayOrgName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.quesivoWhite.withValues(alpha: 0.72),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.quesivoYellow,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          // Rol fijo del MVP — único rol hoy.
-                          l10n.adminRole,
+                      // §58 — org + rol solo cuando ya se entró a una
+                      // quesera; en el selector la identidad es solo el
+                      // nombre de la persona.
+                      if (displayOrgName != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          displayOrgName!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.quesivoNavy,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.quesivoWhite.withValues(
+                              alpha: 0.72,
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.quesivoYellow,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            // Rol fijo del MVP — único rol hoy.
+                            l10n.adminRole,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.quesivoNavy,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Chevron de affordance — la tarjeta es accionable.
-                Icon(
-                  Icons.chevron_right,
-                  size: 22,
-                  color: AppColors.quesivoWhite.withValues(alpha: 0.6),
-                ),
+                // Chevron de affordance — la tarjeta es accionable solo
+                // con quesera activa (§58); sin org se oculta.
+                if (displayOrgName != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 22,
+                    color: AppColors.quesivoWhite.withValues(alpha: 0.6),
+                  ),
+                ],
               ],
             ),
           ),

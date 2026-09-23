@@ -243,5 +243,19 @@
   "ownerBadge": "Owner",
   "usersLoadError": "Couldn't load the list — check your connection",
   "retryButton": "Retry",
-  "loadingLabel": "Loading"
+  "loadingLabel": "Loading",
+  "personalGreeting": "Hi, {name}",
+  "@personalGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greeting": "Hello",
+  "chooseQueseraHint": "Pick your factory to enter",
+  "queseraEnterCta": "Enter",
+  "queseraActiveBadge": "Current",
+  "noQueserasAvailable": "No factories available.",
+  "queseraCardTagline": "Manage your production, inventory and more."
 }

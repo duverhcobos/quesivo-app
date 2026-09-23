@@ -2,6 +2,7 @@
 import '../../../../../core/constants/environment/environment.dart';
 import '../../../../../core/device/i_device_info_service.dart';
 import '../../../../../core/network/interfaces/i_network_service.dart';
+import '../../models/organization_session_model.dart';
 import '../../models/user_model.dart';
 import '../interfaces/i_remote_auth_datasource.dart';
 
@@ -134,5 +135,19 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
       '/auth/logout',
       data: {'refreshToken': refreshToken},
     );
+  }
+
+  @override
+  Future<OrganizationSessionModel> selectOrganization(
+    String organizationId,
+  ) async {
+    // Real en todos los entornos (propuesta backend 064) — contrato
+    // documentacion/api/auth/006-post-select-organization.md. El Bearer
+    // actual lo inyecta AuthInterceptor; el backend valida la membresía.
+    final responseData = await networkService.post<Map<String, dynamic>>(
+      '/auth/select-organization',
+      data: {'organizationId': organizationId},
+    );
+    return OrganizationSessionModel.fromJson(responseData);
   }
 }

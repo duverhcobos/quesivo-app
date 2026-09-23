@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:quesivo/core/session/session_expired_notifier.dart';
+import 'package:quesivo/features/auth/domain/entities/organization_session.dart';
+import 'package:quesivo/features/auth/domain/entities/organization_summary.dart';
 import 'package:quesivo/features/auth/domain/entities/user.dart';
 import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
 import 'package:quesivo/features/auth/domain/use_cases/check_auth_status_use_case.dart';
@@ -215,4 +217,144 @@ void main() {
       expect(c.state, isA<AuthInitial>());
     },
   );
+
+  group('enterOrganization (§57)', () {
+    blocTest<AuthCubit, AuthState>(
+      'en AuthSuccess re-emite el mismo user con enteredOrg=true',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tUser),
+      act: (cubit) => cubit.enterOrganization(),
+      expect: () => [const AuthSuccess(tUser, enteredOrg: true)],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'con enteredOrg ya true no re-emite (el flag ya está prendido)',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tUser, enteredOrg: true),
+      act: (cubit) => cubit.enterOrganization(),
+      expect: () => <AuthState>[],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'fuera de AuthSuccess no hace nada (p.ej. si refreshSession '
+      'terminó en AuthInitial)',
+      build: () => cubit,
+      seed: () => const AuthInitial(),
+      act: (cubit) => cubit.enterOrganization(),
+      expect: () => <AuthState>[],
+    );
+  });
+
+  group('enterOrganizationWithSession (§63)', () {
+    const tOrgs = [
+      OrganizationSummary(id: 'org-1', name: 'Quesera Norte', role: 'ADMIN'),
+      OrganizationSummary(id: 'org-2', name: 'Quesera Sur', role: 'OPERATOR'),
+    ];
+    const tOrgUser = User(
+      id: '1',
+      email: tEmail,
+      name: 'John Doe',
+      token: 'token-personal',
+      refreshToken: 'refresh-personal',
+      roles: ['PERSONAL'],
+      organizations: tOrgs,
+    );
+    const tSession = OrganizationSession(
+      accessToken: 'access-org',
+      refreshToken: 'refresh-org',
+      organizationId: 'org-2',
+      organizationName: 'Quesera Sur',
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'reconstruye el User con tokens/org/rol de la sesión y prende '
+      'enteredOrg — sin llamar /me',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tOrgUser),
+      act: (cubit) => cubit.enterOrganizationWithSession(tSession),
+      expect: () => [
+        const AuthSuccess(
+          User(
+            id: '1',
+            email: tEmail,
+            name: 'John Doe',
+            token: 'access-org',
+            refreshToken: 'refresh-org',
+            organizationId: 'org-2',
+            organizationName: 'Quesera Sur',
+            roles: ['OPERATOR'],
+            organizations: tOrgs,
+          ),
+          enteredOrg: true,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => mockCheckAuthStatusUseCase());
+      },
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'si la org no está en organizations conserva los roles actuales',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tOrgUser),
+      act: (cubit) => cubit.enterOrganizationWithSession(
+        const OrganizationSession(
+          accessToken: 'a',
+          refreshToken: 'r',
+          organizationId: 'org-99',
+          organizationName: 'Desconocida',
+        ),
+      ),
+      expect: () => [
+        const AuthSuccess(
+          User(
+            id: '1',
+            email: tEmail,
+            name: 'John Doe',
+            token: 'a',
+            refreshToken: 'r',
+            organizationId: 'org-99',
+            organizationName: 'Desconocida',
+            roles: ['PERSONAL'],
+            organizations: tOrgs,
+          ),
+          enteredOrg: true,
+        ),
+      ],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'fuera de AuthSuccess no hace nada',
+      build: () => cubit,
+      seed: () => const AuthInitial(),
+      act: (cubit) => cubit.enterOrganizationWithSession(tSession),
+      expect: () => <AuthState>[],
+    );
+  });
+
+  group('exitOrganization (§58)', () {
+    blocTest<AuthCubit, AuthState>(
+      'con enteredOrg=true re-emite el mismo user con la flag limpia',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tUser, enteredOrg: true),
+      act: (cubit) => cubit.exitOrganization(),
+      expect: () => [const AuthSuccess(tUser)],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'con enteredOrg=false no re-emite (ya está en el selector)',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tUser),
+      act: (cubit) => cubit.exitOrganization(),
+      expect: () => <AuthState>[],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'fuera de AuthSuccess no hace nada',
+      build: () => cubit,
+      seed: () => const AuthInitial(),
+      act: (cubit) => cubit.exitOrganization(),
+      expect: () => <AuthState>[],
+    );
+  });
 }

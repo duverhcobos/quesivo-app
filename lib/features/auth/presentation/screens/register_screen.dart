@@ -83,7 +83,7 @@ class _RegisterView extends StatelessWidget {
                 } else if (state.status.isSuccess) {
                   // Auto-login: la sesión ya quedó guardada por el repo;
                   // el cubit global confirma y AuthGuard rutea a /home.
-                  context.read<AuthCubit>().checkSession();
+                  context.read<AuthCubit>().refreshSession();
                 }
               },
             ),

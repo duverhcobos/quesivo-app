@@ -75,32 +75,25 @@ void main() {
     },
   );
 
-  test(
-    'debería retornar Left cuando el repositorio falla',
-    () async {
-      when(
-        () => mockAuthRepository.resetPassword(
-          token: tToken,
-          password: tPassword,
-        ),
-      ).thenAnswer(
-        (_) async => const Left(ServerFailure('Token inválido o expirado')),
-      );
+  test('debería retornar Left cuando el repositorio falla', () async {
+    when(
+      () =>
+          mockAuthRepository.resetPassword(token: tToken, password: tPassword),
+    ).thenAnswer(
+      (_) async => const Left(ServerFailure('Token inválido o expirado')),
+    );
 
-      final result = await useCase(
-        token: tToken,
-        password: tPassword,
-        confirmPassword: tPassword,
-      );
+    final result = await useCase(
+      token: tToken,
+      password: tPassword,
+      confirmPassword: tPassword,
+    );
 
-      expect(result.isLeft(), true);
-      verify(
-        () => mockAuthRepository.resetPassword(
-          token: tToken,
-          password: tPassword,
-        ),
-      ).called(1);
-      verifyNoMoreInteractions(mockAuthRepository);
-    },
-  );
+    expect(result.isLeft(), true);
+    verify(
+      () =>
+          mockAuthRepository.resetPassword(token: tToken, password: tPassword),
+    ).called(1);
+    verifyNoMoreInteractions(mockAuthRepository);
+  });
 }

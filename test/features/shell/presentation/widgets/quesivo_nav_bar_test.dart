@@ -1,10 +1,20 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import 'package:quesivo/core/theme/app_colors.dart';
+import 'package:quesivo/features/auth/domain/entities/user.dart';
+import 'package:quesivo/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:quesivo/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quesivo/features/shell/presentation/widgets/quesivo_nav_bar.dart';
+
+// La barra lee `AuthCubit` por context.select (enteredOrg — §58) — sin
+// proveerlo el árbol de test explota con ProviderNotFoundException.
+class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 /// Harness con un StatefulShellRoute real — la barra necesita un
 /// `StatefulNavigationShell` vivo, no se puede falsificar.
@@ -43,19 +53,43 @@ class _Harness {
   late final GoRouter router;
   StatefulNavigationShell? capturedShell;
 
-  Widget build() => MaterialApp.router(
-    routerConfig: router,
-    locale: const Locale('es'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
+  Widget build(AuthCubit authCubit) => BlocProvider<AuthCubit>.value(
+    value: authCubit,
+    child: MaterialApp.router(
+      routerConfig: router,
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+    ),
   );
 }
 
 void main() {
+  late MockAuthCubit mockAuthCubit;
+
+  // Usuario con org en el JWT y enteredOrg=true: los 4 tabs navegan.
+  const tUser = User(
+    id: 'u1',
+    email: 'ana@test.com',
+    name: 'Ana',
+    organizationId: 'org-1',
+    organizationName: 'Quesera Norte',
+  );
+
+  setUp(() {
+    mockAuthCubit = MockAuthCubit();
+    when(() => mockAuthCubit.stream).thenAnswer((_) => const Stream.empty());
+    // Default: ya entró a una quesera (§58) — los tabs navegan.
+    when(
+      () => mockAuthCubit.state,
+    ).thenReturn(const AuthSuccess(tUser, enteredOrg: true));
+    when(() => mockAuthCubit.close()).thenAnswer((_) async {});
+  });
+
   group('QuesivoNavBar', () {
     testWidgets('renderiza los 4 tabs del loop diario', (tester) async {
       final harness = _Harness();
-      await tester.pumpWidget(harness.build());
+      await tester.pumpWidget(harness.build(mockAuthCubit));
       await tester.pumpAndSettle();
 
       expect(find.text('Inicio'), findsOneWidget);
@@ -66,7 +100,7 @@ void main() {
 
     testWidgets('el tab inicial marca amarillo + gota', (tester) async {
       final harness = _Harness();
-      await tester.pumpWidget(harness.build());
+      await tester.pumpWidget(harness.build(mockAuthCubit));
       await tester.pumpAndSettle();
 
       // Inicio activo: ícono filled amarillo.
@@ -94,7 +128,7 @@ void main() {
       tester,
     ) async {
       final harness = _Harness();
-      await tester.pumpWidget(harness.build());
+      await tester.pumpWidget(harness.build(mockAuthCubit));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Recepción de leche'));
@@ -115,7 +149,7 @@ void main() {
 
     testWidgets('los inactivos quedan outlined blanco 60%', (tester) async {
       final harness = _Harness();
-      await tester.pumpWidget(harness.build());
+      await tester.pumpWidget(harness.build(mockAuthCubit));
       await tester.pumpAndSettle();
 
       // Tab inactivo (Producción): ícono outlined y color blanco 60%.
@@ -123,6 +157,44 @@ void main() {
         find.byIcon(Icons.precision_manufacturing_outlined),
       );
       expect(icon.color, AppColors.quesivoWhite.withValues(alpha: 0.6));
+    });
+
+    // §58 — la nav es chrome: siempre visible. Sin quesera entrada los
+    // taps de módulo no navegan: se interceptan con el hint.
+    testWidgets('sin entrar a quesera: tap en módulo muestra el hint y no '
+        'cambia de branch', (tester) async {
+      when(() => mockAuthCubit.state).thenReturn(
+        const AuthSuccess(User(id: 'u1', email: 'ana@test.com', name: 'Ana')),
+      );
+      final harness = _Harness();
+      await tester.pumpWidget(harness.build(mockAuthCubit));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Recepción de leche'));
+      await tester.pumpAndSettle();
+
+      expect(harness.capturedShell!.currentIndex, 0);
+      expect(find.text('/a'), findsOneWidget);
+      expect(find.text('Elegí tu quesera para entrar'), findsOneWidget);
+    });
+
+    testWidgets('sin entrar a quesera: el tab Inicio sí navega', (
+      tester,
+    ) async {
+      when(() => mockAuthCubit.state).thenReturn(
+        const AuthSuccess(User(id: 'u1', email: 'ana@test.com', name: 'Ana')),
+      );
+      final harness = _Harness();
+      await tester.pumpWidget(harness.build(mockAuthCubit));
+      await tester.pumpAndSettle();
+
+      // Ya está en Inicio — el tap es re-tap a la raíz del branch (no
+      // se intercepta, i == 0).
+      await tester.tap(find.text('Inicio'));
+      await tester.pumpAndSettle();
+
+      expect(harness.capturedShell!.currentIndex, 0);
+      expect(find.text('Elegí tu quesera para entrar'), findsNothing);
     });
   });
 }
