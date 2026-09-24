@@ -320,9 +320,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backToLogin => 'Voltar ao login';
 
   @override
-  String get devResetLink => 'Testar redefinição (dev)';
-
-  @override
   String get cancelAction => 'Cancelar';
 
   @override

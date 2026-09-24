@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 
+import '../../domain/failures/auth_failure.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 import '../../domain/value_objects/confirm_password.dart';
 import '../../domain/value_objects/register_password.dart';
@@ -68,6 +69,19 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
 
   Future<void> submit() async {
     if (!state.isValid) return;
+
+    // Un deep link sin `?token=` llega acá con string vacío — el backend
+    // devolvería un 400 sin errorCode y la UI diría "error de red"
+    // (engañoso): es el mismo caso que un link inválido, pedir uno nuevo.
+    if (_token.isEmpty) {
+      emit(
+        state.copyWith(
+          status: FormzSubmissionStatus.failure,
+          errorMessage: const InvalidOrExpiredTokenFailure().message,
+        ),
+      );
+      return;
+    }
 
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
 

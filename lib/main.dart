@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'core/bootstrap/app_bootstrap.dart';
+import 'core/deeplink/i_deep_link_service.dart';
 import 'core/di/setup_di.dart';
 import 'core/localization/cubit/locale_cubit.dart';
 import 'core/routes/app_router.dart';
@@ -19,6 +20,10 @@ void main() async {
   final appRouter = locator<AppRouter>().router;
   final authCubit = locator<AuthCubit>();
   final localeCubit = locator<LocaleCubit>();
+
+  // Deep link de forgot/reset password (propuesta 66) — necesita el
+  // GoRouter ya construido para poder navegar cuando llegue un link.
+  locator<IDeepLinkService>().initialize(appRouter);
 
   // 3. Inyectamos explícitamente por constructor (DIP)
   runApp(

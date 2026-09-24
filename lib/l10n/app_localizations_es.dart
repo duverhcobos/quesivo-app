@@ -320,9 +320,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backToLogin => 'Volver al inicio de sesión';
 
   @override
-  String get devResetLink => 'Probar restablecer (dev)';
-
-  @override
   String get cancelAction => 'Cancelar';
 
   @override

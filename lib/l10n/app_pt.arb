@@ -102,7 +102,6 @@
   "updatePasswordButton": "Atualizar senha",
   "passwordUpdatedSuccess": "Senha atualizada. Faça login.",
   "backToLogin": "Voltar ao login",
-  "devResetLink": "Testar redefinição (dev)",
   "cancelAction": "Cancelar",
   "logoutConfirmTitle": "Sair?",
   "logoutConfirmMessage": "Você vai sair da sua conta. Deseja continuar?",

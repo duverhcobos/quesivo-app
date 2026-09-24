@@ -71,4 +71,77 @@ void main() {
       );
     });
   });
+
+  group('forgotPassword (propuesta 66 — doc 013)', () {
+    const tEmail = 'test@test.com';
+
+    test('POSTea a /auth/forgot-password con {email}', () async {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/forgot-password',
+          data: {'email': tEmail},
+        ),
+      ).thenAnswer((_) async {});
+
+      await dataSource.forgotPassword(tEmail);
+
+      verify(
+        () => mockNetworkService.post<void>(
+          '/auth/forgot-password',
+          data: {'email': tEmail},
+        ),
+      ).called(1);
+    });
+
+    test('propaga la excepción del network service', () {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/forgot-password',
+          data: {'email': tEmail},
+        ),
+      ).thenThrow(Exception('500'));
+
+      expect(
+        () => dataSource.forgotPassword(tEmail),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('resetPassword (propuesta 66 — doc 014)', () {
+    const tToken = 'reset-token-abc';
+    const tPassword = 'NuevaPass1';
+
+    test('POSTea a /auth/reset-password con {token, password}', () async {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/reset-password',
+          data: {'token': tToken, 'password': tPassword},
+        ),
+      ).thenAnswer((_) async {});
+
+      await dataSource.resetPassword(token: tToken, password: tPassword);
+
+      verify(
+        () => mockNetworkService.post<void>(
+          '/auth/reset-password',
+          data: {'token': tToken, 'password': tPassword},
+        ),
+      ).called(1);
+    });
+
+    test('propaga la excepción del network service', () {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/reset-password',
+          data: {'token': tToken, 'password': tPassword},
+        ),
+      ).thenThrow(Exception('400'));
+
+      expect(
+        () => dataSource.resetPassword(token: tToken, password: tPassword),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
 }

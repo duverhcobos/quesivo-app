@@ -102,7 +102,6 @@
   "updatePasswordButton": "Update password",
   "passwordUpdatedSuccess": "Password updated. Sign in.",
   "backToLogin": "Back to sign in",
-  "devResetLink": "Try reset (dev)",
   "cancelAction": "Cancel",
   "logoutConfirmTitle": "Log out?",
   "logoutConfirmMessage": "You are about to sign out of your account. Do you want to continue?",

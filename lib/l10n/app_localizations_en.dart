@@ -320,9 +320,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backToLogin => 'Back to sign in';
 
   @override
-  String get devResetLink => 'Try reset (dev)';
-
-  @override
   String get cancelAction => 'Cancel';
 
   @override

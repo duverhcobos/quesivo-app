@@ -612,6 +612,28 @@ void main() {
       expect(result, const Right(null));
     });
 
+    test('retorna TooManyAttemptsFailure ante RestApiException 429', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.forgotPassword(tEmail),
+      ).thenThrow(RestApiException(statusCode: 429, message: 'Too Many'));
+
+      final result = await repository.forgotPassword(tEmail);
+
+      expect(result, const Left(TooManyAttemptsFailure()));
+    });
+
+    test('RestApiException no mapeada → ServerFailure genérico', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.forgotPassword(tEmail),
+      ).thenThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await repository.forgotPassword(tEmail);
+
+      expect(result, const Left(ServerFailure()));
+    });
+
     test('retorna ServerFailure ante una excepción', () async {
       mockConnected(true);
       when(
@@ -620,12 +642,126 @@ void main() {
 
       final result = await repository.forgotPassword(tEmail);
 
-      expect(
-        result,
-        const Left(
-          ServerFailure('No se pudo enviar el correo de recuperación'),
+      expect(result, const Left(ServerFailure('Error inesperado de red')));
+    });
+  });
+
+  group('resetPassword', () {
+    const tToken = 'reset-token-abc';
+
+    test('retorna NetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await repository.resetPassword(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(NetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.resetPassword(
+          token: any(named: 'token'),
+          password: any(named: 'password'),
         ),
       );
+    });
+
+    test('retorna Right(null) en éxito', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resetPassword(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenAnswer((_) async {});
+
+      final result = await repository.resetPassword(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Right(null));
+    });
+
+    test('400 + INVALID_OR_EXPIRED_TOKEN → InvalidOrExpiredTokenFailure '
+        '(link usado/vencido → pedir uno nuevo)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resetPassword(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 400,
+          message: 'Invalid token',
+          errorCode: 'INVALID_OR_EXPIRED_TOKEN',
+        ),
+      );
+
+      final result = await repository.resetPassword(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(InvalidOrExpiredTokenFailure()));
+    });
+
+    test('400 + INVALID_PASSWORD → WeakPasswordFailure', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resetPassword(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 400,
+          message: 'Weak password',
+          errorCode: 'INVALID_PASSWORD',
+        ),
+      );
+
+      final result = await repository.resetPassword(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(WeakPasswordFailure()));
+    });
+
+    test('RestApiException no mapeada → ServerFailure genérico', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resetPassword(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await repository.resetPassword(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(ServerFailure()));
+    });
+
+    test('retorna ServerFailure ante una excepción inesperada', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resetPassword(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(Exception('cualquier cosa'));
+
+      final result = await repository.resetPassword(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(ServerFailure('Error inesperado de red')));
     });
   });
 

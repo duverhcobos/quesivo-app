@@ -706,12 +706,6 @@ abstract class AppLocalizations {
   /// **'Volver al inicio de sesión'**
   String get backToLogin;
 
-  /// No description provided for @devResetLink.
-  ///
-  /// In es, this message translates to:
-  /// **'Probar restablecer (dev)'**
-  String get devResetLink;
-
   /// No description provided for @cancelAction.
   ///
   /// In es, this message translates to:

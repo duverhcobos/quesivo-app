@@ -4,7 +4,6 @@ import 'package:formz/formz.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
-import '../../../../core/constants/environment/environment.dart';
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_loader.dart';
@@ -17,8 +16,9 @@ import 'forgot_password_info_card.dart';
 /// (§primary_button) o spinner mientras submit está `inProgress`; tras un
 /// envío exitoso, la info card "Revisa tu correo" (§information_card)
 /// reemplaza al botón como estado de confirmación (sin snackbar ni pop).
-/// Debajo van el link apilado a login (§login_prompt) y el acceso temporal
-/// a reset solo en `EnvType.dev`.
+/// Debajo va el link apilado a login (§login_prompt). El acceso a la
+/// pantalla de reset es real: llega por el deep link
+/// `quesivo://reset-password?token=...` del correo (propuesta 66).
 ///
 /// El `BlocBuilder` repinta solo cuando cambian `status` o `isValid`.
 class ForgotPasswordActions extends StatelessWidget {
@@ -86,16 +86,9 @@ class ForgotPasswordActions extends StatelessWidget {
                 ],
               ),
             ),
-            // ⚠️ ACCESO TEMPORAL DE DESARROLLO: hasta que el
-            // deep link del correo exista (backend), la pantalla
-            // de reset solo se alcanza por este botón — jamás
-            // se renderiza fuera de `dev`.
-            if (Environment.currentEnvironment == EnvType.dev)
-              TextButton(
-                onPressed: () =>
-                    context.push('${AuthGuard.resetPasswordRoute}?token=dev'),
-                child: Text(l10n.devResetLink),
-              ),
+            // El acceso a /reset-password ahora es real: llega por el
+            // deep link `quesivo://reset-password?token=...` del correo
+            // (propuesta 66) — ya no hace falta un atajo de desarrollo.
             const SizedBox(height: 20),
           ],
         );

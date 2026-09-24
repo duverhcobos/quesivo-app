@@ -73,6 +73,26 @@ class CacheFailure extends AuthFailure {
     : super(message ?? 'Error de almacenamiento local.');
 }
 
+/// El `token` del link de reset no existe, ya fue usado, o expiró
+/// (HTTP 400 + errorCode `INVALID_OR_EXPIRED_TOKEN` — backend propuesta
+/// 068). El usuario debe volver a pedir "olvidé mi contraseña".
+class InvalidOrExpiredTokenFailure extends AuthFailure {
+  const InvalidOrExpiredTokenFailure()
+    : super(
+        'Este enlace ya no es válido o expiró. Solicita uno nuevo desde "¿Olvidaste tu contraseña?".',
+      );
+}
+
+/// El password nuevo no cumple las reglas de fuerza del backend (HTTP 400
+/// + errorCode `INVALID_PASSWORD`) — caso borde: el formulario ya valida
+/// las mismas reglas client-side (RegisterPassword VO) antes de enviar.
+class WeakPasswordFailure extends AuthFailure {
+  const WeakPasswordFailure()
+    : super(
+        'La contraseña no cumple los requisitos de seguridad (mínimo 8 caracteres, mayúscula, minúscula y número).',
+      );
+}
+
 class UnknownAuthFailure extends AuthFailure {
   const UnknownAuthFailure(super.message);
 }

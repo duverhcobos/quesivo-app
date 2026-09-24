@@ -15,6 +15,8 @@ import '../routes/app_router.dart';
 import '../routes/auth_guard.dart';
 import '../session/session_expired_notifier.dart';
 
+import '../deeplink/i_deep_link_service.dart';
+import '../deeplink/app_links_deep_link_service_impl.dart';
 import '../logging/interfaces/i_logger_service.dart';
 import '../logging/implementations/debug_logger_service_impl.dart';
 import '../logging/implementations/crashlytics_logger_service_impl.dart';
@@ -280,5 +282,11 @@ void setupDI() {
   // Le pasamos el AuthCubit global para que escuche sus estados
   locator.registerLazySingleton<AppRouter>(
     () => AppRouter(locator<AuthCubit>(), locator<AuthGuard>()),
+  );
+
+  // Deep link de forgot/reset password (propuesta 66) — se inicializa
+  // desde main.dart una vez que el router ya existe.
+  locator.registerLazySingleton<IDeepLinkService>(
+    () => AppLinksDeepLinkServiceImpl(locator<ILoggerService>()),
   );
 }

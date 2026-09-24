@@ -85,17 +85,13 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
 
   @override
   Future<void> forgotPassword(String email) async {
-    // ⚠️ MOCK EXCLUSIVO DE DESARROLLO: DummyJSON no expone este endpoint.
-    // Se bloquea explícitamente fuera de `dev` para que la app nunca reporte
-    // un "correo enviado" falso en staging/producción.
-    if (Environment.currentEnvironment != EnvType.dev) {
-      throw UnimplementedError(
-        'Recuperación de contraseña no está implementada para este entorno todavía.',
-      );
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
-    return;
+    // Backend real en todos los entornos (propuesta backend 068) —
+    // contrato documentacion/api/auth/013-post-forgot-password.md:
+    // siempre 200, nunca revela si el email existe.
+    await networkService.post<void>(
+      '/auth/forgot-password',
+      data: {'email': email},
+    );
   }
 
   @override
@@ -103,13 +99,8 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
     required String token,
     required String password,
   }) async {
-    // ⚠️ MOCK EXCLUSIVO DE DESARROLLO: DummyJSON no expone
-    // /auth/reset-password. En stg/prod va al endpoint real del backend.
-    if (Environment.currentEnvironment == EnvType.dev) {
-      await Future.delayed(const Duration(seconds: 1));
-      return;
-    }
-
+    // Backend real en todos los entornos (propuesta backend 068) —
+    // contrato documentacion/api/auth/014-post-reset-password.md.
     await networkService.post<void>(
       '/auth/reset-password',
       data: {'token': token, 'password': password},

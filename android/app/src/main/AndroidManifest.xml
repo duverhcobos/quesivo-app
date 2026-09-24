@@ -33,6 +33,26 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Deep link forgot/reset password (propuesta 66 / backend 068).
+                 Esquema custom (no https): sin dominio propio verificado
+                 todavía no se puede usar un App Link real (assetlinks.json).
+                 android:autoVerify NO aplica a esquemas custom (solo a
+                 http/https) — se omite a propósito. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="quesivo"/>
+            </intent-filter>
+            <!-- Desactiva el deep-linking nativo de Flutter: sin esto el
+                 framework reenvía el URI crudo (`quesivo://...`) al
+                 RouteInformationProvider de go_router y explota con
+                 GoException "no routes for location" (bug visto en device
+                 con la app ya abierta). Quien maneja los links es
+                 app_links + IDeepLinkService, no el router. -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="false"/>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

@@ -359,15 +359,31 @@ class AuthRepositoryImpl implements IAuthRepository {
     try {
       await remoteDataSource.forgotPassword(email);
       return const Right(null);
-    } catch (e, stackTrace) {
+    } on RestApiException catch (e, stackTrace) {
+      // El endpoint siempre responde 200 salvo un fallo real de
+      // infraestructura (mail service caído) o rate limit — nunca por
+      // "el email no existe" (anti-enumeración, backend propuesta 068).
+      if (e.statusCode == 429) {
+        logger.warning(
+          'Rate limit alcanzado en forgot-password',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return const Left(TooManyAttemptsFailure());
+      }
       logger.error(
-        'Error al solicitar recuperación de contraseña',
+        'Error de API al solicitar recuperación de contraseña',
         error: e,
         stackTrace: stackTrace,
       );
-      return const Left(
-        ServerFailure('No se pudo enviar el correo de recuperación'),
+      return Left(_mapUnmappedError(e));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al solicitar recuperación de contraseña',
+        error: e,
+        stackTrace: stackTrace,
       );
+      return const Left(ServerFailure('Error inesperado de red'));
     }
   }
 
@@ -384,6 +400,17 @@ class AuthRepositoryImpl implements IAuthRepository {
       await remoteDataSource.resetPassword(token: token, password: password);
       return const Right(null);
     } on RestApiException catch (e, stackTrace) {
+      // Contrato real (api/auth/014): 400 + errorCode distingue token
+      // inválido/expirado de password débil — ambos merecen un mensaje
+      // propio en vez del genérico de `_mapUnmappedError`.
+      if (e.statusCode == 400) {
+        if (e.errorCode == 'INVALID_OR_EXPIRED_TOKEN') {
+          return const Left(InvalidOrExpiredTokenFailure());
+        }
+        if (e.errorCode == 'INVALID_PASSWORD') {
+          return const Left(WeakPasswordFailure());
+        }
+      }
       logger.error(
         'Error de API al restablecer contraseña',
         error: e,
