@@ -6,6 +6,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_backdrop.dart';
+import '../../../../core/widgets/quesivo_toast.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../cubit/register_cubit.dart';
@@ -58,12 +59,7 @@ class _RegisterView extends StatelessWidget {
             BlocListener<AuthCubit, AuthState>(
               listener: (context, state) {
                 if (state is AuthError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                    ),
-                  );
+                  QuesivoToast.error(context, message: state.message);
                 }
               },
             ),
@@ -72,13 +68,9 @@ class _RegisterView extends StatelessWidget {
                   previous.status != current.status,
               listener: (context, state) {
                 if (state.status.isFailure) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        state.errorMessage ?? l10n.genericAuthError,
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                    ),
+                  QuesivoToast.error(
+                    context,
+                    message: state.errorMessage ?? l10n.genericAuthError,
                   );
                 } else if (state.status.isSuccess) {
                   // Auto-login: la sesión ya quedó guardada por el repo;

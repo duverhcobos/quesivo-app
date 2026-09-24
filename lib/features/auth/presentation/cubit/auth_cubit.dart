@@ -134,7 +134,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> logout() async {
     // El UseCase devuelve Either: un fallo de almacenamiento se traduce
-    // en AuthError (SnackBar) en vez de una excepción cruda sin capturar.
+    // en AuthError (toast) en vez de una excepción cruda sin capturar.
     final result = await _logoutUseCase();
 
     result.fold(

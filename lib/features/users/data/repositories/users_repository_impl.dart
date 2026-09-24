@@ -205,6 +205,10 @@ class UsersRepositoryImpl implements IUsersRepository {
   /// (`USER_IS_OWNER` + los ya mapeados); `USER_NOT_FOUND` llega con 404
   /// (link — el email no tiene cuenta global).
   UsersFailure _mapError(RestApiException e, StackTrace stackTrace) {
+    // `ServerException` = request sin respuesta (server caído, timeout,
+    // body ilegible): el crudo 'Internal server error' no debe llegar a
+    // la UI — se reporta como "no se pudo conectar".
+    if (e is ServerException) return const UsersNetworkFailure();
     switch (e.statusCode) {
       case 400:
         // Los PATCH de fila traen sus reglas de dominio como 400 +
@@ -226,7 +230,7 @@ class UsersRepositoryImpl implements IUsersRepository {
           error: e,
           stackTrace: stackTrace,
         );
-        return UsersServerFailure(e.message);
+        return const UsersServerFailure();
       case 403:
         return const UsersForbiddenFailure();
       case 404:
@@ -241,7 +245,7 @@ class UsersRepositoryImpl implements IUsersRepository {
           error: e,
           stackTrace: stackTrace,
         );
-        return UsersServerFailure(e.message);
+        return const UsersServerFailure();
       case 409:
         final mapped409 = switch (e.errorCode) {
           'MEMBERSHIP_ALREADY_EXISTS' => const MembershipAlreadyExistsFailure(),
@@ -256,7 +260,7 @@ class UsersRepositoryImpl implements IUsersRepository {
           error: e,
           stackTrace: stackTrace,
         );
-        return UsersServerFailure(e.message);
+        return const UsersServerFailure();
       case 429:
         return const UsersRateLimitFailure();
       default:
@@ -265,7 +269,7 @@ class UsersRepositoryImpl implements IUsersRepository {
           error: e,
           stackTrace: stackTrace,
         );
-        return UsersServerFailure(e.message);
+        return const UsersServerFailure();
     }
   }
 }

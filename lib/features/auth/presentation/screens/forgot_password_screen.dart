@@ -5,6 +5,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_backdrop.dart';
+import '../../../../core/widgets/quesivo_toast.dart';
 import '../cubit/forgot_password_cubit.dart';
 import '../cubit/forgot_password_state.dart';
 import '../widgets/auth_heading.dart';
@@ -51,16 +52,12 @@ class _ForgotPasswordView extends StatelessWidget {
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             if (state.status.isFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    state.errorMessage ?? l10n.forgotPasswordGenericError,
-                  ),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
+              QuesivoToast.error(
+                context,
+                message: state.errorMessage ?? l10n.forgotPasswordGenericError,
               );
             }
-            // Al éxito no hay snackbar ni pop: la sección inferior se
+            // Al éxito no hay toast ni pop: la sección inferior se
             // reemplaza por la info card "Revisa tu correo" (ver
             // ForgotPasswordActions).
           },

@@ -176,6 +176,11 @@ void main() {
       expect(harness.capturedShell!.currentIndex, 0);
       expect(find.text('/a'), findsOneWidget);
       expect(find.text('Elegí tu quesera para entrar'), findsOneWidget);
+
+      // Drena el auto-dismiss del toast (~2.6s) — sin el pump el Timer
+      // queda pendiente al desmontar el árbol (convención del módulo).
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('sin entrar a quesera: el tab Inicio sí navega', (

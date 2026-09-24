@@ -198,7 +198,8 @@ void main() {
       expect(result, const Left(TooManyAttemptsFailure()));
     });
 
-    test('retorna ServerFailure con el mensaje del RestApiException', () async {
+    test('RestApiException no mapeada → ServerFailure genérico (el '
+        'mensaje crudo del backend no llega a la UI)', () async {
       mockConnected(true);
       when(
         () => mockRemoteDataSource.loginWithEmailPassword(
@@ -212,7 +213,25 @@ void main() {
         password: tPassword,
       );
 
-      expect(result, const Left(ServerFailure('Boom')));
+      expect(result, const Left(ServerFailure()));
+    });
+
+    test('ServerException (request sin respuesta, server caído) → '
+        'NetworkFailure', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.loginWithEmailPassword(
+          email: tEmail,
+          password: tPassword,
+        ),
+      ).thenThrow(ServerException());
+
+      final result = await repository.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
+      );
+
+      expect(result, const Left(NetworkFailure()));
     });
 
     test('retorna ServerFailure genérico ante un error inesperado', () async {
@@ -807,7 +826,8 @@ void main() {
       );
     });
 
-    test('retorna ServerFailure con el mensaje del RestApiException', () async {
+    test('RestApiException no mapeada → ServerFailure genérico (el '
+        'mensaje crudo del backend no llega a la UI)', () async {
       mockConnected(true);
       when(
         () => mockRemoteDataSource.selectOrganization(tOrgId),
@@ -815,7 +835,19 @@ void main() {
 
       final result = await repository.selectOrganization(tOrgId);
 
-      expect(result, const Left(ServerFailure('Boom')));
+      expect(result, const Left(ServerFailure()));
+    });
+
+    test('ServerException (request sin respuesta, server caído) → '
+        'NetworkFailure', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.selectOrganization(tOrgId),
+      ).thenThrow(ServerException());
+
+      final result = await repository.selectOrganization(tOrgId);
+
+      expect(result, const Left(NetworkFailure()));
     });
 
     test('retorna ServerFailure genérico ante un error inesperado', () async {

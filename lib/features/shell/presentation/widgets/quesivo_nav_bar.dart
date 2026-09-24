@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/quesivo_toast.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
 
@@ -94,8 +95,9 @@ class QuesivoNavBar extends StatelessWidget {
                     // Sin quesera entrada solo el tab Inicio (i == 0)
                     // navega — el resto pide elegir quesera primero.
                     if (!enteredOrg && i != 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.chooseQueseraHint)),
+                      QuesivoToast.info(
+                        context,
+                        message: l10n.chooseQueseraHint,
                       );
                       return;
                     }

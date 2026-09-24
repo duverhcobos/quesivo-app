@@ -43,7 +43,7 @@ class AuthSuccess extends AuthState {
   List<Object> get props => [user, enteredOrg];
 }
 
-/// Estado de error. Pasa el mensaje literal para mostrar en un SnackBar.
+/// Estado de error. Pasa el mensaje literal para mostrar en un toast.
 class AuthError extends AuthState {
   final String message;
 

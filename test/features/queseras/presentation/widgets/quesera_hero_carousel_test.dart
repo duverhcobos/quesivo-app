@@ -139,31 +139,51 @@ void main() {
     expect(find.text('Hoy'), findsOneWidget);
   });
 
-  testWidgets('N orgs → PageView con dots + card "Entrar" para la no-activa', (
+  testWidgets('§64 — con org activa y N queseras: SOLO la hero, sin '
+      'PageView ni cards "Entrar" al lado', (tester) async {
+    // Default: tUser enteredOrg=true con 2 orgs — la activa no se
+    // acompaña de otras cards ni va en slide.
+    await tester.pumpWidget(buildApp(const QueseraHeroCarousel()));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QueseraHeroCard), findsOneWidget);
+    expect(find.byType(QueseraCard), findsNothing);
+    expect(find.byType(PageView), findsNothing);
+    expect(find.byType(AnimatedContainer), findsNothing);
+  });
+
+  testWidgets('selector con N orgs → PageView con dots, todas "Entrar"', (
     tester,
   ) async {
+    when(
+      () => mockAuthCubit.state,
+    ).thenReturn(const AuthSuccess(tPersonalUser));
+
     await tester.pumpWidget(buildApp(const QueseraHeroCarousel()));
     await tester.pumpAndSettle();
 
     expect(find.byType(PageView), findsOneWidget);
-    // La activa es la página 0 (hero navy); la otra es card "Entrar"
-    // y ya se construye porque asoma por el peek de viewportFraction.
-    expect(find.byType(QueseraHeroCard), findsOneWidget);
-    expect(find.byType(QueseraCard), findsOneWidget);
+    // Sin activa: todas son cards "Entrar" — no hay hero navy.
+    expect(find.byType(QueseraHeroCard), findsNothing);
+    expect(find.byType(QueseraCard), findsNWidgets(2));
     // §61 — el CTA es el círculo-flecha (el label "Entrar" va en
     // Semantics, no pinta texto).
-    expect(find.byIcon(Icons.arrow_forward_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_forward_rounded), findsNWidgets(2));
     // Un dot por página (2 orgs).
     expect(find.byType(AnimatedContainer), findsNWidgets(2));
   });
 
-  testWidgets('tap en card no-activa llama select(orgId) del cubit', (
+  testWidgets('tap en una card del selector llama select(orgId) del cubit', (
     tester,
   ) async {
+    when(
+      () => mockAuthCubit.state,
+    ).thenReturn(const AuthSuccess(tPersonalUser));
+
     await tester.pumpWidget(buildApp(const QueseraHeroCarousel()));
     await tester.pumpAndSettle();
 
-    // Swipe: la card "Entrar" asoma a la derecha pero su centro está
+    // Swipe: la segunda card asoma a la derecha pero su centro está
     // fuera del viewport — se navega a la página 1 antes del tap.
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();

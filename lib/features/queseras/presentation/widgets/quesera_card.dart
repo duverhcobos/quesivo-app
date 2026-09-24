@@ -16,7 +16,7 @@ import '../../../auth/domain/entities/organization_summary.dart';
 ///
 /// Regla de color: crema/amarillo suave = "entrá" (elección); navy =
 /// "estás adentro" (`QueseraHeroCard` con badge "Actual" + KPIs).
-class QueseraCard extends StatelessWidget {
+class QueseraCard extends StatefulWidget {
   const QueseraCard({
     super.key,
     required this.organization,
@@ -40,124 +40,142 @@ class QueseraCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<QueseraCard> createState() => _QueseraCardState();
+}
+
+class _QueseraCardState extends State<QueseraCard> {
+  /// Feedback de presión (§64): la card se comprime leve al tocar —
+  /// refuerza que TODA la card es el target, no solo el círculo-flecha.
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return Semantics(
       button: true,
-      enabled: enabled,
-      label: '$enterLabel: ${organization.name}',
-      child: Material(
-        color: AppColors.quesivoCream,
-        borderRadius: BorderRadius.circular(20),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: enabled ? onTap : null,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.quesivoYellow.withValues(alpha: 0.25),
-              ),
-            ),
-            child: Stack(
-              children: [
-                // Ondas de queso: dos bandas orgánicas curvas saliendo
-                // de la esquina inferior-izquierda (referencia §61).
-                const Positioned.fill(
-                  child: CustomPaint(painter: _CheeseWavesPainter()),
+      enabled: widget.enabled,
+      label: '${widget.enterLabel}: ${widget.organization.name}',
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1,
+        duration: reduceMotion
+            ? Duration.zero
+            : const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
+        child: Material(
+          color: AppColors.quesivoCream,
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: widget.enabled ? widget.onTap : null,
+            onHighlightChanged: (v) => setState(() => _pressed = v),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.quesivoYellow.withValues(alpha: 0.25),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              organization.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.quesivoNavy,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            // Chip de rol navy sólido + punto
-                            // amarillo — limpio, sin ícono (§62).
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.quesivoNavy,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.quesivoYellow,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    roleLabel,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.quesivoWhite,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              tagline,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                height: 1.25,
-                                color: AppColors.quesivoTextSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // CTA: círculo amarillo con flecha navy — affordance
-                      // del tap; mientras vuela el select, loader.
-                      SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: loading
-                            ? const Center(child: QuesivoLoader(size: 20))
-                            : Container(
-                                decoration: const BoxDecoration(
-                                  color: AppColors.quesivoYellow,
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 20,
+              ),
+              child: Stack(
+                children: [
+                  // Ondas de queso: dos bandas orgánicas curvas saliendo
+                  // de la esquina inferior-izquierda (referencia §61).
+                  const Positioned.fill(
+                    child: CustomPaint(painter: _CheeseWavesPainter()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.organization.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
                                   color: AppColors.quesivoNavy,
                                 ),
                               ),
-                      ),
-                    ],
+                              const SizedBox(height: 6),
+                              // Chip de rol navy sólido + punto
+                              // amarillo — limpio, sin ícono (§62).
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.quesivoNavy,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.quesivoYellow,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      widget.roleLabel,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.quesivoWhite,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                widget.tagline,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  height: 1.25,
+                                  color: AppColors.quesivoTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // CTA: círculo amarillo con flecha navy — affordance
+                        // del tap; mientras vuela el select, loader.
+                        SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: widget.loading
+                              ? const Center(child: QuesivoLoader(size: 20))
+                              : Container(
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.quesivoYellow,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 20,
+                                    color: AppColors.quesivoNavy,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

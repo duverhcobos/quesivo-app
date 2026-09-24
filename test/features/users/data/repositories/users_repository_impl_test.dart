@@ -177,17 +177,14 @@ void main() {
       expect(result, const Left(LinkedUserSuspendedFailure()));
     });
 
-    test(
-      '409 sin errorCode conocido → UsersServerFailure con el mensaje',
-      () async {
-        mockConnected(true);
-        stubThrow(RestApiException(statusCode: 409, message: 'Otro choque'));
+    test('409 sin errorCode conocido → UsersServerFailure genérico', () async {
+      mockConnected(true);
+      stubThrow(RestApiException(statusCode: 409, message: 'Otro choque'));
 
-        final result = await callCreateUser();
+      final result = await callCreateUser();
 
-        expect(result, const Left(UsersServerFailure('Otro choque')));
-      },
-    );
+      expect(result, const Left(UsersServerFailure()));
+    });
 
     test('429 → UsersRateLimitFailure', () async {
       mockConnected(true);
@@ -198,13 +195,24 @@ void main() {
       expect(result, const Left(UsersRateLimitFailure()));
     });
 
-    test('500 → UsersServerFailure con el mensaje', () async {
+    test('500 → UsersServerFailure genérico (el mensaje crudo del '
+        'backend no llega a la UI)', () async {
       mockConnected(true);
       stubThrow(RestApiException(statusCode: 500, message: 'Boom'));
 
       final result = await callCreateUser();
 
-      expect(result, const Left(UsersServerFailure('Boom')));
+      expect(result, const Left(UsersServerFailure()));
+    });
+
+    test('ServerException (request sin respuesta, server caído) → '
+        'UsersNetworkFailure', () async {
+      mockConnected(true);
+      stubThrow(ServerException());
+
+      final result = await callCreateUser();
+
+      expect(result, const Left(UsersNetworkFailure()));
     });
 
     test('excepción no-RestApi → UsersServerFailure genérico', () async {
@@ -476,13 +484,13 @@ void main() {
       expect(result, const Left(UsersRateLimitFailure()));
     });
 
-    test('500 → UsersServerFailure con el mensaje', () async {
+    test('500 → UsersServerFailure genérico', () async {
       mockConnected(true);
       stubGetUsersThrow(RestApiException(statusCode: 500, message: 'Boom'));
 
       final result = await callGetUsers();
 
-      expect(result, const Left(UsersServerFailure('Boom')));
+      expect(result, const Left(UsersServerFailure()));
     });
 
     test('excepción no-RestApi → UsersServerFailure genérico', () async {
@@ -556,19 +564,16 @@ void main() {
       });
     }
 
-    test(
-      '400 sin errorCode conocido → UsersServerFailure con el mensaje',
-      () async {
-        mockConnected(true);
-        stubStatusThrow(
-          RestApiException(statusCode: 400, message: 'Validación rara'),
-        );
+    test('400 sin errorCode conocido → UsersServerFailure genérico', () async {
+      mockConnected(true);
+      stubStatusThrow(
+        RestApiException(statusCode: 400, message: 'Validación rara'),
+      );
 
-        final result = await callUpdateStatus();
+      final result = await callUpdateStatus();
 
-        expect(result, const Left(UsersServerFailure('Validación rara')));
-      },
-    );
+      expect(result, const Left(UsersServerFailure()));
+    });
 
     test(
       '404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure (card stale)',
@@ -696,7 +701,7 @@ void main() {
       });
 
       test(
-        '400 sin errorCode conocido → UsersServerFailure con el mensaje',
+        '400 sin errorCode conocido → UsersServerFailure genérico',
         () async {
           mockConnected(true);
           stubPasswordThrow(
@@ -705,7 +710,7 @@ void main() {
 
           final result = await callUpdatePassword();
 
-          expect(result, const Left(UsersServerFailure('Validación rara')));
+          expect(result, const Left(UsersServerFailure()));
         },
       );
 
@@ -797,19 +802,16 @@ void main() {
       });
     }
 
-    test(
-      '400 sin errorCode conocido → UsersServerFailure con el mensaje',
-      () async {
-        mockConnected(true);
-        stubRoleThrow(
-          RestApiException(statusCode: 400, message: 'Validación rara'),
-        );
+    test('400 sin errorCode conocido → UsersServerFailure genérico', () async {
+      mockConnected(true);
+      stubRoleThrow(
+        RestApiException(statusCode: 400, message: 'Validación rara'),
+      );
 
-        final result = await callUpdateRole();
+      final result = await callUpdateRole();
 
-        expect(result, const Left(UsersServerFailure('Validación rara')));
-      },
-    );
+      expect(result, const Left(UsersServerFailure()));
+    });
 
     test(
       '404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure (card stale)',

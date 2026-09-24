@@ -7,6 +7,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_backdrop.dart';
+import '../../../../core/widgets/quesivo_toast.dart';
 import '../cubit/reset_password_cubit.dart';
 import '../cubit/reset_password_state.dart';
 import '../widgets/auth_heading.dart';
@@ -52,18 +53,14 @@ class _ResetPasswordView extends StatelessWidget {
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             if (state.status.isFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage ?? l10n.genericAuthError),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
+              QuesivoToast.error(
+                context,
+                message: state.errorMessage ?? l10n.genericAuthError,
               );
             } else if (state.status.isSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.passwordUpdatedSuccess),
-                  backgroundColor: AppColors.quesivoSuccess,
-                ),
+              QuesivoToast.success(
+                context,
+                message: l10n.passwordUpdatedSuccess,
               );
               // Spec destinations.success → login (reemplaza la pila:
               // no se puede "volver" al formulario de reset).

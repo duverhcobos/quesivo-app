@@ -79,7 +79,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return Left(ServerFailure(e.message));
+      return Left(_mapUnmappedError(e));
     } catch (e, stackTrace) {
       logger.error(
         'Error inesperado durante el login',
@@ -139,7 +139,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return Left(ServerFailure(e.message));
+      return Left(_mapUnmappedError(e));
     } catch (e, stackTrace) {
       logger.error(
         'Error inesperado durante el registro',
@@ -303,7 +303,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return Left(ServerFailure(e.message));
+      return Left(_mapUnmappedError(e));
     } catch (e, stackTrace) {
       logger.error(
         'Error inesperado al seleccionar organización',
@@ -389,7 +389,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return Left(ServerFailure(e.message));
+      return Left(_mapUnmappedError(e));
     } catch (e, stackTrace) {
       logger.error(
         'Error inesperado al restablecer contraseña',
@@ -399,4 +399,12 @@ class AuthRepositoryImpl implements IAuthRepository {
       return const Left(ServerFailure('Error inesperado de red'));
     }
   }
+
+  /// El mensaje crudo del backend nunca llega a la UI — es técnico y
+  /// en inglés ('Internal server error'). `ServerException` = request
+  /// sin respuesta (server caído, timeout, body ilegible) → "no se
+  /// pudo conectar"; cualquier otro status no mapeado → genérico
+  /// amigable. El detalle real queda en el logger.
+  AuthFailure _mapUnmappedError(RestApiException e) =>
+      e is ServerException ? const NetworkFailure() : const ServerFailure();
 }
