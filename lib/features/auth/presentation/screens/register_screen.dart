@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_backdrop.dart';
 import '../../../../core/widgets/quesivo_toast.dart';
@@ -73,9 +75,12 @@ class _RegisterView extends StatelessWidget {
                     message: state.errorMessage ?? l10n.genericAuthError,
                   );
                 } else if (state.status.isSuccess) {
-                  // Auto-login: la sesión ya quedó guardada por el repo;
-                  // el cubit global confirma y AuthGuard rutea a /home.
-                  context.read<AuthCubit>().refreshSession();
+                  // Sin sesión (backend 069): la cuenta queda pendiente
+                  // de verificación — a "revisá tu correo" con el email
+                  // del form para el botón de reenvío.
+                  context.go(
+                    '${AuthGuard.checkEmailRoute}?email=${Uri.encodeComponent(state.email.value)}',
+                  );
                 }
               },
             ),

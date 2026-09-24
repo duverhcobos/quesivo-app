@@ -60,16 +60,19 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
   }
 
   @override
-  Future<UserModel> register({
+  Future<void> register({
     required String organizationName,
     required String name,
     required String email,
     required String password,
   }) async {
-    // Backend real en todos los entornos (propuesta 36) — contrato
-    // documentacion/api/auth/001-post-register.md: organización + usuario
-    // admin en una transacción atómica.
-    final responseData = await networkService.post<Map<String, dynamic>>(
+    // Backend real en todos los entornos — contrato
+    // documentacion/api/auth/001-post-register.md (propuesta backend
+    // 069): 201 con body vacío, la cuenta queda pending_verification.
+    // deviceId/deviceName se siguen enviando: el DTO los acepta (los
+    // ignora — no hay sesión que etiquetar) y quitarlos rompería contra
+    // un backend viejo que aún los exige.
+    await networkService.post<void>(
       '/auth/register',
       data: {
         'organizationName': organizationName,
@@ -80,7 +83,6 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
         'deviceName': await deviceInfoService.getDeviceName(),
       },
     );
-    return UserModel.fromJson(responseData);
   }
 
   @override
@@ -140,5 +142,30 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
       data: {'organizationId': organizationId},
     );
     return OrganizationSessionModel.fromJson(responseData);
+  }
+
+  @override
+  Future<UserModel> verifyEmail(String token) async {
+    // Contrato real (documentacion/api/auth/015-post-verify-email.md):
+    // la sesión emitida es PERSONAL (sin org) — igual que login.
+    final responseData = await networkService.post<Map<String, dynamic>>(
+      '/auth/verify-email',
+      data: {
+        'token': token,
+        'deviceId': await deviceInfoService.getDeviceId(),
+        'deviceName': await deviceInfoService.getDeviceName(),
+      },
+    );
+    return UserModel.fromJson(responseData);
+  }
+
+  @override
+  Future<void> resendVerification(String email) async {
+    // Contrato real (documentacion/api/auth/016-post-resend-verification.md):
+    // siempre 200 — anti-enumeración.
+    await networkService.post<void>(
+      '/auth/resend-verification',
+      data: {'email': email},
+    );
   }
 }

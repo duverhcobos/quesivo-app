@@ -16,12 +16,17 @@ class LoginState extends Equatable {
   final String? errorMessage;
   final bool isValid; // Propiedad centralizada matemáticamente pura
 
+  /// Credenciales válidas pero correo sin verificar (backend 069) — la
+  /// pantalla navega a /check-email en vez de mostrar un toast.
+  final bool emailNotVerified;
+
   const LoginState({
     this.email = const Email.pure(),
     this.password = const Password.pure(),
     this.status = FormzSubmissionStatus.initial,
     this.errorMessage,
     this.isValid = false,
+    this.emailNotVerified = false,
   });
 
   LoginState copyWith({
@@ -30,6 +35,7 @@ class LoginState extends Equatable {
     FormzSubmissionStatus? status,
     String? errorMessage,
     bool? isValid,
+    bool? emailNotVerified,
   }) {
     return LoginState(
       email: email ?? this.email,
@@ -37,9 +43,17 @@ class LoginState extends Equatable {
       status: status ?? this.status,
       errorMessage: errorMessage, // Notice: No falla en nullable re-asignación
       isValid: isValid ?? this.isValid,
+      emailNotVerified: emailNotVerified ?? this.emailNotVerified,
     );
   }
 
   @override
-  List<Object?> get props => [email, password, status, errorMessage, isValid];
+  List<Object?> get props => [
+    email,
+    password,
+    status,
+    errorMessage,
+    isValid,
+    emailNotVerified,
+  ];
 }

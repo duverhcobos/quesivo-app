@@ -33,6 +33,8 @@ class AuthGuard {
   static const String registerRoute = '/register';
   static const String forgotPasswordRoute = '/forgot-password';
   static const String resetPasswordRoute = '/reset-password';
+  static const String checkEmailRoute = '/check-email';
+  static const String verifyEmailRoute = '/verify-email';
   static const String onboardingRoute = '/onboarding';
 
   // Rutas de los 17 módulos del drawer (propuesta §26-modulos-placeholder,
@@ -70,6 +72,8 @@ class AuthGuard {
     registerRoute,
     forgotPasswordRoute,
     resetPasswordRoute,
+    checkEmailRoute,
+    verifyEmailRoute,
     onboardingRoute,
   ];
 

@@ -181,6 +181,31 @@ void main() {
       },
     );
 
+    test('retorna EmailNotVerifiedFailure ante 403 con errorCode '
+        'EMAIL_NOT_VERIFIED (backend 069 — la pantalla navega a '
+        '/check-email con este flag)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.loginWithEmailPassword(
+          email: tEmail,
+          password: tPassword,
+        ),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 403,
+          message: 'Email not verified',
+          errorCode: 'EMAIL_NOT_VERIFIED',
+        ),
+      );
+
+      final result = await repository.loginWithEmailPassword(
+        email: tEmail,
+        password: tPassword,
+      );
+
+      expect(result, const Left(EmailNotVerifiedFailure()));
+    });
+
     test('retorna TooManyAttemptsFailure ante RestApiException 429', () async {
       mockConnected(true);
       when(
@@ -790,7 +815,8 @@ void main() {
       );
     });
 
-    test('retorna Right(user) y persiste la sesión en éxito', () async {
+    test('retorna Right(null) y NO guarda sesión en éxito (backend 069: '
+        'la cuenta queda pending_verification)', () async {
       mockConnected(true);
       when(
         () => mockRemoteDataSource.register(
@@ -799,9 +825,6 @@ void main() {
           email: tEmail,
           password: tPassword,
         ),
-      ).thenAnswer((_) async => tUserModel);
-      when(
-        () => mockLocalDataSource.saveUserSession(tUserModel),
       ).thenAnswer((_) async {});
 
       final result = await repository.register(
@@ -811,8 +834,8 @@ void main() {
         password: tPassword,
       );
 
-      expect(result, const Right(tUserModel));
-      verify(() => mockLocalDataSource.saveUserSession(tUserModel)).called(1);
+      expect(result, const Right(null));
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
     });
 
     test(
@@ -839,6 +862,132 @@ void main() {
         verifyNever(() => mockLocalDataSource.saveUserSession(any()));
       },
     );
+  });
+
+  group('verifyEmail', () {
+    const tToken = 'verify-token-abc';
+
+    test('retorna NetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await repository.verifyEmail(token: tToken);
+
+      expect(result, const Left(NetworkFailure()));
+      verifyNever(() => mockRemoteDataSource.verifyEmail(any()));
+    });
+
+    test('retorna Right(user) y persiste la sesión en éxito '
+        '(auto-login — backend 069)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.verifyEmail(tToken),
+      ).thenAnswer((_) async => tUserModel);
+      when(
+        () => mockLocalDataSource.saveUserSession(tUserModel),
+      ).thenAnswer((_) async {});
+
+      final result = await repository.verifyEmail(token: tToken);
+
+      expect(result, const Right(tUserModel));
+      verify(() => mockLocalDataSource.saveUserSession(tUserModel)).called(1);
+    });
+
+    test('400 + INVALID_OR_EXPIRED_TOKEN → InvalidOrExpiredTokenFailure '
+        '(link usado/vencido → pedir uno nuevo)', () async {
+      mockConnected(true);
+      when(() => mockRemoteDataSource.verifyEmail(tToken)).thenThrow(
+        RestApiException(
+          statusCode: 400,
+          message: 'Invalid token',
+          errorCode: 'INVALID_OR_EXPIRED_TOKEN',
+        ),
+      );
+
+      final result = await repository.verifyEmail(token: tToken);
+
+      expect(result, const Left(InvalidOrExpiredTokenFailure()));
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
+    });
+
+    test('RestApiException no mapeada → ServerFailure genérico', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.verifyEmail(tToken),
+      ).thenThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await repository.verifyEmail(token: tToken);
+
+      expect(result, const Left(ServerFailure()));
+    });
+
+    test('retorna ServerFailure ante una excepción inesperada', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.verifyEmail(tToken),
+      ).thenThrow(Exception('cualquier cosa'));
+
+      final result = await repository.verifyEmail(token: tToken);
+
+      expect(result, const Left(ServerFailure('Error inesperado de red')));
+    });
+  });
+
+  group('resendVerification', () {
+    test('retorna NetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await repository.resendVerification(tEmail);
+
+      expect(result, const Left(NetworkFailure()));
+      verifyNever(() => mockRemoteDataSource.resendVerification(any()));
+    });
+
+    test(
+      'retorna Right(null) en éxito (siempre 200 — anti-enumeración)',
+      () async {
+        mockConnected(true);
+        when(
+          () => mockRemoteDataSource.resendVerification(tEmail),
+        ).thenAnswer((_) async {});
+
+        final result = await repository.resendVerification(tEmail);
+
+        expect(result, const Right(null));
+      },
+    );
+
+    test('retorna TooManyAttemptsFailure ante RestApiException 429', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resendVerification(tEmail),
+      ).thenThrow(RestApiException(statusCode: 429, message: 'Too Many'));
+
+      final result = await repository.resendVerification(tEmail);
+
+      expect(result, const Left(TooManyAttemptsFailure()));
+    });
+
+    test('RestApiException no mapeada → ServerFailure genérico', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resendVerification(tEmail),
+      ).thenThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await repository.resendVerification(tEmail);
+
+      expect(result, const Left(ServerFailure()));
+    });
+
+    test('retorna ServerFailure ante una excepción inesperada', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resendVerification(tEmail),
+      ).thenThrow(Exception('falló el reenvío'));
+
+      final result = await repository.resendVerification(tEmail);
+
+      expect(result, const Left(ServerFailure('Error inesperado de red')));
+    });
   });
 
   group('selectOrganization (§55 — doc 006)', () {

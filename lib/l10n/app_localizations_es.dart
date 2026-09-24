@@ -607,4 +607,32 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get queseraCardTagline => 'Gestioná tu producción, inventario y más.';
+
+  @override
+  String get verifyEmailSentDescription =>
+      'Te enviamos un enlace para verificar tu correo y activar tu cuenta.';
+
+  @override
+  String get resendVerificationButton => 'Reenviar correo';
+
+  @override
+  String get resendVerificationSuccessTitle => 'Correo reenviado';
+
+  @override
+  String get resendVerificationSuccessDescription =>
+      'Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.';
+
+  @override
+  String get verifyEmailVerifyingTitle => 'Verificando tu correo';
+
+  @override
+  String get verifyEmailVerifyingDescription =>
+      'Un momento, estamos confirmando tu cuenta.';
+
+  @override
+  String get verifyEmailInvalidTitle => 'Este enlace ya no es válido';
+
+  @override
+  String get verifyEmailInvalidDescription =>
+      'El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.';
 }

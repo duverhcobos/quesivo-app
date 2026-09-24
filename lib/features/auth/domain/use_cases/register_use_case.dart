@@ -1,7 +1,6 @@
 // lib/features/auth/domain/use_cases/register_use_case.dart
 import 'package:dartz/dartz.dart';
 import 'package:formz/formz.dart';
-import '../entities/user.dart';
 import '../failures/auth_failure.dart';
 import '../repositories/i_auth_repository.dart';
 import '../value_objects/email.dart';
@@ -19,7 +18,7 @@ class RegisterUseCase {
 
   const RegisterUseCase(this.repository);
 
-  Future<Either<AuthFailure, User>> call({
+  Future<Either<AuthFailure, void>> call({
     required String organizationName,
     required String name,
     required String email,

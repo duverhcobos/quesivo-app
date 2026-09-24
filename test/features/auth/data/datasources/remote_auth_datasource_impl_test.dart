@@ -23,6 +23,189 @@ void main() {
     );
   });
 
+  group('register (propuesta 67 — doc 001)', () {
+    const tOrgName = 'Quesera Los Alpes';
+    const tName = 'María Quesera';
+    const tEmail = 'test@test.com';
+    const tPassword = 'NuevaPass1';
+
+    setUp(() {
+      when(
+        () => mockDeviceInfoService.getDeviceId(),
+      ).thenAnswer((_) async => 'device-1');
+      when(
+        () => mockDeviceInfoService.getDeviceName(),
+      ).thenAnswer((_) async => 'Pixel 8');
+    });
+
+    test('POSTea a /auth/register con deviceId/deviceName y NO parsea '
+        'el body (201 vacío — backend 069: la cuenta queda '
+        'pending_verification)', () async {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/register',
+          data: {
+            'organizationName': tOrgName,
+            'name': tName,
+            'email': tEmail,
+            'password': tPassword,
+            'deviceId': 'device-1',
+            'deviceName': 'Pixel 8',
+          },
+        ),
+      ).thenAnswer((_) async {});
+
+      await dataSource.register(
+        organizationName: tOrgName,
+        name: tName,
+        email: tEmail,
+        password: tPassword,
+      );
+
+      verify(
+        () => mockNetworkService.post<void>(
+          '/auth/register',
+          data: {
+            'organizationName': tOrgName,
+            'name': tName,
+            'email': tEmail,
+            'password': tPassword,
+            'deviceId': 'device-1',
+            'deviceName': 'Pixel 8',
+          },
+        ),
+      ).called(1);
+      // Contrato nuevo: nunca se llama a UserModel.fromJson sobre la
+      // respuesta — el método devuelve void.
+      verifyNever(
+        () => mockNetworkService.post<Map<String, dynamic>>(
+          any(),
+          data: any(named: 'data'),
+        ),
+      );
+    });
+
+    test('propaga la excepción del network service (409 email en uso)', () {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/register',
+          data: any(named: 'data'),
+        ),
+      ).thenThrow(Exception('409'));
+
+      expect(
+        () => dataSource.register(
+          organizationName: tOrgName,
+          name: tName,
+          email: tEmail,
+          password: tPassword,
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('verifyEmail (propuesta 67 — doc 015)', () {
+    const tToken = 'verify-token-abc';
+    const tResponse = {
+      'id': '1',
+      'email': 'test@test.com',
+      'name': 'John Doe',
+      'accessToken': 'token-personal',
+      'refreshToken': 'refresh-personal',
+    };
+
+    setUp(() {
+      when(
+        () => mockDeviceInfoService.getDeviceId(),
+      ).thenAnswer((_) async => 'device-1');
+      when(
+        () => mockDeviceInfoService.getDeviceName(),
+      ).thenAnswer((_) async => 'Pixel 8');
+    });
+
+    test(
+      'POSTea a /auth/verify-email con {token, deviceId, deviceName} '
+      'y devuelve el UserModel (auto-login — mismo shape que login)',
+      () async {
+        when(
+          () => mockNetworkService.post<Map<String, dynamic>>(
+            '/auth/verify-email',
+            data: {
+              'token': tToken,
+              'deviceId': 'device-1',
+              'deviceName': 'Pixel 8',
+            },
+          ),
+        ).thenAnswer((_) async => tResponse);
+
+        final user = await dataSource.verifyEmail(tToken);
+
+        expect(user.id, '1');
+        expect(user.email, 'test@test.com');
+        expect(user.token, 'token-personal');
+        expect(user.refreshToken, 'refresh-personal');
+        verify(
+          () => mockNetworkService.post<Map<String, dynamic>>(
+            '/auth/verify-email',
+            data: {
+              'token': tToken,
+              'deviceId': 'device-1',
+              'deviceName': 'Pixel 8',
+            },
+          ),
+        ).called(1);
+      },
+    );
+
+    test('propaga la excepción del network service (400 token inválido)', () {
+      when(
+        () => mockNetworkService.post<Map<String, dynamic>>(
+          '/auth/verify-email',
+          data: any(named: 'data'),
+        ),
+      ).thenThrow(Exception('400'));
+
+      expect(() => dataSource.verifyEmail(tToken), throwsA(isA<Exception>()));
+    });
+  });
+
+  group('resendVerification (propuesta 67 — doc 016)', () {
+    const tEmail = 'test@test.com';
+
+    test('POSTea a /auth/resend-verification con {email}', () async {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/resend-verification',
+          data: {'email': tEmail},
+        ),
+      ).thenAnswer((_) async {});
+
+      await dataSource.resendVerification(tEmail);
+
+      verify(
+        () => mockNetworkService.post<void>(
+          '/auth/resend-verification',
+          data: {'email': tEmail},
+        ),
+      ).called(1);
+    });
+
+    test('propaga la excepción del network service', () {
+      when(
+        () => mockNetworkService.post<void>(
+          '/auth/resend-verification',
+          data: {'email': tEmail},
+        ),
+      ).thenThrow(Exception('429'));
+
+      expect(
+        () => dataSource.resendVerification(tEmail),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
   group('selectOrganization (§55 — doc 006)', () {
     const tOrgId = 'org-1';
     const tResponse = {

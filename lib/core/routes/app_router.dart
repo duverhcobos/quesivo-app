@@ -3,14 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/cubit/check_email_cubit.dart';
 import '../../features/auth/presentation/cubit/forgot_password_cubit.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/presentation/cubit/register_cubit.dart';
 import '../../features/auth/presentation/cubit/reset_password_cubit.dart';
+import '../../features/auth/presentation/cubit/verify_email_cubit.dart';
+import '../../features/auth/presentation/screens/check_email_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
+import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/data/datasources/interfaces/i_onboarding_status_store.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -108,6 +112,34 @@ class AppRouter {
           child: ResetPasswordScreen(
             cubit: locator<ResetPasswordCubit>(
               param1: state.uri.queryParameters['token'] ?? '',
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AuthGuard.checkEmailRoute,
+        pageBuilder: (context, state) => CustomTransitions.fade(
+          context: context,
+          state: state,
+          // "Revisá tu correo" — el email llega por query param
+          // (register/login/deep link fallido).
+          child: CheckEmailScreen(
+            cubit: locator<CheckEmailCubit>(
+              param1: state.uri.queryParameters['email'] ?? '',
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AuthGuard.verifyEmailRoute,
+        pageBuilder: (context, state) => CustomTransitions.slideUp(
+          context: context,
+          state: state,
+          // Token + email del deep link `quesivo://verify-email?…`.
+          child: VerifyEmailScreen(
+            cubit: locator<VerifyEmailCubit>(
+              param1: state.uri.queryParameters['token'] ?? '',
+              param2: state.uri.queryParameters['email'] ?? '',
             ),
           ),
         ),

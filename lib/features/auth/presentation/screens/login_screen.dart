@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../../../core/routes/auth_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_backdrop.dart';
 import '../../../../core/widgets/quesivo_toast.dart';
@@ -66,10 +68,18 @@ class _LoginView extends StatelessWidget {
                   previous.status != current.status,
               listener: (context, state) {
                 if (state.status.isFailure) {
-                  QuesivoToast.error(
-                    context,
-                    message: state.errorMessage ?? l10n.genericAuthError,
-                  );
+                  if (state.emailNotVerified) {
+                    // Correo sin verificar (backend 069): a "revisá tu
+                    // correo" con el email tipeado — no un toast.
+                    context.go(
+                      '${AuthGuard.checkEmailRoute}?email=${Uri.encodeComponent(state.email.value)}',
+                    );
+                  } else {
+                    QuesivoToast.error(
+                      context,
+                      message: state.errorMessage ?? l10n.genericAuthError,
+                    );
+                  }
                 } else if (state.status.isSuccess) {
                   context.read<AuthCubit>().refreshSession();
                 }

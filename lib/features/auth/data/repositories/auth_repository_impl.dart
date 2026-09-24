@@ -69,6 +69,11 @@ class AuthRepositoryImpl implements IAuthRepository {
         if (e.errorCode == 'ROLE_NOT_ALLOWED') {
           return const Left(RoleNotAllowedFailure());
         }
+        // Credenciales válidas pero correo sin verificar (backend 069)
+        // — la pantalla de login navega a /check-email con este flag.
+        if (e.errorCode == 'EMAIL_NOT_VERIFIED') {
+          return const Left(EmailNotVerifiedFailure());
+        }
         return const Left(AccountSuspendedFailure());
       }
       if (e.statusCode == 429) {
@@ -110,7 +115,7 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
-  Future<Either<AuthFailure, User>> register({
+  Future<Either<AuthFailure, void>> register({
     required String organizationName,
     required String name,
     required String email,
@@ -121,15 +126,15 @@ class AuthRepositoryImpl implements IAuthRepository {
     }
 
     try {
-      final userModel = await remoteDataSource.register(
+      // Sin sesión acá (backend 069): la cuenta queda pendiente de
+      // verificación — la pantalla navega a /check-email.
+      await remoteDataSource.register(
         organizationName: organizationName,
         name: name,
         email: email,
         password: password,
       );
-      // Auto-login: el registro exitoso guarda sesión igual que el login.
-      await localDataSource.saveUserSession(userModel);
-      return Right(userModel);
+      return const Right(null);
     } on RestApiException catch (e, stackTrace) {
       if (e.statusCode == 409) {
         return const Left(EmailAlreadyInUseFailure());
@@ -420,6 +425,75 @@ class AuthRepositoryImpl implements IAuthRepository {
     } catch (e, stackTrace) {
       logger.error(
         'Error inesperado al restablecer contraseña',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(ServerFailure('Error inesperado de red'));
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, User>> verifyEmail({required String token}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      // Auto-login (backend 069): la sesión emitida se guarda igual que
+      // en login — el listener de la pantalla llama refreshSession() y
+      // el AuthGuard rutea a /home (token personal, selector de quesera).
+      final userModel = await remoteDataSource.verifyEmail(token);
+      await localDataSource.saveUserSession(userModel);
+      return Right(userModel);
+    } on RestApiException catch (e, stackTrace) {
+      if (e.statusCode == 400 && e.errorCode == 'INVALID_OR_EXPIRED_TOKEN') {
+        return const Left(InvalidOrExpiredTokenFailure());
+      }
+      logger.error(
+        'Error de API al verificar correo',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Left(_mapUnmappedError(e));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al verificar correo',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(ServerFailure('Error inesperado de red'));
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, void>> resendVerification(String email) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      await remoteDataSource.resendVerification(email);
+      return const Right(null);
+    } on RestApiException catch (e, stackTrace) {
+      // Siempre 200 salvo fallo real de infra o rate limit (anti-
+      // enumeración, backend 069 — mismo criterio que forgotPassword).
+      if (e.statusCode == 429) {
+        logger.warning(
+          'Rate limit alcanzado en resend-verification',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return const Left(TooManyAttemptsFailure());
+      }
+      logger.error(
+        'Error de API al reenviar verificación',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Left(_mapUnmappedError(e));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al reenviar verificación',
         error: e,
         stackTrace: stackTrace,
       );

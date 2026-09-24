@@ -58,7 +58,6 @@
   "moduleProducerPayments": "Producer payments",
   "moduleExpenses": "Expenses",
   "moduleComingSoon": "Coming soon",
-
   "onboardingSkip": "Skip",
   "onboardingNext": "Next",
   "onboardingStart": "Get Started",
@@ -256,5 +255,13 @@
   "queseraEnterCta": "Enter",
   "queseraActiveBadge": "Current",
   "noQueserasAvailable": "No factories available.",
-  "queseraCardTagline": "Manage your production, inventory and more."
+  "queseraCardTagline": "Manage your production, inventory and more.",
+  "verifyEmailSentDescription": "We sent you a link to verify your email and activate your account.",
+  "resendVerificationButton": "Resend email",
+  "resendVerificationSuccessTitle": "Email resent",
+  "resendVerificationSuccessDescription": "We sent you a new link. Check your inbox.",
+  "verifyEmailVerifyingTitle": "Verifying your email",
+  "verifyEmailVerifyingDescription": "One moment, we are confirming your account.",
+  "verifyEmailInvalidTitle": "This link is no longer valid",
+  "verifyEmailInvalidDescription": "The verification link expired or was already used. You can request a new one."
 }

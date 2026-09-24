@@ -1173,6 +1173,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Gestioná tu producción, inventario y más.'**
   String get queseraCardTagline;
+
+  /// No description provided for @verifyEmailSentDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Te enviamos un enlace para verificar tu correo y activar tu cuenta.'**
+  String get verifyEmailSentDescription;
+
+  /// No description provided for @resendVerificationButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Reenviar correo'**
+  String get resendVerificationButton;
+
+  /// No description provided for @resendVerificationSuccessTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo reenviado'**
+  String get resendVerificationSuccessTitle;
+
+  /// No description provided for @resendVerificationSuccessDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.'**
+  String get resendVerificationSuccessDescription;
+
+  /// No description provided for @verifyEmailVerifyingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificando tu correo'**
+  String get verifyEmailVerifyingTitle;
+
+  /// No description provided for @verifyEmailVerifyingDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Un momento, estamos confirmando tu cuenta.'**
+  String get verifyEmailVerifyingDescription;
+
+  /// No description provided for @verifyEmailInvalidTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Este enlace ya no es válido'**
+  String get verifyEmailInvalidTitle;
+
+  /// No description provided for @verifyEmailInvalidDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.'**
+  String get verifyEmailInvalidDescription;
 }
 
 class _AppLocalizationsDelegate

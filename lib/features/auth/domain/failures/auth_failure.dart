@@ -44,6 +44,15 @@ class RoleNotAllowedFailure extends AuthFailure {
       );
 }
 
+/// La cuenta existe y el password es correcto, pero el correo todavía
+/// no fue verificado (HTTP 403 + errorCode `EMAIL_NOT_VERIFIED` —
+/// backend propuesta 069). La UI no muestra este mensaje en toast: lo
+/// usa para navegar a `/check-email`, donde está el botón de reenvío.
+class EmailNotVerifiedFailure extends AuthFailure {
+  const EmailNotVerifiedFailure()
+    : super('Tu correo todavía no está verificado. Revisá tu bandeja.');
+}
+
 /// Ocurre cuando el rate limit del backend rechaza el intento (HTTP 429).
 class TooManyAttemptsFailure extends AuthFailure {
   const TooManyAttemptsFailure()

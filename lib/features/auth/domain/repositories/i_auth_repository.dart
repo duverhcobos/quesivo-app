@@ -16,10 +16,10 @@ abstract class IAuthRepository {
 
   Future<Either<AuthFailure, User>> loginWithGoogle();
 
-  /// Crea una organización + cuenta admin (nombre de quesera, nombre de
-  /// usuario, email, contraseña) y devuelve el usuario con su sesión
-  /// (access/refresh token) — el backend hace auto-login.
-  Future<Either<AuthFailure, User>> register({
+  /// Crea una organización + cuenta admin — el usuario queda
+  /// `pending_verification` (backend 069): NO hay sesión acá, la primera
+  /// la emite `verifyEmail` cuando el link del correo se confirma.
+  Future<Either<AuthFailure, void>> register({
     required String organizationName,
     required String name,
     required String email,
@@ -35,6 +35,15 @@ abstract class IAuthRepository {
     required String token,
     required String password,
   });
+
+  /// Verifica el correo con el `token` del deep link
+  /// (`quesivo://verify-email?token=…`). Éxito = sesión guardada +
+  /// User con token personal (auto-login — backend 069).
+  Future<Either<AuthFailure, User>> verifyEmail({required String token});
+
+  /// Reenvía el correo de verificación. Siempre 200 server-side —
+  /// nunca revela si el email existe ni si ya está verificado.
+  Future<Either<AuthFailure, void>> resendVerification(String email);
 
   /// Verifica si hay una sesión activa guardada localmente
   Future<Either<AuthFailure, User>> checkAuthStatus();

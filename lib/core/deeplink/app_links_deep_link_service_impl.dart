@@ -61,7 +61,11 @@ class AppLinksDeepLinkServiceImpl implements IDeepLinkService {
     // ruta que no reconocemos se ignora (fail-safe, no navegamos a ciegas).
     // Se loguea solo el path normalizado, NUNCA el query completo: ahí
     // viaja el token y en release estos logs van a Crashlytics.
-    if (path != AuthGuard.resetPasswordRoute) {
+    const knownRoutes = {
+      AuthGuard.resetPasswordRoute,
+      AuthGuard.verifyEmailRoute,
+    };
+    if (!knownRoutes.contains(path)) {
       _logger.warning('Deep link con ruta desconocida ignorado: $path');
       return;
     }

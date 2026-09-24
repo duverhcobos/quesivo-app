@@ -40,13 +40,17 @@ import '../../features/auth/domain/use_cases/check_auth_status_use_case.dart';
 import '../../features/auth/domain/use_cases/logout_use_case.dart';
 import '../../features/auth/domain/use_cases/forgot_password_use_case.dart';
 import '../../features/auth/domain/use_cases/register_use_case.dart';
+import '../../features/auth/domain/use_cases/resend_verification_use_case.dart';
 import '../../features/auth/domain/use_cases/reset_password_use_case.dart';
 import '../../features/auth/domain/use_cases/select_organization_use_case.dart';
+import '../../features/auth/domain/use_cases/verify_email_use_case.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/cubit/check_email_cubit.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/presentation/cubit/forgot_password_cubit.dart';
 import '../../features/auth/presentation/cubit/register_cubit.dart';
 import '../../features/auth/presentation/cubit/reset_password_cubit.dart';
+import '../../features/auth/presentation/cubit/verify_email_cubit.dart';
 import '../../features/users/data/datasources/implementations/remote_users_datasource_impl.dart';
 import '../../features/users/data/datasources/interfaces/i_remote_users_datasource.dart';
 import '../../features/users/data/repositories/users_repository_impl.dart';
@@ -184,6 +188,12 @@ void setupDI() {
     () => RegisterUseCase(locator<IAuthRepository>()),
   );
   locator.registerLazySingleton(
+    () => VerifyEmailUseCase(locator<IAuthRepository>()),
+  );
+  locator.registerLazySingleton(
+    () => ResendVerificationUseCase(locator<IAuthRepository>()),
+  );
+  locator.registerLazySingleton(
     () => SelectOrganizationUseCase(locator<IAuthRepository>()),
   );
 
@@ -212,6 +222,18 @@ void setupDI() {
         ResetPasswordCubit(locator<ResetPasswordUseCase>(), token: token),
   );
   locator.registerFactory(() => RegisterCubit(locator<RegisterUseCase>()));
+  locator.registerFactoryParam<CheckEmailCubit, String, void>(
+    (email, _) =>
+        CheckEmailCubit(locator<ResendVerificationUseCase>(), email: email),
+  );
+  locator.registerFactoryParam<VerifyEmailCubit, String, String>(
+    (token, email) => VerifyEmailCubit(
+      locator<VerifyEmailUseCase>(),
+      locator<ResendVerificationUseCase>(),
+      token: token,
+      email: email,
+    ),
+  );
 
   // Capa personal (§55/§56): cubit del tap en card de quesera —
   // factory, nace y muere con el QueseraHeroCarousel del Inicio.

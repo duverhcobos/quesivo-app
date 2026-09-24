@@ -87,6 +87,51 @@ void main() {
       verify(() => mockRouter.go('/reset-password')).called(1);
     });
 
+    test('quesivo://verify-email?token=x&email=y navega a '
+        '/verify-email?token=x&email=y (propuesta 67)', () async {
+      linkStream.add(
+        Uri.parse('quesivo://verify-email?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/verify-email?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
+    test('quesivo:/verify-email (una sola barra) normaliza igual', () async {
+      linkStream.add(
+        Uri.parse('quesivo:/verify-email?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/verify-email?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
+    test('quesivo:verify-email (sin barras) normaliza igual', () async {
+      linkStream.add(
+        Uri.parse('quesivo:verify-email?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/verify-email?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
+    test('quesivo://verify-email/ (trailing slash) normaliza igual', () async {
+      linkStream.add(
+        Uri.parse('quesivo://verify-email/?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/verify-email?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
     test('esquema distinto a quesivo se ignora por completo', () async {
       linkStream.add(Uri.parse('https://reset-password?token=abc123'));
       await pumpEventQueue();

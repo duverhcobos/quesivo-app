@@ -17,7 +17,10 @@ abstract class IRemoteAuthDataSource {
   Future<UserModel> loginWithGoogle();
 
   /// Registra organización + usuario nuevo contra `POST /auth/register`.
-  Future<UserModel> register({
+  /// Desde la propuesta backend 069 el 201 viene con body vacío: la
+  /// cuenta nace `pending_verification` y la sesión la emite
+  /// `verifyEmail` al confirmar el correo.
+  Future<void> register({
     required String organizationName,
     required String name,
     required String email,
@@ -48,4 +51,13 @@ abstract class IRemoteAuthDataSource {
   /// consume esa sesión; con token org-scoped la sesión anterior queda
   /// viva (multi-org legítimo). 401 = no sos miembro activo de esa org.
   Future<OrganizationSessionModel> selectOrganization(String organizationId);
+
+  /// Verifica el correo con el `token` del deep link
+  /// (`POST /auth/verify-email`, doc 015). Devuelve la sesión emitida —
+  /// auto-login con token personal, mismo shape que login.
+  Future<UserModel> verifyEmail(String token);
+
+  /// Reenvía el correo de verificación (`POST /auth/resend-verification`,
+  /// doc 016). Siempre 200 — anti-enumeración.
+  Future<void> resendVerification(String email);
 }

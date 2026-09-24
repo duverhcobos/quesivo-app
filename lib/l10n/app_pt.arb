@@ -58,7 +58,6 @@
   "moduleProducerPayments": "Pagamentos a produtores",
   "moduleExpenses": "Despesas",
   "moduleComingSoon": "Em breve",
-
   "onboardingSkip": "Pular",
   "onboardingNext": "Avançar",
   "onboardingStart": "Começar",
@@ -256,5 +255,13 @@
   "queseraEnterCta": "Entrar",
   "queseraActiveBadge": "Atual",
   "noQueserasAvailable": "Nenhuma queijaria disponível.",
-  "queseraCardTagline": "Gerencie sua produção, inventário e mais."
+  "queseraCardTagline": "Gerencie sua produção, inventário e mais.",
+  "verifyEmailSentDescription": "Enviamos um link para verificar seu e-mail e ativar sua conta.",
+  "resendVerificationButton": "Reenviar e-mail",
+  "resendVerificationSuccessTitle": "E-mail reenviado",
+  "resendVerificationSuccessDescription": "Enviamos um novo link. Verifique sua caixa de entrada.",
+  "verifyEmailVerifyingTitle": "Verificando seu e-mail",
+  "verifyEmailVerifyingDescription": "Um momento, estamos confirmando sua conta.",
+  "verifyEmailInvalidTitle": "Este link não é mais válido",
+  "verifyEmailInvalidDescription": "O link de verificação expirou ou já foi usado. Você pode pedir um novo."
 }

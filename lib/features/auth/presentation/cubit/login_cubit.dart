@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 
+import '../../domain/failures/auth_failure.dart';
 import '../../domain/use_cases/login_use_case.dart';
 import '../../domain/value_objects/email.dart';
 import '../../domain/value_objects/password.dart';
@@ -24,6 +25,7 @@ class LoginCubit extends Cubit<LoginState> {
         isValid: Formz.validate([email, state.password]),
         status: FormzSubmissionStatus.initial,
         errorMessage: null, // Borramos errores viejos de sumisión
+        emailNotVerified: false,
       ),
     );
   }
@@ -36,6 +38,7 @@ class LoginCubit extends Cubit<LoginState> {
         isValid: Formz.validate([state.email, password]),
         status: FormzSubmissionStatus.initial,
         errorMessage: null,
+        emailNotVerified: false,
       ),
     );
   }
@@ -57,6 +60,7 @@ class LoginCubit extends Cubit<LoginState> {
           state.copyWith(
             status: FormzSubmissionStatus.failure,
             errorMessage: failure.message,
+            emailNotVerified: failure is EmailNotVerifiedFailure,
           ),
         );
       },

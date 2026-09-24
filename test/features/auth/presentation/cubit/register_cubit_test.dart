@@ -5,7 +5,6 @@ import 'package:dartz/dartz.dart';
 import 'package:formz/formz.dart';
 
 import 'package:quesivo/features/auth/domain/use_cases/register_use_case.dart';
-import 'package:quesivo/features/auth/domain/entities/user.dart';
 import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
 import 'package:quesivo/features/auth/presentation/cubit/register_cubit.dart';
 import 'package:quesivo/features/auth/presentation/cubit/register_state.dart';
@@ -20,8 +19,6 @@ void main() {
   });
 
   RegisterCubit buildCubit() => RegisterCubit(mockRegisterUseCase);
-
-  const tUser = User(id: '1', email: 'maria@quesera.com', name: 'María');
 
   void fillValidForm(RegisterCubit cubit) {
     cubit
@@ -99,7 +96,7 @@ void main() {
           email: any(named: 'email'),
           password: any(named: 'password'),
         ),
-      ).thenAnswer((_) async => const Right(tUser));
+      ).thenAnswer((_) async => const Right(null));
     },
     act: (cubit) => cubit.submit(),
     expect: () => [

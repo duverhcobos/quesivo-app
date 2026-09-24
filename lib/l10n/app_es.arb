@@ -255,5 +255,13 @@
   "queseraEnterCta": "Entrar",
   "queseraActiveBadge": "Actual",
   "noQueserasAvailable": "No tenés queseras disponibles.",
-  "queseraCardTagline": "Gestioná tu producción, inventario y más."
+  "queseraCardTagline": "Gestioná tu producción, inventario y más.",
+  "verifyEmailSentDescription": "Te enviamos un enlace para verificar tu correo y activar tu cuenta.",
+  "resendVerificationButton": "Reenviar correo",
+  "resendVerificationSuccessTitle": "Correo reenviado",
+  "resendVerificationSuccessDescription": "Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.",
+  "verifyEmailVerifyingTitle": "Verificando tu correo",
+  "verifyEmailVerifyingDescription": "Un momento, estamos confirmando tu cuenta.",
+  "verifyEmailInvalidTitle": "Este enlace ya no es válido",
+  "verifyEmailInvalidDescription": "El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo."
 }
