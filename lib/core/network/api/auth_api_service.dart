@@ -1,4 +1,5 @@
 // lib/core/network/auth_api_service.dart
+import 'dart:convert';
 import 'dart:io';
 import 'dart:developer' as dev;
 
@@ -37,9 +38,13 @@ class AuthApiService {
       return client;
     };
 
-    // Este logging de diagnóstico SOLO corre en `dev`, y nunca imprime
-    // cuerpos de petición/respuesta completos (pueden incluir credenciales
-    // o datos personales). Solo se registran metadatos no sensibles.
+    // Logging de diagnóstico SOLO en `dev`: vuelca cada request con sus
+    // headers finales (incluye credenciales/tokens — nunca habilitar en
+    // stg/prod) como cURL lista para Postman, y la respuesta en JSON
+    // indentado. Se imprime en onResponse/onError (no en onRequest):
+    // recién ahí `requestOptions.headers` ya lleva lo que inyectaron
+    // los interceptores posteriores (AuthInterceptor agrega el Bearer
+    // DESPUÉS de este en la lista).
     if (Environment.currentEnvironment == EnvType.dev) {
       _dio.interceptors.add(
         InterceptorsWrapper(
@@ -48,11 +53,19 @@ class AuthApiService {
             return handler.next(options);
           },
           onResponse: (response, handler) {
-            dev.log('AuthApi - Response status code: ${response.statusCode}');
+            _logHttpExchange(
+              response.requestOptions,
+              response.statusCode,
+              response.data,
+            );
             return handler.next(response);
           },
           onError: (DioException e, handler) {
-            dev.log('AuthApi - Error status code: ${e.response?.statusCode}');
+            _logHttpExchange(
+              e.requestOptions,
+              e.response?.statusCode,
+              e.response?.data,
+            );
             // next (no reject): el error debe seguir viajando por la cadena —
             // RefreshTokenInterceptor viene después en la lista y su onError
             // es quien dispara el refresh. Con reject la cadena se corta acá
@@ -65,4 +78,52 @@ class AuthApiService {
   }
 
   Dio get dio => _dio;
+}
+
+/// Dev-only: vuelca el request completo como cURL lista para Postman
+/// (Import → Raw text) + la respuesta en JSON indentado. Se llama con
+/// los `requestOptions` FINALES del intercambio — el Authorization que
+/// inyecta AuthInterceptor ya está presente, así que el cURL reproduce
+/// el request tal cual salió.
+void _logHttpExchange(
+  RequestOptions options,
+  int? statusCode,
+  dynamic responseData,
+) {
+  final buffer = StringBuffer()
+    ..writeln('┌─ HTTP ${options.method} ${options.uri} ─');
+  options.headers.forEach((k, v) => buffer.writeln('│   $k: $v'));
+  if (options.data != null) {
+    buffer
+      ..writeln('│   body:')
+      ..writeln(_prettyJson(options.data));
+  }
+  buffer
+    ..writeln('├─ cURL (Postman → Import → Raw text) ─')
+    ..writeln(_toCurl(options))
+    ..writeln('└─ status: ${statusCode ?? '-'} ─');
+  if (responseData != null) buffer.writeln(_prettyJson(responseData));
+  // ignore: avoid_print
+  print(buffer.toString());
+}
+
+String _toCurl(RequestOptions o) {
+  final sb = StringBuffer("curl -X ${o.method} '${o.uri}'");
+  o.headers.forEach((k, v) => sb.write(" \\\n  -H '$k: $v'"));
+  if (o.data != null) {
+    try {
+      sb.write(" \\\n  -d '${jsonEncode(o.data)}'");
+    } catch (_) {
+      // FormData/bytes no son jsonEncode-able — el body legible ya salió arriba.
+    }
+  }
+  return sb.toString();
+}
+
+String _prettyJson(dynamic data) {
+  try {
+    return const JsonEncoder.withIndent('  ').convert(data);
+  } catch (_) {
+    return data.toString();
+  }
 }
