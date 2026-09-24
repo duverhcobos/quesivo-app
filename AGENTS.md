@@ -28,6 +28,7 @@ El detalle de convenciones, arquitectura y workflows de este proyecto vive en sk
 | `production-checklist` | **Siempre** antes de dar por terminado un cambio |
 | `navigation-routing` | Al tocar rutas/pantallas — go_router: constantes en AuthGuard, segmentos relativos en hijos, push vs go, fuente de verdad de la ruta activa |
 | `release-build` | Antes de generar APK/AAB release — permisos, --dart-define por entorno, mocks de dev, firma y versionado |
+| `pendientes-produccion` | Al crear/consultar pendientes pre-producción — la carpeta `pendientes/` vive en la raíz del backend (`../pendientes/`), compartida entre ambos proyectos |
 | `design-system-docs` | Tras cualquier cambio visual — cómo actualizar `Design/quesivo-design-system.yaml` (version, spec, changelog) |
 | `new-feature-checklist` | Al agregar un módulo/feature nuevo — orden exacto de archivos del dominio a la pantalla |
 | `token-saving-tools-policy` | Al explorar el código — cuándo leer directo vs. usar el grafo codebase-memory, batching y evitar repetir comandos |
