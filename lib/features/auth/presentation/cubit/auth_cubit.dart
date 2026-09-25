@@ -72,6 +72,29 @@ class AuthCubit extends Cubit<AuthState> {
     await _loadSession();
   }
 
+  /// Refresh de `/me` en segundo plano (§69 — caso del invitado ya
+  /// logueado): el mail de org-invite puede llegar con la sesión viva y
+  /// el `User` en memoria no tiene la invitación — sin esto la card no
+  /// aparece hasta el próximo login. Lo dispara el deep link
+  /// `quesivo://org-invites`. A diferencia de `refreshSession` NO emite
+  /// `AuthLoading` (no hay flash de splash — el usuario ya está mirando
+  /// el /home) y un fallo no patea a AuthInitial: la sesión sigue como
+  /// está y el próximo `checkAuthStatus` natural reintenta. Solo corre
+  /// con `AuthSuccess` — sin sesión el guard manda a welcome igual.
+  Future<void> refreshSessionSilently() async {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    final result = await _checkAuthStatusUseCase();
+    if (isClosed) return;
+    result.fold((_) {}, (user) {
+      // El state pudo cambiar mientras el /me estaba en vuelo (logout,
+      // sesión expirada, otra respuesta): solo pisamos si sigue Success.
+      if (state is AuthSuccess) {
+        emit(AuthSuccess(user, enteredOrg: current.enteredOrg));
+      }
+    });
+  }
+
   /// Marca que el usuario entró a una quesera en esta sesión de app
   /// (§57). Lo llama `QueseraSelectionCubit` tras un select-organization
   /// exitoso — o directo cuando el tap cayó en la org que el JWT ya

@@ -474,4 +474,63 @@ void main() {
       );
     },
   );
+
+  group(
+    'refreshSessionSilently (§69 — deep link org-invites con sesión viva)',
+    () {
+      const tFreshUser = User(
+        id: '1',
+        email: tEmail,
+        name: 'John Fresco',
+        token: 'token',
+        pendingInvites: [
+          OrgInvite(
+            id: 'mem-1',
+            organizationId: 'org-9',
+            organizationName: 'Quesera Norte',
+            role: 'ADMIN',
+          ),
+        ],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        're-pide /me y emite AuthSuccess fresco SIN pasar por AuthLoading '
+        '(sin flash de splash) y preservando enteredOrg',
+        build: () {
+          when(
+            () => mockCheckAuthStatusUseCase(),
+          ).thenAnswer((_) async => const Right(tFreshUser));
+          return cubit;
+        },
+        seed: () => const AuthSuccess(tUser, enteredOrg: true),
+        act: (cubit) => cubit.refreshSessionSilently(),
+        expect: () => [const AuthSuccess(tFreshUser, enteredOrg: true)],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'sin AuthSuccess (ej. AuthInitial) no llama al backend ni emite',
+        build: () => cubit,
+        seed: () => const AuthInitial(),
+        act: (cubit) => cubit.refreshSessionSilently(),
+        expect: () => <AuthState>[],
+        verify: (_) {
+          verifyNever(() => mockCheckAuthStatusUseCase());
+        },
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'un fallo del /me es silencioso — la sesión sigue igual, '
+        'no patea a AuthInitial',
+        build: () {
+          when(
+            () => mockCheckAuthStatusUseCase(),
+          ).thenAnswer((_) async => const Left(NetworkFailure()));
+          return cubit;
+        },
+        seed: () => const AuthSuccess(tUser),
+        act: (cubit) => cubit.refreshSessionSilently(),
+        expect: () => <AuthState>[],
+      );
+    },
+  );
 }

@@ -20,6 +20,7 @@ void main() {
   late MockLoggerService mockLogger;
   late MockGoRouter mockRouter;
   late StreamController<Uri> linkStream;
+  int orgInvitesCallbacks = 0;
 
   setUpAll(() {
     registerFallbackValue(StackTrace.empty);
@@ -30,12 +31,17 @@ void main() {
     mockLogger = MockLoggerService();
     mockRouter = MockGoRouter();
     linkStream = StreamController<Uri>();
+    orgInvitesCallbacks = 0;
 
     // Sin link inicial por defecto — cada test que lo necesite lo re-mockea.
     when(() => mockAppLinks.getInitialLink()).thenAnswer((_) async => null);
     when(() => mockAppLinks.uriLinkStream).thenAnswer((_) => linkStream.stream);
 
-    service = AppLinksDeepLinkServiceImpl(mockLogger, appLinks: mockAppLinks);
+    service = AppLinksDeepLinkServiceImpl(
+      mockLogger,
+      appLinks: mockAppLinks,
+      onOrgInvites: () async => orgInvitesCallbacks++,
+    );
     service.initialize(mockRouter);
   });
 
@@ -173,6 +179,17 @@ void main() {
 
       verify(() => mockRouter.go('/home')).called(1);
     });
+
+    test(
+      'quesivo://org-invites dispara el callback de refresh '
+      '(§69 — el invitado con sesión viva ve la card sin re-login)',
+      () async {
+        linkStream.add(Uri.parse('quesivo://org-invites'));
+        await pumpEventQueue();
+
+        expect(orgInvitesCallbacks, 1);
+      },
+    );
 
     test('esquema distinto a quesivo se ignora por completo', () async {
       linkStream.add(Uri.parse('https://reset-password?token=abc123'));

@@ -15,10 +15,21 @@ class AppLinksDeepLinkServiceImpl implements IDeepLinkService {
   final ILoggerService _logger;
   StreamSubscription<Uri>? _subscription;
 
-  AppLinksDeepLinkServiceImpl(this._logger, {AppLinks? appLinks})
-    : _appLinks = appLinks ?? AppLinks();
+  AppLinksDeepLinkServiceImpl(
+    this._logger, {
+    AppLinks? appLinks,
+    Future<void> Function()? onOrgInvites,
+  }) : _appLinks = appLinks ?? AppLinks(),
+       _onOrgInvites = onOrgInvites;
 
   static const _scheme = 'quesivo';
+
+  /// Tras aterrizar en /home por un `quesivo://org-invites`: refetch
+  /// silencioso de /me — el invitado puede tener la sesión viva de un
+  /// login anterior a la invitación y sin esto la card no aparecería.
+  /// DI lo cablea a `AuthCubit.refreshSessionSilently` (el service vive
+  /// en core y no conoce features/auth).
+  final Future<void> Function()? _onOrgInvites;
 
   @override
   void initialize(GoRouter router) {
@@ -77,6 +88,8 @@ class AppLinksDeepLinkServiceImpl implements IDeepLinkService {
     // en /home (sin sesión el guard bota a welcome/login igual).
     if (path == AuthGuard.orgInvitesRoute) {
       router.go(AuthGuard.homeRoute);
+      // Sin await: es un refresh de fondo — la navegación no lo espera.
+      unawaited(_onOrgInvites?.call());
       return;
     }
 

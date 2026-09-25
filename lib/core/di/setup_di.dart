@@ -353,8 +353,14 @@ void setupDI() {
   );
 
   // Deep link de forgot/reset password (propuesta 66) — se inicializa
-  // desde main.dart una vez que el router ya existe.
+  // desde main.dart una vez que el router ya existe. `onOrgInvites`
+  // (§69): tras aterrizar en /home por un quesivo://org-invites se
+  // refetchea /me en silencio — el invitado con sesión viva ve la card
+  // sin re-login.
   locator.registerLazySingleton<IDeepLinkService>(
-    () => AppLinksDeepLinkServiceImpl(locator<ILoggerService>()),
+    () => AppLinksDeepLinkServiceImpl(
+      locator<ILoggerService>(),
+      onOrgInvites: () => locator<AuthCubit>().refreshSessionSilently(),
+    ),
   );
 }
