@@ -69,7 +69,7 @@ class _LoginView extends StatelessWidget {
               listener: (context, state) {
                 if (state.status.isFailure) {
                   if (state.emailNotVerified) {
-                    // Correo sin verificar (backend 069): a "revisá tu
+                    // Correo sin verificar (backend 069): a "revisa tu
                     // correo" con el email tipeado — no un toast.
                     context.go(
                       '${AuthGuard.checkEmailRoute}?email=${Uri.encodeComponent(state.email.value)}',

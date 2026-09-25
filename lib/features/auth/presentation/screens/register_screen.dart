@@ -76,7 +76,7 @@ class _RegisterView extends StatelessWidget {
                   );
                 } else if (state.status.isSuccess) {
                   // Sin sesión (backend 069): la cuenta queda pendiente
-                  // de verificación — a "revisá tu correo" con el email
+                  // de verificación — a "revisa tu correo" con el email
                   // del form para el botón de reenvío.
                   context.go(
                     '${AuthGuard.checkEmailRoute}?email=${Uri.encodeComponent(state.email.value)}',

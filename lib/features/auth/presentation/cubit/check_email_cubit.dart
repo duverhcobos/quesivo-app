@@ -4,7 +4,7 @@ import 'package:formz/formz.dart';
 import '../../domain/use_cases/resend_verification_use_case.dart';
 import 'check_email_state.dart';
 
-/// Cubit de la pantalla "Revisá tu correo" — recibe el email por
+/// Cubit de la pantalla "Revisa tu correo" — recibe el email por
 /// parámetro de ruta y expone el reenvío (resend-verification).
 class CheckEmailCubit extends Cubit<CheckEmailState> {
   final ResendVerificationUseCase _resendVerificationUseCase;

@@ -99,7 +99,7 @@ class UsersListBody extends StatelessWidget {
           return UsersListErrorState(
             onRetry: () => context.read<UsersListCubit>().load(),
             // 429 sin datos: misma distinción que el toast — el genérico
-            // "revisá tu conexión" mentiría sobre la causa.
+            // "revisa tu conexión" mentiría sobre la causa.
             message: state.failure is UsersRateLimitFailure
                 ? l10n.tooManyAttemptsError
                 : null,

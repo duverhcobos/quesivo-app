@@ -327,7 +327,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get logoutConfirmMessage =>
-      'Vas a salir de tu cuenta. ¿Querés continuar?';
+      'Vas a salir de tu cuenta. ¿Quieres continuar?';
 
   @override
   String get logoutConfirmAction => 'Cerrar sesión';
@@ -365,7 +365,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noSearchResultsTitle => 'Sin resultados';
 
   @override
-  String get noSearchResultsHint => 'Probá con otro nombre, correo o filtro.';
+  String get noSearchResultsHint => 'Prueba con otro nombre, correo o filtro.';
 
   @override
   String get memberStatusActive => 'Activo';
@@ -419,7 +419,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get newUserSheetHint =>
-      'El usuario ingresará con esta contraseña temporal — compartila con él.';
+      'El usuario ingresará con esta contraseña temporal — compártela con él.';
 
   @override
   String get tempPasswordPlaceholder => 'Contraseña temporal';
@@ -428,10 +428,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get roleFieldLabel => 'Rol en la organización';
 
   @override
-  String get roleRequiredError => 'Elegí un rol';
+  String get roleRequiredError => 'Elige un rol';
 
   @override
-  String get invalidMemberNameError => 'Ingresá el nombre completo';
+  String get invalidMemberNameError => 'Ingresa el nombre completo';
 
   @override
   String get memberNameFormatError =>
@@ -449,7 +449,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get linkUserSheetHint =>
-      'El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte';
+      'El correo ya tiene cuenta en Quesivo — le llega una invitación por correo y entra a tu quesera cuando la acepte';
 
   @override
   String get linkUserSubmit => 'Enviar invitación';
@@ -508,7 +508,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String passwordResetFeedback(String name) {
-    return 'Contraseña restablecida — compartila con $name';
+    return 'Contraseña restablecida — compártela con $name';
   }
 
   @override
@@ -526,25 +526,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get emailAlreadyExistsError =>
-      'Ese correo ya tiene cuenta — invitalo desde \"Invitar existente\"';
+      'Ese correo ya tiene cuenta — invítalo desde \"Invitar existente\"';
 
   @override
   String get userNotFoundError =>
-      'Ese correo no tiene cuenta — crealo desde \"Crear usuario\"';
+      'Ese correo no tiene cuenta — créalo desde \"Crear usuario\"';
 
   @override
   String get userIsOwnerError =>
       'Ese correo es dueño de otra quesera — no puede vincularse';
 
   @override
-  String get selfSuspensionError => 'No podés suspender tu propia membresía';
+  String get selfSuspensionError => 'No puedes suspender tu propia membresía';
 
   @override
   String get ownerSuspensionError =>
       'No se puede suspender al dueño de la organización';
 
   @override
-  String get selfRoleChangeError => 'No podés cambiar tu propio rol';
+  String get selfRoleChangeError => 'No puedes cambiar tu propio rol';
 
   @override
   String get ownerRoleChangeError =>
@@ -552,7 +552,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get lastAdminError =>
-      'Es el último administrador activo — nombrá otro admin antes';
+      'Es el último administrador activo — nombra otro admin antes';
 
   @override
   String get ownerPasswordResetError =>
@@ -563,24 +563,25 @@ class AppLocalizationsEs extends AppLocalizations {
       'El usuario ya no pertenece a esta organización';
 
   @override
-  String get usersForbiddenError => 'No tenés permisos para gestionar usuarios';
+  String get usersForbiddenError =>
+      'No tienes permisos para gestionar usuarios';
 
   @override
-  String get tooManyAttemptsError => 'Demasiados intentos — esperá un momento';
+  String get tooManyAttemptsError => 'Demasiados intentos — espera un momento';
 
   @override
-  String get genericError => 'Ocurrió un error — intentalo de nuevo';
+  String get genericError => 'Ocurrió un error — inténtalo de nuevo';
 
   @override
   String get networkError =>
-      'No se pudo conectar al servidor — revisá tu conexión';
+      'No se pudo conectar al servidor — revisa tu conexión';
 
   @override
   String get ownerBadge => 'Dueño';
 
   @override
   String get usersLoadError =>
-      'No se pudo cargar el listado — revisá tu conexión';
+      'No se pudo cargar el listado — revisa tu conexión';
 
   @override
   String get retryButton => 'Reintentar';
@@ -597,7 +598,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get greeting => 'Hola';
 
   @override
-  String get chooseQueseraHint => 'Elegí tu quesera para entrar';
+  String get chooseQueseraHint => 'Elige tu quesera para entrar';
 
   @override
   String get queseraEnterCta => 'Entrar';
@@ -606,10 +607,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get queseraActiveBadge => 'Actual';
 
   @override
-  String get noQueserasAvailable => 'No tenés queseras disponibles.';
+  String get noQueserasAvailable => 'No tienes queseras disponibles.';
 
   @override
-  String get queseraCardTagline => 'Gestioná tu producción, inventario y más.';
+  String get queseraCardTagline => 'Gestiona tu producción, inventario y más.';
 
   @override
   String get verifyEmailSentDescription =>
@@ -623,7 +624,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resendVerificationSuccessDescription =>
-      'Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.';
+      'Te enviamos un enlace nuevo. Revisa tu bandeja de entrada.';
 
   @override
   String get verifyEmailVerifyingTitle => 'Verificando tu correo';
@@ -637,14 +638,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get verifyEmailInvalidDescription =>
-      'El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.';
+      'El enlace de verificación expiró o ya fue usado. Puedes pedir uno nuevo.';
 
   @override
-  String get acceptInviteTitle => 'Definí tu contraseña';
+  String get acceptInviteTitle => 'Define tu contraseña';
 
   @override
   String acceptInviteDescription(String email) {
-    return 'Te invitaron a unirte. Creá tu contraseña para $email.';
+    return 'Te invitaron a unirte. Crea tu contraseña para $email.';
   }
 
   @override
@@ -655,10 +656,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get acceptInviteInvalidDescription =>
-      'El enlace de invitación expiró o ya fue usado. Pedí uno nuevo.';
+      'El enlace de invitación expiró o ya fue usado. Pide uno nuevo.';
 
   @override
-  String get acceptInviteResendButton => 'Pedir link nuevo';
+  String get acceptInviteResendButton => 'Pedir enlace nuevo';
 
   @override
   String get newUserInviteMode => 'Invitar por correo';
@@ -698,12 +699,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String orgInviteAcceptedFeedback(String org) {
-    return 'Ya sos parte de $org';
+    return 'Ya eres parte de $org';
   }
 
   @override
   String get orgInviteGoneError =>
-      'La invitación ya no existe — actualizá y revisá de nuevo';
+      'La invitación ya no existe — actualiza y revisa de nuevo';
 
   @override
   String get cancelInviteAction => 'Cancelar invitación';
@@ -713,7 +714,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cancelInviteConfirmBody(String email) {
-    return '$email no va a recibir ni usar esta invitación — si vuelve a intentarlo, generá una nueva.';
+    return '$email no va a recibir ni usar esta invitación — si vuelve a intentarlo, genera una nueva.';
   }
 
   @override

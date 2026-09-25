@@ -123,7 +123,7 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitions.fade(
           context: context,
           state: state,
-          // "Revisá tu correo" — el email llega por query param
+          // "Revisa tu correo" — el email llega por query param
           // (register/login/deep link fallido).
           child: CheckEmailScreen(
             cubit: locator<CheckEmailCubit>(

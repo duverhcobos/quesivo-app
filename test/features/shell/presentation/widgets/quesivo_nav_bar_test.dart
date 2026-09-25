@@ -175,7 +175,7 @@ void main() {
 
       expect(harness.capturedShell!.currentIndex, 0);
       expect(find.text('/a'), findsOneWidget);
-      expect(find.text('Elegí tu quesera para entrar'), findsOneWidget);
+      expect(find.text('Elige tu quesera para entrar'), findsOneWidget);
 
       // Drena el auto-dismiss del toast (~2.6s) — sin el pump el Timer
       // queda pendiente al desmontar el árbol (convención del módulo).
@@ -199,7 +199,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(harness.capturedShell!.currentIndex, 0);
-      expect(find.text('Elegí tu quesera para entrar'), findsNothing);
+      expect(find.text('Elige tu quesera para entrar'), findsNothing);
     });
   });
 }

@@ -198,7 +198,7 @@ void main() {
       await tester.tap(find.text('Crear usuario'));
       await tester.pump();
 
-      expect(find.text('Ingresá el nombre completo'), findsOneWidget);
+      expect(find.text('Ingresa el nombre completo'), findsOneWidget);
       expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
       // §68 — en modo invitación no hay password que validar.
       expect(
@@ -207,7 +207,7 @@ void main() {
         ),
         findsNothing,
       );
-      expect(find.text('Elegí un rol'), findsOneWidget);
+      expect(find.text('Elige un rol'), findsOneWidget);
       // No hubo pop — el sheet sigue abierto.
       expect(find.text('Crear usuario'), findsOneWidget);
       verifyNever(
@@ -248,7 +248,7 @@ void main() {
     );
   });
 
-  testWidgets('con campos válidos pero sin rol solo muestra "Elegí un rol"', (
+  testWidgets('con campos válidos pero sin rol solo muestra "Elige un rol"', (
     tester,
   ) async {
     useTallSurface(tester);
@@ -262,8 +262,8 @@ void main() {
     await tester.tap(find.text('Crear usuario'));
     await tester.pump();
 
-    expect(find.text('Elegí un rol'), findsOneWidget);
-    expect(find.text('Ingresá el nombre completo'), findsNothing);
+    expect(find.text('Elige un rol'), findsOneWidget);
+    expect(find.text('Ingresa el nombre completo'), findsNothing);
     expect(find.text('Ingresa un correo con formato válido'), findsNothing);
     expect(
       find.text(
@@ -526,7 +526,7 @@ void main() {
         find.text('Usa solo letras, espacios, guiones y apóstrofes'),
         findsOneWidget,
       );
-      expect(find.text('Ingresá el nombre completo'), findsNothing);
+      expect(find.text('Ingresa el nombre completo'), findsNothing);
       verifyNever(
         () => mockCubit.submit(
           name: any(named: 'name'),

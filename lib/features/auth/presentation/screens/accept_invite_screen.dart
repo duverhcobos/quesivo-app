@@ -227,7 +227,7 @@ class _PasswordFormView extends StatelessWidget {
 }
 
 /// Vista de link inválido/expirado — espejo de la de verify-email:
-/// heading, "Pedir link nuevo" (solo con email en el query) o loader o
+/// heading, "Pedir enlace nuevo" (solo con email en el query) o loader o
 /// card de confirmación tras el reenvío, y link a login.
 class _InvalidLinkView extends StatelessWidget {
   const _InvalidLinkView();

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
 
-/// Estado de la pantalla "Revisá tu correo" — el `email` llega por
+/// Estado de la pantalla "Revisa tu correo" — el `email` llega por
 /// query param (register/login/deep link); `status` es del reenvío.
 class CheckEmailState extends Equatable {
   final String email;

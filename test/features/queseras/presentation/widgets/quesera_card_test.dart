@@ -25,7 +25,7 @@ void main() {
           enabled: enabled,
           enterLabel: 'Entrar',
           roleLabel: 'Administrador',
-          tagline: 'Gestioná tu producción, inventario y más.',
+          tagline: 'Gestiona tu producción, inventario y más.',
           onTap: onTap ?? () {},
         ),
       ),
@@ -39,7 +39,7 @@ void main() {
     expect(find.text('Quesera Norte'), findsOneWidget);
     expect(find.text('Administrador'), findsOneWidget);
     expect(
-      find.text('Gestioná tu producción, inventario y más.'),
+      find.text('Gestiona tu producción, inventario y más.'),
       findsOneWidget,
     );
     // El CTA es solo el círculo-flecha — el label "Entrar" va en

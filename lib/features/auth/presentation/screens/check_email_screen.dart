@@ -16,7 +16,7 @@ import '../widgets/auth_heading.dart';
 import '../widgets/forgot_password_info_card.dart';
 import '../widgets/quesivo_brand_header.dart';
 
-/// Pantalla "Revisá tu correo" (verificación pendiente — propuesta 67 /
+/// Pantalla "Revisa tu correo" (verificación pendiente — propuesta 67 /
 /// backend 069): destino tras registrarse, tras un login con correo sin
 /// verificar, o cuando un link de verificación falla. Reenvía el correo
 /// con el email que llegó por query param.

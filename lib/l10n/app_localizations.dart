@@ -721,7 +721,7 @@ abstract class AppLocalizations {
   /// No description provided for @logoutConfirmMessage.
   ///
   /// In es, this message translates to:
-  /// **'Vas a salir de tu cuenta. ¿Querés continuar?'**
+  /// **'Vas a salir de tu cuenta. ¿Quieres continuar?'**
   String get logoutConfirmMessage;
 
   /// No description provided for @logoutConfirmAction.
@@ -793,7 +793,7 @@ abstract class AppLocalizations {
   /// No description provided for @noSearchResultsHint.
   ///
   /// In es, this message translates to:
-  /// **'Probá con otro nombre, correo o filtro.'**
+  /// **'Prueba con otro nombre, correo o filtro.'**
   String get noSearchResultsHint;
 
   /// No description provided for @memberStatusActive.
@@ -865,7 +865,7 @@ abstract class AppLocalizations {
   /// No description provided for @newUserSheetHint.
   ///
   /// In es, this message translates to:
-  /// **'El usuario ingresará con esta contraseña temporal — compartila con él.'**
+  /// **'El usuario ingresará con esta contraseña temporal — compártela con él.'**
   String get newUserSheetHint;
 
   /// No description provided for @tempPasswordPlaceholder.
@@ -883,13 +883,13 @@ abstract class AppLocalizations {
   /// No description provided for @roleRequiredError.
   ///
   /// In es, this message translates to:
-  /// **'Elegí un rol'**
+  /// **'Elige un rol'**
   String get roleRequiredError;
 
   /// No description provided for @invalidMemberNameError.
   ///
   /// In es, this message translates to:
-  /// **'Ingresá el nombre completo'**
+  /// **'Ingresa el nombre completo'**
   String get invalidMemberNameError;
 
   /// No description provided for @memberNameFormatError.
@@ -919,7 +919,7 @@ abstract class AppLocalizations {
   /// No description provided for @linkUserSheetHint.
   ///
   /// In es, this message translates to:
-  /// **'El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte'**
+  /// **'El correo ya tiene cuenta en Quesivo — le llega una invitación por correo y entra a tu quesera cuando la acepte'**
   String get linkUserSheetHint;
 
   /// No description provided for @linkUserSubmit.
@@ -1009,7 +1009,7 @@ abstract class AppLocalizations {
   /// No description provided for @passwordResetFeedback.
   ///
   /// In es, this message translates to:
-  /// **'Contraseña restablecida — compartila con {name}'**
+  /// **'Contraseña restablecida — compártela con {name}'**
   String passwordResetFeedback(String name);
 
   /// No description provided for @inviteLinkSentFeedback.
@@ -1033,13 +1033,13 @@ abstract class AppLocalizations {
   /// No description provided for @emailAlreadyExistsError.
   ///
   /// In es, this message translates to:
-  /// **'Ese correo ya tiene cuenta — invitalo desde \"Invitar existente\"'**
+  /// **'Ese correo ya tiene cuenta — invítalo desde \"Invitar existente\"'**
   String get emailAlreadyExistsError;
 
   /// No description provided for @userNotFoundError.
   ///
   /// In es, this message translates to:
-  /// **'Ese correo no tiene cuenta — crealo desde \"Crear usuario\"'**
+  /// **'Ese correo no tiene cuenta — créalo desde \"Crear usuario\"'**
   String get userNotFoundError;
 
   /// No description provided for @userIsOwnerError.
@@ -1051,7 +1051,7 @@ abstract class AppLocalizations {
   /// No description provided for @selfSuspensionError.
   ///
   /// In es, this message translates to:
-  /// **'No podés suspender tu propia membresía'**
+  /// **'No puedes suspender tu propia membresía'**
   String get selfSuspensionError;
 
   /// No description provided for @ownerSuspensionError.
@@ -1063,7 +1063,7 @@ abstract class AppLocalizations {
   /// No description provided for @selfRoleChangeError.
   ///
   /// In es, this message translates to:
-  /// **'No podés cambiar tu propio rol'**
+  /// **'No puedes cambiar tu propio rol'**
   String get selfRoleChangeError;
 
   /// No description provided for @ownerRoleChangeError.
@@ -1075,7 +1075,7 @@ abstract class AppLocalizations {
   /// No description provided for @lastAdminError.
   ///
   /// In es, this message translates to:
-  /// **'Es el último administrador activo — nombrá otro admin antes'**
+  /// **'Es el último administrador activo — nombra otro admin antes'**
   String get lastAdminError;
 
   /// No description provided for @ownerPasswordResetError.
@@ -1093,25 +1093,25 @@ abstract class AppLocalizations {
   /// No description provided for @usersForbiddenError.
   ///
   /// In es, this message translates to:
-  /// **'No tenés permisos para gestionar usuarios'**
+  /// **'No tienes permisos para gestionar usuarios'**
   String get usersForbiddenError;
 
   /// No description provided for @tooManyAttemptsError.
   ///
   /// In es, this message translates to:
-  /// **'Demasiados intentos — esperá un momento'**
+  /// **'Demasiados intentos — espera un momento'**
   String get tooManyAttemptsError;
 
   /// No description provided for @genericError.
   ///
   /// In es, this message translates to:
-  /// **'Ocurrió un error — intentalo de nuevo'**
+  /// **'Ocurrió un error — inténtalo de nuevo'**
   String get genericError;
 
   /// No description provided for @networkError.
   ///
   /// In es, this message translates to:
-  /// **'No se pudo conectar al servidor — revisá tu conexión'**
+  /// **'No se pudo conectar al servidor — revisa tu conexión'**
   String get networkError;
 
   /// No description provided for @ownerBadge.
@@ -1123,7 +1123,7 @@ abstract class AppLocalizations {
   /// No description provided for @usersLoadError.
   ///
   /// In es, this message translates to:
-  /// **'No se pudo cargar el listado — revisá tu conexión'**
+  /// **'No se pudo cargar el listado — revisa tu conexión'**
   String get usersLoadError;
 
   /// No description provided for @retryButton.
@@ -1153,7 +1153,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseQueseraHint.
   ///
   /// In es, this message translates to:
-  /// **'Elegí tu quesera para entrar'**
+  /// **'Elige tu quesera para entrar'**
   String get chooseQueseraHint;
 
   /// No description provided for @queseraEnterCta.
@@ -1171,13 +1171,13 @@ abstract class AppLocalizations {
   /// No description provided for @noQueserasAvailable.
   ///
   /// In es, this message translates to:
-  /// **'No tenés queseras disponibles.'**
+  /// **'No tienes queseras disponibles.'**
   String get noQueserasAvailable;
 
   /// No description provided for @queseraCardTagline.
   ///
   /// In es, this message translates to:
-  /// **'Gestioná tu producción, inventario y más.'**
+  /// **'Gestiona tu producción, inventario y más.'**
   String get queseraCardTagline;
 
   /// No description provided for @verifyEmailSentDescription.
@@ -1201,7 +1201,7 @@ abstract class AppLocalizations {
   /// No description provided for @resendVerificationSuccessDescription.
   ///
   /// In es, this message translates to:
-  /// **'Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.'**
+  /// **'Te enviamos un enlace nuevo. Revisa tu bandeja de entrada.'**
   String get resendVerificationSuccessDescription;
 
   /// No description provided for @verifyEmailVerifyingTitle.
@@ -1225,19 +1225,19 @@ abstract class AppLocalizations {
   /// No description provided for @verifyEmailInvalidDescription.
   ///
   /// In es, this message translates to:
-  /// **'El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.'**
+  /// **'El enlace de verificación expiró o ya fue usado. Puedes pedir uno nuevo.'**
   String get verifyEmailInvalidDescription;
 
   /// No description provided for @acceptInviteTitle.
   ///
   /// In es, this message translates to:
-  /// **'Definí tu contraseña'**
+  /// **'Define tu contraseña'**
   String get acceptInviteTitle;
 
   /// No description provided for @acceptInviteDescription.
   ///
   /// In es, this message translates to:
-  /// **'Te invitaron a unirte. Creá tu contraseña para {email}.'**
+  /// **'Te invitaron a unirte. Crea tu contraseña para {email}.'**
   String acceptInviteDescription(String email);
 
   /// No description provided for @acceptInviteButton.
@@ -1255,13 +1255,13 @@ abstract class AppLocalizations {
   /// No description provided for @acceptInviteInvalidDescription.
   ///
   /// In es, this message translates to:
-  /// **'El enlace de invitación expiró o ya fue usado. Pedí uno nuevo.'**
+  /// **'El enlace de invitación expiró o ya fue usado. Pide uno nuevo.'**
   String get acceptInviteInvalidDescription;
 
   /// No description provided for @acceptInviteResendButton.
   ///
   /// In es, this message translates to:
-  /// **'Pedir link nuevo'**
+  /// **'Pedir enlace nuevo'**
   String get acceptInviteResendButton;
 
   /// No description provided for @newUserInviteMode.
@@ -1333,13 +1333,13 @@ abstract class AppLocalizations {
   /// No description provided for @orgInviteAcceptedFeedback.
   ///
   /// In es, this message translates to:
-  /// **'Ya sos parte de {org}'**
+  /// **'Ya eres parte de {org}'**
   String orgInviteAcceptedFeedback(String org);
 
   /// No description provided for @orgInviteGoneError.
   ///
   /// In es, this message translates to:
-  /// **'La invitación ya no existe — actualizá y revisá de nuevo'**
+  /// **'La invitación ya no existe — actualiza y revisa de nuevo'**
   String get orgInviteGoneError;
 
   /// No description provided for @cancelInviteAction.
@@ -1357,7 +1357,7 @@ abstract class AppLocalizations {
   /// No description provided for @cancelInviteConfirmBody.
   ///
   /// In es, this message translates to:
-  /// **'{email} no va a recibir ni usar esta invitación — si vuelve a intentarlo, generá una nueva.'**
+  /// **'{email} no va a recibir ni usar esta invitación — si vuelve a intentarlo, genera una nueva.'**
   String cancelInviteConfirmBody(String email);
 
   /// No description provided for @memberNotInvitedError.

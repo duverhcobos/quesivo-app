@@ -288,7 +288,7 @@ void main() {
       expect(find.text('Hola, Ana'), findsOneWidget);
       expect(find.text('Inicio'), findsNothing);
       expect(find.text('Tus queseras'), findsNothing);
-      expect(find.text('Elegí tu quesera para entrar'), findsOneWidget);
+      expect(find.text('Elige tu quesera para entrar'), findsOneWidget);
       expect(find.byType(HomeQuickActions), findsOneWidget);
       expect(find.byType(HomeRecentActivity), findsOneWidget);
       expect(find.byType(QueseraHeroCarousel), findsOneWidget);
@@ -302,7 +302,7 @@ void main() {
 
       expect(find.text('Inicio'), findsOneWidget);
       expect(find.text('Hola, Ana'), findsNothing);
-      expect(find.text('Elegí tu quesera para entrar'), findsNothing);
+      expect(find.text('Elige tu quesera para entrar'), findsNothing);
       expect(find.byType(HomeQuickActions), findsOneWidget);
       expect(find.byType(HomeRecentActivity), findsOneWidget);
       expect(find.byType(QueseraHeroCarousel), findsOneWidget);

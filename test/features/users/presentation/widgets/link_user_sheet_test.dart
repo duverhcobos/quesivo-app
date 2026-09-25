@@ -116,7 +116,7 @@ void main() {
     expect(find.text('Invitar usuario existente'), findsOneWidget);
     expect(
       find.text(
-        'El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte',
+        'El correo ya tiene cuenta en Quesivo — le llega una invitación por correo y entra a tu quesera cuando la acepte',
       ),
       findsOneWidget,
     );
@@ -141,7 +141,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
-      expect(find.text('Elegí un rol'), findsOneWidget);
+      expect(find.text('Elige un rol'), findsOneWidget);
       // No hubo pop — el sheet sigue abierto.
       expect(find.text('Invitar usuario existente'), findsOneWidget);
       verifyNever(
@@ -153,7 +153,7 @@ void main() {
     },
   );
 
-  testWidgets('con email válido pero sin rol solo muestra "Elegí un rol"', (
+  testWidgets('con email válido pero sin rol solo muestra "Elige un rol"', (
     tester,
   ) async {
     useTallSurface(tester);
@@ -164,7 +164,7 @@ void main() {
     await tester.tap(find.text('Enviar invitación'));
     await tester.pump();
 
-    expect(find.text('Elegí un rol'), findsOneWidget);
+    expect(find.text('Elige un rol'), findsOneWidget);
     expect(find.text('Ingresa un correo con formato válido'), findsNothing);
     expect(find.text('Enviar invitación'), findsOneWidget);
     verifyNever(
@@ -299,7 +299,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('Ese correo no tiene cuenta — crealo desde "Crear usuario"'),
+        find.text('Ese correo no tiene cuenta — créalo desde "Crear usuario"'),
         findsOneWidget,
       );
       expect(find.byIcon(Icons.error_outline), findsOneWidget);

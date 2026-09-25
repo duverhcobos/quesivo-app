@@ -103,7 +103,7 @@
   "backToLogin": "Volver al inicio de sesión",
   "cancelAction": "Cancelar",
   "logoutConfirmTitle": "¿Cerrar sesión?",
-  "logoutConfirmMessage": "Vas a salir de tu cuenta. ¿Querés continuar?",
+  "logoutConfirmMessage": "Vas a salir de tu cuenta. ¿Quieres continuar?",
   "logoutConfirmAction": "Cerrar sesión",
   "appVersion": "v{version}",
   "@appVersion": {
@@ -122,7 +122,7 @@
   "searchUsersHint": "Buscar por nombre o correo",
   "roleFilterAll": "Todos",
   "noSearchResultsTitle": "Sin resultados",
-  "noSearchResultsHint": "Probá con otro nombre, correo o filtro.",
+  "noSearchResultsHint": "Prueba con otro nombre, correo o filtro.",
   "memberStatusActive": "Activo",
   "memberStatusSuspended": "Suspendido",
   "memberStatusInvited": "Invitado",
@@ -148,16 +148,16 @@
       }
     }
   },
-  "newUserSheetHint": "El usuario ingresará con esta contraseña temporal — compartila con él.",
+  "newUserSheetHint": "El usuario ingresará con esta contraseña temporal — compártela con él.",
   "tempPasswordPlaceholder": "Contraseña temporal",
   "roleFieldLabel": "Rol en la organización",
-  "roleRequiredError": "Elegí un rol",
-  "invalidMemberNameError": "Ingresá el nombre completo",
+  "roleRequiredError": "Elige un rol",
+  "invalidMemberNameError": "Ingresa el nombre completo",
   "memberNameFormatError": "Usa solo letras, espacios, guiones y apóstrofes",
   "invalidTempPasswordError": "Mínimo 8 caracteres, una mayúscula, una minúscula y un número",
   "createUserButton": "Crear usuario",
   "linkUserSheetTitle": "Invitar usuario existente",
-  "linkUserSheetHint": "El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte",
+  "linkUserSheetHint": "El correo ya tiene cuenta en Quesivo — le llega una invitación por correo y entra a tu quesera cuando la acepte",
   "linkUserSubmit": "Enviar invitación",
   "memberCreatedFeedback": "Usuario creado con éxito",
   "suspendMemberTitle": "¿Suspender a {name}?",
@@ -207,7 +207,7 @@
       }
     }
   },
-  "passwordResetFeedback": "Contraseña restablecida — compartila con {name}",
+  "passwordResetFeedback": "Contraseña restablecida — compártela con {name}",
   "@passwordResetFeedback": {
     "placeholders": {
       "name": {
@@ -225,22 +225,22 @@
   },
   "membershipExistsError": "Ese correo ya pertenece a esta organización",
   "linkedUserSuspendedError": "Esa cuenta está suspendida — no se puede vincular",
-  "emailAlreadyExistsError": "Ese correo ya tiene cuenta — invitalo desde \"Invitar existente\"",
-  "userNotFoundError": "Ese correo no tiene cuenta — crealo desde \"Crear usuario\"",
+  "emailAlreadyExistsError": "Ese correo ya tiene cuenta — invítalo desde \"Invitar existente\"",
+  "userNotFoundError": "Ese correo no tiene cuenta — créalo desde \"Crear usuario\"",
   "userIsOwnerError": "Ese correo es dueño de otra quesera — no puede vincularse",
-  "selfSuspensionError": "No podés suspender tu propia membresía",
+  "selfSuspensionError": "No puedes suspender tu propia membresía",
   "ownerSuspensionError": "No se puede suspender al dueño de la organización",
-  "selfRoleChangeError": "No podés cambiar tu propio rol",
+  "selfRoleChangeError": "No puedes cambiar tu propio rol",
   "ownerRoleChangeError": "No se puede cambiar el rol del dueño de la organización",
-  "lastAdminError": "Es el último administrador activo — nombrá otro admin antes",
+  "lastAdminError": "Es el último administrador activo — nombra otro admin antes",
   "ownerPasswordResetError": "No se puede restablecer la contraseña del dueño",
   "memberNotFoundError": "El usuario ya no pertenece a esta organización",
-  "usersForbiddenError": "No tenés permisos para gestionar usuarios",
-  "tooManyAttemptsError": "Demasiados intentos — esperá un momento",
-  "genericError": "Ocurrió un error — intentalo de nuevo",
-  "networkError": "No se pudo conectar al servidor — revisá tu conexión",
+  "usersForbiddenError": "No tienes permisos para gestionar usuarios",
+  "tooManyAttemptsError": "Demasiados intentos — espera un momento",
+  "genericError": "Ocurrió un error — inténtalo de nuevo",
+  "networkError": "No se pudo conectar al servidor — revisa tu conexión",
   "ownerBadge": "Dueño",
-  "usersLoadError": "No se pudo cargar el listado — revisá tu conexión",
+  "usersLoadError": "No se pudo cargar el listado — revisa tu conexión",
   "retryButton": "Reintentar",
   "loadingLabel": "Cargando",
   "personalGreeting": "Hola, {name}",
@@ -252,21 +252,21 @@
     }
   },
   "greeting": "Hola",
-  "chooseQueseraHint": "Elegí tu quesera para entrar",
+  "chooseQueseraHint": "Elige tu quesera para entrar",
   "queseraEnterCta": "Entrar",
   "queseraActiveBadge": "Actual",
-  "noQueserasAvailable": "No tenés queseras disponibles.",
-  "queseraCardTagline": "Gestioná tu producción, inventario y más.",
+  "noQueserasAvailable": "No tienes queseras disponibles.",
+  "queseraCardTagline": "Gestiona tu producción, inventario y más.",
   "verifyEmailSentDescription": "Te enviamos un enlace para verificar tu correo y activar tu cuenta.",
   "resendVerificationButton": "Reenviar correo",
   "resendVerificationSuccessTitle": "Correo reenviado",
-  "resendVerificationSuccessDescription": "Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.",
+  "resendVerificationSuccessDescription": "Te enviamos un enlace nuevo. Revisa tu bandeja de entrada.",
   "verifyEmailVerifyingTitle": "Verificando tu correo",
   "verifyEmailVerifyingDescription": "Un momento, estamos confirmando tu cuenta.",
   "verifyEmailInvalidTitle": "Este enlace ya no es válido",
-  "verifyEmailInvalidDescription": "El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.",
-  "acceptInviteTitle": "Definí tu contraseña",
-  "acceptInviteDescription": "Te invitaron a unirte. Creá tu contraseña para {email}.",
+  "verifyEmailInvalidDescription": "El enlace de verificación expiró o ya fue usado. Puedes pedir uno nuevo.",
+  "acceptInviteTitle": "Define tu contraseña",
+  "acceptInviteDescription": "Te invitaron a unirte. Crea tu contraseña para {email}.",
   "@acceptInviteDescription": {
     "placeholders": {
       "email": {
@@ -276,8 +276,8 @@
   },
   "acceptInviteButton": "Crear contraseña y entrar",
   "acceptInviteInvalidTitle": "Este enlace ya no es válido",
-  "acceptInviteInvalidDescription": "El enlace de invitación expiró o ya fue usado. Pedí uno nuevo.",
-  "acceptInviteResendButton": "Pedir link nuevo",
+  "acceptInviteInvalidDescription": "El enlace de invitación expiró o ya fue usado. Pide uno nuevo.",
+  "acceptInviteResendButton": "Pedir enlace nuevo",
   "newUserInviteMode": "Invitar por correo",
   "newUserManualMode": "Contraseña manual",
   "newUserInviteHint": "Le llegará un correo con un enlace para crear su contraseña.",
@@ -296,7 +296,7 @@
   "orgInviteCardTitle": "Te invitaron a unirte",
   "orgInviteAcceptCta": "Aceptar",
   "orgInviteDeclineCta": "Rechazar",
-  "orgInviteAcceptedFeedback": "Ya sos parte de {org}",
+  "orgInviteAcceptedFeedback": "Ya eres parte de {org}",
   "@orgInviteAcceptedFeedback": {
     "placeholders": {
       "org": {
@@ -304,10 +304,10 @@
       }
     }
   },
-  "orgInviteGoneError": "La invitación ya no existe — actualizá y revisá de nuevo",
+  "orgInviteGoneError": "La invitación ya no existe — actualiza y revisa de nuevo",
   "cancelInviteAction": "Cancelar invitación",
   "cancelInviteConfirmTitle": "¿Cancelar la invitación?",
-  "cancelInviteConfirmBody": "{email} no va a recibir ni usar esta invitación — si vuelve a intentarlo, generá una nueva.",
+  "cancelInviteConfirmBody": "{email} no va a recibir ni usar esta invitación — si vuelve a intentarlo, genera una nueva.",
   "@cancelInviteConfirmBody": {
     "placeholders": {
       "email": {

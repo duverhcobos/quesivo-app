@@ -107,7 +107,7 @@ class _NewUserSheetState extends State<NewUserSheet> {
   /// `false` = contraseña temporal manual.
   bool _inviteMode = true;
 
-  bool _nameError = false; // vacío al submit → "Ingresá el nombre completo"
+  bool _nameError = false; // vacío al submit → "Ingresa el nombre completo"
   bool _nameFormatError = false; // live: separadores mal ubicados
   bool _emailError = false; // submit: vacío · live: formato inválido
   bool _passwordError = false;

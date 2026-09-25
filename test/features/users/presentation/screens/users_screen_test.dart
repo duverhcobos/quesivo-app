@@ -364,7 +364,7 @@ void main() {
     await tester.pumpWidget(buildApp());
 
     expect(
-      find.text('No se pudo cargar el listado — revisá tu conexión'),
+      find.text('No se pudo cargar el listado — revisa tu conexión'),
       findsOneWidget,
     );
     expect(find.byType(OrgMemberCard), findsNothing);
@@ -442,7 +442,7 @@ void main() {
       expect(find.text('Reintentar'), findsNothing);
       // Toast de error en el overlay raíz (auto-dismiss ~2.6s).
       expect(
-        find.text('No se pudo cargar el listado — revisá tu conexión'),
+        find.text('No se pudo cargar el listado — revisa tu conexión'),
         findsOneWidget,
       );
 
@@ -461,7 +461,7 @@ void main() {
       await tester.pumpWidget(buildApp());
 
       // UsersRateLimitFailure mapea a tooManyAttemptsError — el genérico
-      // "revisá tu conexión" mentiría sobre la causa (backend 060).
+      // "revisa tu conexión" mentiría sobre la causa (backend 060).
       emitListState(
         loadedState().copyWith(
           status: UsersListStatus.error,
@@ -473,11 +473,11 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('Demasiados intentos — esperá un momento'),
+        find.text('Demasiados intentos — espera un momento'),
         findsOneWidget,
       );
       expect(
-        find.text('No se pudo cargar el listado — revisá tu conexión'),
+        find.text('No se pudo cargar el listado — revisa tu conexión'),
         findsNothing,
       );
 
@@ -498,7 +498,7 @@ void main() {
 
       expect(find.byType(UsersListErrorState), findsOneWidget);
       expect(
-        find.text('Demasiados intentos — esperá un momento'),
+        find.text('Demasiados intentos — espera un momento'),
         findsOneWidget,
       );
       expect(find.text('Reintentar'), findsOneWidget);
@@ -937,7 +937,7 @@ void main() {
       // El toast rojo traduce el error de dominio — no el genérico.
       expect(
         find.text(
-          'Es el último administrador activo — nombrá otro admin antes',
+          'Es el último administrador activo — nombra otro admin antes',
         ),
         findsOneWidget,
       );

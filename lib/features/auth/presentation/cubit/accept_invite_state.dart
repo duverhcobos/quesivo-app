@@ -10,7 +10,7 @@ import '../../domain/value_objects/register_password.dart';
 /// FormzSubmissionStatus) con `email`/`resendStatus` de verify-email:
 /// el email viaja en el query param del link (solo display + resend).
 ///
-/// `resendStatus` es el canal del botón "Pedir link nuevo" de la vista
+/// `resendStatus` es el canal del botón "Pedir enlace nuevo" de la vista
 /// de link inválido: `initial` → botón, `inProgress` → loader,
 /// `success` → ForgotPasswordInfoCard de confirmación.
 class AcceptInviteState extends Equatable {

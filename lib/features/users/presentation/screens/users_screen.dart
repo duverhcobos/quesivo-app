@@ -409,7 +409,7 @@ class _UsersViewState extends State<_UsersView> {
                       c.members.isNotEmpty,
                   listener: (context, state) => QuesivoToast.error(
                     context,
-                    // 429 dice la verdad (esperá y reintentá), no el
+                    // 429 dice la verdad (espera y reintenta), no el
                     // genérico de conexión.
                     message: state.failure is UsersRateLimitFailure
                         ? l10n.tooManyAttemptsError

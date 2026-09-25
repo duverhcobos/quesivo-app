@@ -103,7 +103,7 @@ class AcceptInviteCubit extends Cubit<AcceptInviteState> {
     );
   }
 
-  /// "Pedir link nuevo" desde la vista de link inválido — reusa
+  /// "Pedir enlace nuevo" desde la vista de link inválido — reusa
   /// `resend-verification` del backend (para `pending_verification`
   /// el 204 reenvía el MISMO correo de invitación — doc 017).
   Future<void> resend() async {

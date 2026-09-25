@@ -35,14 +35,14 @@ class LinkedUserSuspendedFailure extends UsersFailure {
 /// global; la vinculación es otra acción (doc 007 post-058).
 class EmailAlreadyExistsFailure extends UsersFailure {
   const EmailAlreadyExistsFailure()
-    : super('Ese correo ya tiene cuenta — vinculalo como existente.');
+    : super('Ese correo ya tiene cuenta — vincúlalo como existente.');
 }
 
 /// `404 + USER_NOT_FOUND` (link) — el email no tiene cuenta global;
 /// crear es la otra acción.
 class UserNotFoundFailure extends UsersFailure {
   const UserNotFoundFailure()
-    : super('Ese correo no tiene cuenta — crealo desde "Crear usuario".');
+    : super('Ese correo no tiene cuenta — créalo desde "Crear usuario".');
 }
 
 /// `409 + USER_IS_OWNER` (link) — dueño de otra org no es vinculable
@@ -56,7 +56,7 @@ class UserIsOwnerFailure extends UsersFailure {
 /// membresía (doc 009). Defensivo: la card propia no muestra ⋮.
 class SelfSuspensionFailure extends UsersFailure {
   const SelfSuspensionFailure()
-    : super('No podés suspender tu propia membresía.');
+    : super('No puedes suspender tu propia membresía.');
 }
 
 /// `400 + OWNER_SUSPENSION` — el target es dueño de la org (doc 009,
@@ -70,7 +70,7 @@ class OwnerSuspensionFailure extends UsersFailure {
 /// activo (doc 009, decisión 004 §6.4).
 class LastAdminFailure extends UsersFailure {
   const LastAdminFailure()
-    : super('Es el último administrador activo — nombrá otro admin antes.');
+    : super('Es el último administrador activo — nombra otro admin antes.');
 }
 
 /// `400 + OWNER_PASSWORD_RESET` — resetear el password del dueño es un
@@ -85,7 +85,7 @@ class OwnerPasswordResetFailure extends UsersFailure {
 /// (doc 012, propuesta backend 063). Defensivo: la card propia no
 /// muestra ⋮.
 class SelfRoleChangeFailure extends UsersFailure {
-  const SelfRoleChangeFailure() : super('No podés cambiar tu propio rol.');
+  const SelfRoleChangeFailure() : super('No puedes cambiar tu propio rol.');
 }
 
 /// `400 + OWNER_ROLE_CHANGE` — el target es dueño de la org: quitarle
@@ -124,23 +124,23 @@ class MemberNotFoundFailure extends UsersFailure {
 /// muestra a admins, pero el rol pudo cambiar desde otro cliente.
 class UsersForbiddenFailure extends UsersFailure {
   const UsersForbiddenFailure()
-    : super('No tenés permisos para gestionar usuarios.');
+    : super('No tienes permisos para gestionar usuarios.');
 }
 
 /// `429` — rate limit del endpoint (varía por ruta — backend 060).
 class UsersRateLimitFailure extends UsersFailure {
   const UsersRateLimitFailure()
-    : super('Demasiados intentos. Esperá un momento e intentalo de nuevo.');
+    : super('Demasiados intentos. Espera un momento e inténtalo de nuevo.');
 }
 
 /// Validación local del use case — la sheet ya bloquea el submit con
 /// datos inválidos; esta es la segunda línea defensiva del dominio.
 class InvalidMemberDataFailure extends UsersFailure {
-  const InvalidMemberDataFailure() : super('Revisá los datos del formulario.');
+  const InvalidMemberDataFailure() : super('Revisa los datos del formulario.');
 }
 
 /// Cualquier otro error del servidor/red no clasificado.
 class UsersServerFailure extends UsersFailure {
   const UsersServerFailure([String? message])
-    : super(message ?? 'Ocurrió un error en el servidor. Intentalo más tarde.');
+    : super(message ?? 'Ocurrió un error en el servidor. Inténtalo más tarde.');
 }

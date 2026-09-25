@@ -70,9 +70,9 @@ void main() {
       'confirmación, checklist y el CTA deshabilitado', (tester) async {
     await tester.pumpWidget(buildApp(buildCubit()));
 
-    expect(find.text('Definí tu contraseña'), findsOneWidget);
+    expect(find.text('Define tu contraseña'), findsOneWidget);
     expect(
-      find.text('Te invitaron a unirte. Creá tu contraseña para $tEmail.'),
+      find.text('Te invitaron a unirte. Crea tu contraseña para $tEmail.'),
       findsOneWidget,
     );
     expect(field('Nueva contraseña'), findsOneWidget);
@@ -128,34 +128,34 @@ void main() {
   });
 
   testWidgets('deep link sin token muestra la vista de link inválido '
-      'con "Pedir link nuevo"', (tester) async {
+      'con "Pedir enlace nuevo"', (tester) async {
     await tester.pumpWidget(buildApp(buildCubit(token: '')));
 
     expect(find.text('Este enlace ya no es válido'), findsOneWidget);
     expect(
       find.text(
-        'El enlace de invitación expiró o ya fue usado. Pedí uno nuevo.',
+        'El enlace de invitación expiró o ya fue usado. Pide uno nuevo.',
       ),
       findsOneWidget,
     );
-    expect(find.text('Pedir link nuevo'), findsOneWidget);
+    expect(find.text('Pedir enlace nuevo'), findsOneWidget);
     // El form de password no se renderiza.
     expect(field('Nueva contraseña'), findsNothing);
   });
 
-  testWidgets('"Pedir link nuevo" llama al resend y muestra la card de '
+  testWidgets('"Pedir enlace nuevo" llama al resend y muestra la card de '
       'confirmación', (tester) async {
     when(() => mockResend(tEmail)).thenAnswer((_) async => const Right(null));
     await tester.pumpWidget(buildApp(buildCubit(token: '')));
 
-    await tester.tap(find.text('Pedir link nuevo'));
+    await tester.tap(find.text('Pedir enlace nuevo'));
     await tester.pump();
     await tester.pump();
 
     verify(() => mockResend(tEmail)).called(1);
     expect(find.text('Correo reenviado'), findsOneWidget);
     expect(
-      find.text('Te enviamos un enlace nuevo. Revisá tu bandeja de entrada.'),
+      find.text('Te enviamos un enlace nuevo. Revisa tu bandeja de entrada.'),
       findsOneWidget,
     );
   });
@@ -166,7 +166,7 @@ void main() {
     await tester.pumpWidget(buildApp(buildCubit(token: '', email: '')));
 
     expect(find.text('Este enlace ya no es válido'), findsOneWidget);
-    expect(find.text('Pedir link nuevo'), findsNothing);
+    expect(find.text('Pedir enlace nuevo'), findsNothing);
     // La salida manual a login sigue visible.
     expect(find.text('Iniciar sesión'), findsOneWidget);
   });

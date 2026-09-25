@@ -153,7 +153,7 @@ class _QueseraHeroCarouselState extends State<QueseraHeroCarousel> {
             builder: (context, selection) {
               // Defensivo (el gate 065 hace que no ocurra, pero el estado
               // vacío no debe crashear): sin queseras → mensaje centrado.
-              // Con invitaciones pendientes arriba (§69) el "no tenés
+              // Con invitaciones pendientes arriba (§69) el "no tienes
               // queseras" contradice la card — la sección ya lo comunica.
               if (ordered.isEmpty) {
                 if (hasPendingInvites) return const SizedBox.shrink();

@@ -50,7 +50,7 @@ class RoleNotAllowedFailure extends AuthFailure {
 /// usa para navegar a `/check-email`, donde está el botón de reenvío.
 class EmailNotVerifiedFailure extends AuthFailure {
   const EmailNotVerifiedFailure()
-    : super('Tu correo todavía no está verificado. Revisá tu bandeja.');
+    : super('Tu correo todavía no está verificado. Revisa tu bandeja.');
 }
 
 /// Ocurre cuando el rate limit del backend rechaza el intento (HTTP 429).

@@ -25,7 +25,7 @@ class OrgInvitesCubit extends Cubit<OrgInvitesState> {
 
   /// POST /auth/me/org-invites/:orgId/accept → invited pasa a active.
   /// Devuelve `true` si quedó aceptada (la sección muestra el toast de
-  /// "ya sos parte de X"); error → `errorMessage` para el listener.
+  /// "ya eres parte de X"); error → `failure` para el listener.
   Future<bool> accept(OrgInvite invite) async {
     if (state.isResponding) return false;
     emit(state.copyWith(respondingId: invite.id, clearError: true));
