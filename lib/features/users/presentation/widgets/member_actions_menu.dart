@@ -17,6 +17,19 @@ import 'reset_password_sheet.dart';
 /// cubit y devuelve el miembro del 200.
 /// "Suspender usuario" se tiñe `quesivoError` (acción destructiva —
 /// mismo criterio que logout en el drawer).
+///
+/// §68 — Email-C: cuando `member.invitePending` es
+/// `pendingVerification` el menú abre con "Reenviar invitación" (ícono
+/// `send`, navy — no destructiva) que dispara
+/// `POST /auth/users/:id/resend-invite` vía `onResendInvite`. El gate
+/// es el estado GLOBAL de la cuenta, no el de la membresía: el invitado
+/// pendiente tiene `MemberStatus.active` pero todavía no aceptó el mail.
+///
+/// §69 — backend 072: sobre `invitePending` el menú solo ofrece
+/// Reenviar/Cancelar (suspend/rol/password son errores garantizados:
+/// `MEMBERSHIP_INVITED`/`NOT_INVITED` en backend). "Cancelar
+/// invitación" pide confirmación y dispara `DELETE /auth/users/:id`
+/// vía `onCancelInvite`.
 class MemberActionsMenu extends StatelessWidget {
   const MemberActionsMenu({
     super.key,
@@ -24,6 +37,8 @@ class MemberActionsMenu extends StatelessWidget {
     required this.onStatusToggle,
     required this.onPasswordReset,
     required this.onRoleChange,
+    required this.onResendInvite,
+    required this.onCancelInvite,
     this.sheetTopInset = 0,
   });
 
@@ -39,12 +54,54 @@ class MemberActionsMenu extends StatelessWidget {
   /// Recibe el `OrgMember` del 200 cuando el sheet completó el reset.
   final ValueChanged<OrgMember> onPasswordReset;
 
+  /// §68 — reenvío de invitación (`POST /auth/users/:id/resend-invite`):
+  /// la screen dispara el POST real y decide el toast — el menú solo
+  /// notifica (no hay diálogo: la acción no es destructiva).
+  final VoidCallback onResendInvite;
+
+  /// §69 — cancelación de la invitación (`DELETE /auth/users/:id`):
+  /// destructiva suave — el menú ya pidió confirmación con diálogo; la
+  /// screen dispara el DELETE real y el toast.
+  final VoidCallback onCancelInvite;
+
   /// Tope del `ResetPasswordSheet` (borde inferior del hero navy) —
   /// lo mide la pantalla y viaja por la card hasta acá.
   final double sheetTopInset;
 
   Future<void> _onSelected(BuildContext context, String value) async {
     switch (value) {
+      case 'invite':
+        // §68 — sin confirmación: reenviar el mail no destruye nada y
+        // el busy de la card ya da feedback del vuelo.
+        onResendInvite();
+      case 'cancel':
+        final l10n = AppLocalizations.of(context)!;
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: AppColors.quesivoWhite,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(l10n.cancelInviteConfirmTitle),
+            content: Text(l10n.cancelInviteConfirmBody(member.email)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(l10n.cancelAction),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(
+                  l10n.cancelInviteAction,
+                  style: const TextStyle(color: AppColors.quesivoError),
+                ),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true && context.mounted) onCancelInvite();
       case 'status':
         final confirmed = await MemberStatusDialog.show(context, member);
         if (!confirmed || !context.mounted) return;
@@ -96,81 +153,142 @@ class MemberActionsMenu extends StatelessWidget {
       offset: const Offset(0, 8),
       onSelected: (value) => _onSelected(context, value),
       itemBuilder: (context) => [
-        PopupMenuItem<String>(
-          value: 'status',
-          child: Row(
-            children: [
-              Icon(
-                suspended ? Icons.check_circle_outline : Icons.block_outlined,
-                size: 20,
-                color: suspended
-                    ? AppColors.quesivoSuccess
-                    : AppColors.quesivoError,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  suspended
-                      ? l10n.reactivateUserAction
-                      : l10n.suspendUserAction,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: suspended
-                        ? AppColors.quesivoSuccess
-                        : AppColors.quesivoError,
+        // §68 — "Reenviar invitación" solo para invitados que todavía
+        // no aceptaron el mail (`invitePending` = pending + sin
+        // password, derivado del backend — el gate exacto del 204 vs
+        // INVITE_NOT_PENDING). Primero en la lista: es la acción más
+        // contextual para un invitado pendiente.
+        if (member.invitePending)
+          PopupMenuItem<String>(
+            value: 'invite',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.send_outlined,
+                  size: 20,
+                  color: AppColors.quesivoNavy,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.resendInviteAction,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.quesivoNavy,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        PopupMenuItem<String>(
-          value: 'role',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.manage_accounts_outlined,
-                size: 20,
-                color: AppColors.quesivoDarkText,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.changeRoleAction,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.quesivoDarkText,
+        // §69 — cancelación: solo con invitación pendiente; destructiva
+        // suave (rojo) con confirmación — borra la membresía invited o
+        // el artefacto completo si era su única membresía (backend 072).
+        if (member.invitePending)
+          PopupMenuItem<String>(
+            value: 'cancel',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.cancel_outlined,
+                  size: 20,
+                  color: AppColors.quesivoError,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.cancelInviteAction,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.quesivoError,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        PopupMenuItem<String>(
-          value: 'password',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.lock_reset,
-                size: 20,
-                color: AppColors.quesivoDarkText,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.resetPasswordAction,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.quesivoDarkText,
+        // §69 — suspend/rol/password NO sobre invitaciones pendientes:
+        // el backend rechaza invited con 409 (MEMBERSHIP_INVITED) y
+        // sobre el artefacto no tienen sentido (nunca logueó).
+        if (!member.invitePending) ...[
+          PopupMenuItem<String>(
+            value: 'status',
+            child: Row(
+              children: [
+                Icon(
+                  suspended ? Icons.check_circle_outline : Icons.block_outlined,
+                  size: 20,
+                  color: suspended
+                      ? AppColors.quesivoSuccess
+                      : AppColors.quesivoError,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    suspended
+                        ? l10n.reactivateUserAction
+                        : l10n.suspendUserAction,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: suspended
+                          ? AppColors.quesivoSuccess
+                          : AppColors.quesivoError,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          PopupMenuItem<String>(
+            value: 'role',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.manage_accounts_outlined,
+                  size: 20,
+                  color: AppColors.quesivoDarkText,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.changeRoleAction,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.quesivoDarkText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuItem<String>(
+            value: 'password',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.lock_reset,
+                  size: 20,
+                  color: AppColors.quesivoDarkText,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.resetPasswordAction,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.quesivoDarkText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

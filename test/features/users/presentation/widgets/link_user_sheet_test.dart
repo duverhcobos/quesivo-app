@@ -35,6 +35,7 @@ void main() {
     name: 'Ana Vieja',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
     linked: true,
   );
@@ -112,10 +113,10 @@ void main() {
     await tester.pumpWidget(buildApp());
     await openSheet(tester);
 
-    expect(find.text('Vincular usuario'), findsOneWidget);
+    expect(find.text('Invitar usuario existente'), findsOneWidget);
     expect(
       find.text(
-        'El correo ya tiene cuenta en Quesivo — se vincula a tu quesera y conserva su contraseña actual',
+        'El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte',
       ),
       findsOneWidget,
     );
@@ -125,7 +126,7 @@ void main() {
     expect(find.text('Operario'), findsOneWidget);
     expect(find.text('Recolector'), findsOneWidget);
     expect(find.text('Productor'), findsOneWidget);
-    expect(find.text('Vincular'), findsOneWidget);
+    expect(find.text('Enviar invitación'), findsOneWidget);
     expect(find.text('Cancelar'), findsOneWidget);
   });
 
@@ -136,13 +137,13 @@ void main() {
       await tester.pumpWidget(buildApp());
       await openSheet(tester);
 
-      await tester.tap(find.text('Vincular'));
+      await tester.tap(find.text('Enviar invitación'));
       await tester.pump();
 
       expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
       expect(find.text('Elegí un rol'), findsOneWidget);
       // No hubo pop — el sheet sigue abierto.
-      expect(find.text('Vincular usuario'), findsOneWidget);
+      expect(find.text('Invitar usuario existente'), findsOneWidget);
       verifyNever(
         () => mockCubit.submit(
           email: any(named: 'email'),
@@ -160,12 +161,12 @@ void main() {
     await openSheet(tester);
 
     await tester.enterText(field('Correo electrónico'), 'vieja@mail.com');
-    await tester.tap(find.text('Vincular'));
+    await tester.tap(find.text('Enviar invitación'));
     await tester.pump();
 
     expect(find.text('Elegí un rol'), findsOneWidget);
     expect(find.text('Ingresa un correo con formato válido'), findsNothing);
-    expect(find.text('Vincular'), findsOneWidget);
+    expect(find.text('Enviar invitación'), findsOneWidget);
     verifyNever(
       () => mockCubit.submit(
         email: any(named: 'email'),
@@ -184,7 +185,7 @@ void main() {
     await tester.enterText(field('Correo electrónico'), 'Vieja@Mail.com ');
     await tester.tap(find.text('Operario'));
     await tester.pump();
-    await tester.tap(find.text('Vincular'));
+    await tester.tap(find.text('Enviar invitación'));
     await tester.pump();
 
     verify(
@@ -237,7 +238,7 @@ void main() {
       await openSheet(tester);
       await fillValidForm(tester);
 
-      await tester.tap(find.text('Vincular'));
+      await tester.tap(find.text('Enviar invitación'));
       await tester.pump();
 
       // El backend respondió 201 — el cubit emite success con el
@@ -256,7 +257,7 @@ void main() {
       // Durante la pausa: sheet abierto (el título sigue — el label del
       // botón ya fue reemplazado por el check). El mensaje de éxito NO
       // va en el sheet — llega por QuesivoToast tras el pop.
-      expect(find.text('Vincular usuario'), findsOneWidget);
+      expect(find.text('Invitar usuario existente'), findsOneWidget);
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       expect(
         tester
@@ -270,7 +271,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(await result, tMember);
-      expect(find.text('Vincular'), findsNothing);
+      expect(find.text('Enviar invitación'), findsNothing);
     },
   );
 
@@ -282,7 +283,7 @@ void main() {
       await openSheet(tester);
       await fillValidForm(tester);
 
-      await tester.tap(find.text('Vincular'));
+      await tester.tap(find.text('Enviar invitación'));
       await tester.pump();
 
       // 404 USER_NOT_FOUND → toast rojo sobre el overlay raíz: el form
@@ -302,7 +303,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.text('Vincular'), findsOneWidget);
+      expect(find.text('Enviar invitación'), findsOneWidget);
 
       // Drena el auto-dismiss del toast (~2.6s) — sin el pump el Timer
       // queda pendiente al teardown ("A Timer is still pending").
@@ -320,7 +321,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await result, isNull);
-    expect(find.text('Vincular usuario'), findsNothing);
+    expect(find.text('Invitar usuario existente'), findsNothing);
   });
 
   testWidgets('el formatter del email bloquea espacios al tipear', (
@@ -346,7 +347,7 @@ void main() {
     await tester.enterText(field('Correo electrónico'), 'juanmail.com');
     await tester.pump();
 
-    // Sin tap en "Vincular" — el onChanged ya marca el error.
+    // Sin tap en "Enviar invitación" — el onChanged ya marca el error.
     expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
     verifyNever(
       () => mockCubit.submit(
@@ -363,7 +364,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       await openSheet(tester);
       await fillValidForm(tester);
-      await tester.tap(find.text('Vincular'));
+      await tester.tap(find.text('Enviar invitación'));
       await tester.pump();
 
       stateController.add(
@@ -379,7 +380,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('Vincular usuario'), findsOneWidget);
+      expect(find.text('Invitar usuario existente'), findsOneWidget);
     },
   );
 }

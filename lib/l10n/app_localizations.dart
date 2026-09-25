@@ -751,7 +751,7 @@ abstract class AppLocalizations {
   /// No description provided for @fabLinkUser.
   ///
   /// In es, this message translates to:
-  /// **'Vincular existente'**
+  /// **'Invitar existente'**
   String get fabLinkUser;
 
   /// No description provided for @roleOperator.
@@ -807,6 +807,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Suspendido'**
   String get memberStatusSuspended;
+
+  /// No description provided for @memberStatusInvited.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitado'**
+  String get memberStatusInvited;
 
   /// No description provided for @memberActionsTooltip.
   ///
@@ -907,19 +913,19 @@ abstract class AppLocalizations {
   /// No description provided for @linkUserSheetTitle.
   ///
   /// In es, this message translates to:
-  /// **'Vincular usuario'**
+  /// **'Invitar usuario existente'**
   String get linkUserSheetTitle;
 
   /// No description provided for @linkUserSheetHint.
   ///
   /// In es, this message translates to:
-  /// **'El correo ya tiene cuenta en Quesivo — se vincula a tu quesera y conserva su contraseña actual'**
+  /// **'El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte'**
   String get linkUserSheetHint;
 
   /// No description provided for @linkUserSubmit.
   ///
   /// In es, this message translates to:
-  /// **'Vincular'**
+  /// **'Enviar invitación'**
   String get linkUserSubmit;
 
   /// No description provided for @memberCreatedFeedback.
@@ -1006,11 +1012,11 @@ abstract class AppLocalizations {
   /// **'Contraseña restablecida — compartila con {name}'**
   String passwordResetFeedback(String name);
 
-  /// No description provided for @memberLinkedFeedback.
+  /// No description provided for @inviteLinkSentFeedback.
   ///
   /// In es, this message translates to:
-  /// **'{name} ya tenía cuenta — quedó vinculado y entra con su contraseña actual'**
-  String memberLinkedFeedback(String name);
+  /// **'Invitación enviada — {name} entra cuando la acepte'**
+  String inviteLinkSentFeedback(String name);
 
   /// No description provided for @membershipExistsError.
   ///
@@ -1027,7 +1033,7 @@ abstract class AppLocalizations {
   /// No description provided for @emailAlreadyExistsError.
   ///
   /// In es, this message translates to:
-  /// **'Ese correo ya tiene cuenta — vinculalo desde \"Vincular existente\"'**
+  /// **'Ese correo ya tiene cuenta — invitalo desde \"Invitar existente\"'**
   String get emailAlreadyExistsError;
 
   /// No description provided for @userNotFoundError.
@@ -1221,6 +1227,150 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.'**
   String get verifyEmailInvalidDescription;
+
+  /// No description provided for @acceptInviteTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Definí tu contraseña'**
+  String get acceptInviteTitle;
+
+  /// No description provided for @acceptInviteDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Te invitaron a unirte. Creá tu contraseña para {email}.'**
+  String acceptInviteDescription(String email);
+
+  /// No description provided for @acceptInviteButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear contraseña y entrar'**
+  String get acceptInviteButton;
+
+  /// No description provided for @acceptInviteInvalidTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Este enlace ya no es válido'**
+  String get acceptInviteInvalidTitle;
+
+  /// No description provided for @acceptInviteInvalidDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'El enlace de invitación expiró o ya fue usado. Pedí uno nuevo.'**
+  String get acceptInviteInvalidDescription;
+
+  /// No description provided for @acceptInviteResendButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Pedir link nuevo'**
+  String get acceptInviteResendButton;
+
+  /// No description provided for @newUserInviteMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitar por correo'**
+  String get newUserInviteMode;
+
+  /// No description provided for @newUserManualMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña manual'**
+  String get newUserManualMode;
+
+  /// No description provided for @newUserInviteHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Le llegará un correo con un enlace para crear su contraseña.'**
+  String get newUserInviteHint;
+
+  /// No description provided for @invitePendingBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitación pendiente'**
+  String get invitePendingBadge;
+
+  /// No description provided for @resendInviteAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Reenviar invitación'**
+  String get resendInviteAction;
+
+  /// No description provided for @inviteResentFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitación reenviada a {email}'**
+  String inviteResentFeedback(String email);
+
+  /// No description provided for @inviteNotPendingError.
+  ///
+  /// In es, this message translates to:
+  /// **'El usuario ya aceptó la invitación'**
+  String get inviteNotPendingError;
+
+  /// No description provided for @orgInvitesSectionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitaciones'**
+  String get orgInvitesSectionTitle;
+
+  /// No description provided for @orgInviteCardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Te invitaron a unirte'**
+  String get orgInviteCardTitle;
+
+  /// No description provided for @orgInviteAcceptCta.
+  ///
+  /// In es, this message translates to:
+  /// **'Aceptar'**
+  String get orgInviteAcceptCta;
+
+  /// No description provided for @orgInviteDeclineCta.
+  ///
+  /// In es, this message translates to:
+  /// **'Rechazar'**
+  String get orgInviteDeclineCta;
+
+  /// No description provided for @orgInviteAcceptedFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya sos parte de {org}'**
+  String orgInviteAcceptedFeedback(String org);
+
+  /// No description provided for @orgInviteGoneError.
+  ///
+  /// In es, this message translates to:
+  /// **'La invitación ya no existe — actualizá y revisá de nuevo'**
+  String get orgInviteGoneError;
+
+  /// No description provided for @cancelInviteAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar invitación'**
+  String get cancelInviteAction;
+
+  /// No description provided for @cancelInviteConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cancelar la invitación?'**
+  String get cancelInviteConfirmTitle;
+
+  /// No description provided for @cancelInviteConfirmBody.
+  ///
+  /// In es, this message translates to:
+  /// **'{email} no va a recibir ni usar esta invitación — si vuelve a intentarlo, generá una nueva.'**
+  String cancelInviteConfirmBody(String email);
+
+  /// No description provided for @memberNotInvitedError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya no hay una invitación pendiente para este usuario'**
+  String get memberNotInvitedError;
+
+  /// No description provided for @inviteCancelledFeedback.
+  ///
+  /// In es, this message translates to:
+  /// **'Invitación cancelada'**
+  String get inviteCancelledFeedback;
 }
 
 class _AppLocalizationsDelegate

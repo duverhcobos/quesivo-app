@@ -161,10 +161,11 @@ class _UsersViewState extends State<_UsersView> {
     );
   }
 
-  /// §48 — abre el sheet de vinculación (`POST /auth/users/link` vía
-  /// `LinkUserCubit`): al volver con el `OrgMember` (`linked:true`) lo
-  /// inserta al tope + scroll + toast info con `memberLinkedFeedback` —
-  /// semántica informativa: no se creó cuenta, solo la membresía.
+  /// §48 — abre el sheet de invitación (`POST /auth/users/link` vía
+  /// `LinkUserCubit`): desde §69 (backend 072) el 201 ya no "vinculó" —
+  /// envió una invitación que el otro acepta con sesión (`linked:true`
+  /// sigue marcando "cuenta existente"). Al volver inserta el
+  /// `OrgMember` al tope + scroll + toast info `inviteLinkSentFeedback`.
   Future<void> _openLinkUserSheet() async {
     final linked = await LinkUserSheet.show(context, topInset: _sheetTopInset);
     if (linked == null || !mounted) return;
@@ -178,7 +179,9 @@ class _UsersViewState extends State<_UsersView> {
     }
     QuesivoToast.info(
       context,
-      message: AppLocalizations.of(context)!.memberLinkedFeedback(linked.name),
+      message: AppLocalizations.of(
+        context,
+      )!.inviteLinkSentFeedback(linked.name),
     );
   }
 
@@ -239,10 +242,52 @@ class _UsersViewState extends State<_UsersView> {
     }
   }
 
-  /// Traducción de los failures de los PATCH de fila (status doc 009,
-  /// role doc 012) — los de regla propia/dueño son defensivos (la UI ya
-  /// no ofrece el ⋮ al dueño ni a la card propia, y LAST_ADMIN solo se
-  /// da con datos stale).
+  /// §68 — reenvío de invitación REAL vía
+  /// `POST /auth/users/:id/resend-invite`: el cubit pone la card en
+  /// busy y devuelve el Either — éxito → toast verde con el email del
+  /// invitado; `InviteNotPendingFailure` (el invitado aceptó entre el
+  /// listado y el tap — dato stale, doc 018) → toast de error propio.
+  Future<void> _resendInvite(OrgMember member) async {
+    final result = await context.read<UsersListCubit>().resendInvite(member);
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    switch (result) {
+      case Left(value: final failure):
+        QuesivoToast.error(
+          context,
+          message: _memberActionErrorText(l10n, failure),
+        );
+      case Right():
+        QuesivoToast.success(
+          context,
+          message: l10n.inviteResentFeedback(member.email),
+        );
+    }
+  }
+
+  /// §69 — cancelación REAL vía `DELETE /auth/users/:id`: el ⋮ ya pidió
+  /// confirmación (CancelInviteDialog del menú); el cubit pone la card
+  /// en busy, en 204 la fila sale del listado y el toast avisa.
+  Future<void> _cancelInvite(OrgMember member) async {
+    final result = await context.read<UsersListCubit>().cancelInvite(member);
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    switch (result) {
+      case Left(value: final failure):
+        QuesivoToast.error(
+          context,
+          message: _memberActionErrorText(l10n, failure),
+        );
+      case Right():
+        QuesivoToast.success(context, message: l10n.inviteCancelledFeedback);
+    }
+  }
+
+  /// Traducción de los failures de las acciones de fila (status doc
+  /// 009, role doc 012, resend-invite doc 018 — §68) — los de regla
+  /// propia/dueño son defensivos (la UI ya no ofrece el ⋮ al dueño ni
+  /// a la card propia, y LAST_ADMIN/INVITE_NOT_PENDING solo se dan con
+  /// datos stale).
   String _memberActionErrorText(AppLocalizations l10n, UsersFailure f) =>
       switch (f) {
         SelfSuspensionFailure() => l10n.selfSuspensionError,
@@ -253,6 +298,8 @@ class _UsersViewState extends State<_UsersView> {
         MemberNotFoundFailure() => l10n.memberNotFoundError,
         UsersForbiddenFailure() => l10n.usersForbiddenError,
         UsersRateLimitFailure() => l10n.tooManyAttemptsError,
+        InviteNotPendingFailure() => l10n.inviteNotPendingError,
+        MemberNotInvitedFailure() => l10n.memberNotInvitedError,
         UsersNetworkFailure() => l10n.networkError,
         _ => l10n.genericError,
       };
@@ -375,14 +422,17 @@ class _UsersViewState extends State<_UsersView> {
                     onStatusToggle: _setMemberStatus,
                     onPasswordReset: _resetMemberPassword,
                     onRoleChange: _setMemberRole,
+                    onResendInvite: _resendInvite,
+                    onCancelInvite: _cancelInvite,
                   ),
                 ),
               ),
             ],
           ),
           // ── Speed dial (§48): círculo amarillo que flota sobre el
-          // nav navy — expande "Crear usuario" y "Vincular existente"
-          // (backend 058 separó crear de vincular). Misma posición que
+          // nav navy — expande "Crear usuario" e "Invitar existente"
+          // (backend 058 separó crear de vincular; §69 convirtió la
+          // vinculación en invitación). Misma posición que
           // el FAB que reemplaza; el scrim lo maneja el propio widget.
           Positioned(
             right: 24,

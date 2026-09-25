@@ -6,7 +6,6 @@ import 'package:quesivo/l10n/app_localizations.dart';
 
 import '../../../../core/di/setup_di.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/password_requirements_checklist.dart';
 import '../../../../core/widgets/quesivo_close_button.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 import '../../../../core/widgets/quesivo_text_field.dart';
@@ -19,12 +18,21 @@ import '../../domain/value_objects/member_name.dart';
 import '../../domain/value_objects/temp_password.dart';
 import '../cubit/create_user_cubit.dart';
 import '../cubit/create_user_state.dart';
+import 'new_user_sheet/invite_mode_selector.dart';
+import 'new_user_sheet/manual_password_section.dart';
 import 'role_selector_chips.dart';
 
 /// Bottom sheet de creación de usuario (§44) — el primero de la app.
 /// Integrado en §46: el submit pega a `POST /auth/users` real vía
 /// `CreateUserCubit` y el sheet devuelve por `Navigator.pop` el
 /// `OrgMember` que responde el backend (uuid, `status`, `linked`).
+///
+/// §68 — Email-C: el sheet gana un toggle de modo arriba del password —
+/// "Invitar por correo" (default, recomendado: el invitado elige su
+/// password en el link del mail, nada circula en claro) o "Contraseña
+/// manual" (el temporal de siempre — operario sin correo propio). En
+/// modo invitación el submit sale SIN `password` — el backend crea el
+/// user `pending_verification` y le manda el mail (doc 007-post-users).
 ///
 /// Validación manual al submit — `QuesivoTextField` expone `errorText`
 /// (patrón del proyecto: el error llega de afuera, no de un `validator`
@@ -94,6 +102,11 @@ class _NewUserSheetState extends State<NewUserSheet> {
   String _password = '';
   UserRole? _role;
 
+  /// §68 — modo de alta: `true` = invitar por correo (default — sin
+  /// password en el POST; el invitado la define en el accept-invite),
+  /// `false` = contraseña temporal manual.
+  bool _inviteMode = true;
+
   bool _nameError = false; // vacío al submit → "Ingresá el nombre completo"
   bool _nameFormatError = false; // live: separadores mal ubicados
   bool _emailError = false; // submit: vacío · live: formato inválido
@@ -108,7 +121,9 @@ class _NewUserSheetState extends State<NewUserSheet> {
       _nameError = name.isEmpty;
       _nameFormatError = !_nameError && nameInvalid;
       _emailError = !MemberEmail.dirty(email).isValid;
-      _passwordError = !TempPassword.dirty(_password).isValid;
+      // Email-C (§68): en modo invitación no hay password que validar —
+      // el invitado elige el suyo al aceptar el correo.
+      _passwordError = !_inviteMode && !TempPassword.dirty(_password).isValid;
       _roleError = _role == null;
     });
     if (_nameError ||
@@ -122,7 +137,8 @@ class _NewUserSheetState extends State<NewUserSheet> {
     context.read<CreateUserCubit>().submit(
       name: name,
       email: email,
-      password: _password,
+      // null = invite mode (backend 070): el body sale sin password.
+      password: _inviteMode ? null : _password,
       role: _role!,
     );
   }
@@ -235,7 +251,6 @@ class _NewUserSheetState extends State<NewUserSheet> {
                 builder: (context, state) {
                   final isBusy =
                       state.status.isInProgress || state.status.isSuccess;
-                  final tempPassword = TempPassword.dirty(_password);
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                     child: Column(
@@ -311,53 +326,50 @@ class _NewUserSheetState extends State<NewUserSheet> {
                           },
                         ),
                         const SizedBox(height: 14),
-                        // Visible a propósito: es una contraseña temporal que el
-                        // admin inventa y le comparte al usuario a mano — ocultarla
-                        // solo dificultaría tipearla/dictarla sin typos.
-                        QuesivoTextField(
-                          hintText: l10n.tempPasswordPlaceholder,
-                          prefixIcon: Icons.lock_outline,
+                        // Email-C (§68): "Invitar por correo" (default —
+                        // el invitado elige su password) o "Contraseña
+                        // manual" (operario sin correo propio). Mismo
+                        // congelado que RoleSelectorChips durante submit.
+                        InviteModeSelector(
+                          selected: _inviteMode
+                              ? NewUserMode.invite
+                              : NewUserMode.manual,
                           enabled: !isBusy,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              TempPassword.allowedChars,
-                            ),
-                          ],
-                          errorText: _passwordError
-                              ? l10n.invalidTempPasswordError
-                              : null,
-                          onChanged: (v) {
+                          onChanged: (mode) {
                             setState(() {
-                              _password = v;
+                              _inviteMode = mode == NewUserMode.invite;
                               _passwordError = false;
                             });
                             _clearBackendError();
                           },
                         ),
-                        const SizedBox(height: 12),
-                        // Checklist vivo (mismo de registro/reset) — evalúa
-                        // los predicados del VO TempPassword de dominio.
-                        PasswordRequirementsChecklist(
-                          title: l10n.passwordReqTitle,
-                          items: [
-                            PasswordRequirementItem(
-                              met: tempPassword.hasMinLength,
-                              label: l10n.passwordReqMinLength,
+                        if (_inviteMode) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            l10n.newUserInviteHint,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.quesivoTextSecondary,
                             ),
-                            PasswordRequirementItem(
-                              met: tempPassword.hasUppercase,
-                              label: l10n.passwordReqUppercase,
-                            ),
-                            PasswordRequirementItem(
-                              met: tempPassword.hasLowercase,
-                              label: l10n.passwordReqLowercase,
-                            ),
-                            PasswordRequirementItem(
-                              met: tempPassword.hasDigit,
-                              label: l10n.passwordReqDigit,
-                            ),
-                          ],
-                        ),
+                          ),
+                        ] else ...[
+                          const SizedBox(height: 14),
+                          // Sección manual extraída a
+                          // `new_user_sheet/manual_password_section.dart`
+                          // (regla de tamaño — §68 sumó el toggle).
+                          ManualPasswordSection(
+                            enabled: !isBusy,
+                            password: _password,
+                            hasError: _passwordError,
+                            onChanged: (v) {
+                              setState(() {
+                                _password = v;
+                                _passwordError = false;
+                              });
+                              _clearBackendError();
+                            },
+                          ),
+                        ],
                         const SizedBox(height: 20),
                         Text(
                           l10n.roleFieldLabel,

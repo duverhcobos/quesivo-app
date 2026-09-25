@@ -36,6 +36,7 @@ void main() {
     name: 'Ana Pérez',
     role: UserRole.admin,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org',
   );
 
@@ -45,6 +46,7 @@ void main() {
     name: 'Ana Pérez',
     role: UserRole.admin,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org',
   );
 

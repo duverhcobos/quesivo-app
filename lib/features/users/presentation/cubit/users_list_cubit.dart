@@ -5,6 +5,8 @@ import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
 import '../../domain/failures/users_failure.dart';
 import '../../domain/use_cases/list_users_use_case.dart';
+import '../../domain/use_cases/remove_org_member_use_case.dart';
+import '../../domain/use_cases/resend_invite_use_case.dart';
 import '../../domain/use_cases/update_user_role_use_case.dart';
 import '../../domain/use_cases/update_user_status_use_case.dart';
 import 'users_list_state.dart';
@@ -27,6 +29,8 @@ class UsersListCubit extends Cubit<UsersListState> {
   final ListUsersUseCase _listUsers;
   final UpdateUserStatusUseCase _updateUserStatus;
   final UpdateUserRoleUseCase _updateUserRole;
+  final ResendInviteUseCase _resendInvite;
+  final RemoveOrgMemberUseCase _removeOrgMember;
 
   /// Generación de la carga inicial: cada `load()` la incrementa y una
   /// respuesta que vuelve con un token viejo se descarta — es el guard
@@ -36,8 +40,13 @@ class UsersListCubit extends Cubit<UsersListState> {
   /// vivía en la screen.
   int _loadToken = 0;
 
-  UsersListCubit(this._listUsers, this._updateUserStatus, this._updateUserRole)
-    : super(const UsersListState());
+  UsersListCubit(
+    this._listUsers,
+    this._updateUserStatus,
+    this._updateUserRole,
+    this._resendInvite,
+    this._removeOrgMember,
+  ) : super(const UsersListState());
 
   String? get _search => state.query.isEmpty ? null : state.query;
 
@@ -246,6 +255,66 @@ class UsersListCubit extends Cubit<UsersListState> {
     switch (result) {
       case Right(value: final fresh):
         updateMember(fresh);
+      case Left():
+        break;
+    }
+    return result;
+  }
+
+  /// `POST /auth/users/:id/resend-invite` real (Email-C, §68 — doc
+  /// 018): busy mientras vuela, Either a la screen para el toast. Sin
+  /// merge — el 204 no trae body y el estado no cambia (el miembro
+  /// sigue pendiente hasta que acepte la invitación).
+  Future<Either<UsersFailure, void>> resendInvite(OrgMember member) async {
+    if (state.busyMemberIds.contains(member.id)) {
+      return const Right(null);
+    }
+    emit(state.copyWith(busyMemberIds: {...state.busyMemberIds, member.id}));
+    final result = await _resendInvite(userId: member.id);
+    if (isClosed) return result;
+    emit(
+      state.copyWith(
+        busyMemberIds: {...state.busyMemberIds}..remove(member.id),
+      ),
+    );
+    return result;
+  }
+
+  /// Saca la fila del dataset (DELETE 204 — §69): la invitación
+  /// cancelada desaparece del listado sin refetch; `total - 1` mantiene
+  /// el contador del header consistente.
+  void removeMember(String id) {
+    if (isClosed) return;
+    final before = state.members.length;
+    final members = state.members.where((m) => m.id != id).toList();
+    if (members.length == before) return;
+    emit(
+      state.copyWith(
+        members: members,
+        total: state.total > 0 ? state.total - 1 : 0,
+      ),
+    );
+  }
+
+  /// `DELETE /auth/users/:id` real (§69, doc 021): cancela la
+  /// invitación pendiente — cubre ambos casos de `invitePending`
+  /// (membresía invited y artefacto pending+passwordless). En éxito la
+  /// fila sale del listado vía `removeMember`.
+  Future<Either<UsersFailure, void>> cancelInvite(OrgMember member) async {
+    if (state.busyMemberIds.contains(member.id)) {
+      return const Right(null);
+    }
+    emit(state.copyWith(busyMemberIds: {...state.busyMemberIds, member.id}));
+    final result = await _removeOrgMember(userId: member.id);
+    if (isClosed) return result;
+    emit(
+      state.copyWith(
+        busyMemberIds: {...state.busyMemberIds}..remove(member.id),
+      ),
+    );
+    switch (result) {
+      case Right():
+        removeMember(member.id);
       case Left():
         break;
     }

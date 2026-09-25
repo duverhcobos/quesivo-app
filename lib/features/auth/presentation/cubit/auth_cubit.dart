@@ -4,7 +4,9 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/session/session_expired_notifier.dart';
+import '../../domain/entities/org_invite.dart';
 import '../../domain/entities/organization_session.dart';
+import '../../domain/entities/organization_summary.dart';
 import '../../domain/use_cases/login_use_case.dart';
 import '../../domain/use_cases/login_with_google_use_case.dart';
 import '../../domain/use_cases/check_auth_status_use_case.dart';
@@ -120,6 +122,56 @@ class AuthCubit extends Cubit<AuthState> {
     if (current is AuthSuccess && current.enteredOrg) {
       emit(AuthSuccess(current.user));
     }
+  }
+
+  /// El usuario aceptó la invitación de una org (backend 072 — doc
+  /// 019): la membresía quedó `active` server-side; acá se mueve la
+  /// invitación de `pendingInvites` a `organizations` en el lugar —
+  /// la card "Entrar" aparece sin `GET /me` extra ni flash de
+  /// `AuthLoading` (el storage cacheado queda stale solo hasta el
+  /// próximo /me natural — el backend ya mutó, no hay drift real).
+  void applyOrgInviteAccepted(OrgInvite invite) {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    emit(
+      AuthSuccess(
+        current.user.copyWith(
+          organizations: [
+            // Dedup defensivo (revisión §69): una race o re-emit no
+            // puede dejar la misma org dos veces en el selector.
+            ...current.user.organizations.where(
+              (o) => o.id != invite.organizationId,
+            ),
+            OrganizationSummary(
+              id: invite.organizationId,
+              name: invite.organizationName,
+              role: invite.role,
+            ),
+          ],
+          pendingInvites: current.user.pendingInvites
+              .where((i) => i.id != invite.id)
+              .toList(),
+        ),
+        enteredOrg: current.enteredOrg,
+      ),
+    );
+  }
+
+  /// Decline (doc 020): la membresía `invited` se borró server-side —
+  /// la invitación sale de `pendingInvites` en el lugar.
+  void applyOrgInviteDeclined(OrgInvite invite) {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    emit(
+      AuthSuccess(
+        current.user.copyWith(
+          pendingInvites: current.user.pendingInvites
+              .where((i) => i.id != invite.id)
+              .toList(),
+        ),
+        enteredOrg: current.enteredOrg,
+      ),
+    );
   }
 
   Future<void> _loadSession() async {

@@ -160,12 +160,52 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
   }
 
   @override
+  Future<UserModel> acceptInvite({
+    required String token,
+    required String password,
+  }) async {
+    // Contrato real (documentacion/api/auth/017-post-accept-invite.md —
+    // Email-C, backend 070): la sesión emitida es PERSONAL (sin org) —
+    // auto-login del invitado, mismo shape que verify-email.
+    final responseData = await networkService.post<Map<String, dynamic>>(
+      '/auth/accept-invite',
+      data: {
+        'token': token,
+        'password': password,
+        'deviceId': await deviceInfoService.getDeviceId(),
+        'deviceName': await deviceInfoService.getDeviceName(),
+      },
+    );
+    return UserModel.fromJson(responseData);
+  }
+
+  @override
   Future<void> resendVerification(String email) async {
     // Contrato real (documentacion/api/auth/016-post-resend-verification.md):
     // siempre 200 — anti-enumeración.
     await networkService.post<void>(
       '/auth/resend-verification',
       data: {'email': email},
+    );
+  }
+
+  @override
+  Future<void> acceptOrgInvite(String organizationId) async {
+    // Contrato real (documentacion/api/auth/019-post-me-org-invites-
+    // accept.md — backend 072): sesión personal u org-scoped — el
+    // consentimiento es el JWT, sin token en el mail. 200 con body
+    // {organizationId, organizationName, role} que la UI no necesita
+    // (ya tiene la invitación completa en `pendingInvites`).
+    await networkService.post<void>(
+      '/auth/me/org-invites/$organizationId/accept',
+    );
+  }
+
+  @override
+  Future<void> declineOrgInvite(String organizationId) async {
+    // Doc 020 — borra la membresía invited (204 sin body).
+    await networkService.post<void>(
+      '/auth/me/org-invites/$organizationId/decline',
     );
   }
 }

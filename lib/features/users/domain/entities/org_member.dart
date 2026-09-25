@@ -5,7 +5,10 @@ import 'user_role.dart';
 /// Estado de la membresía en la organización (`status` del contrato).
 enum MemberStatus {
   active('active'),
-  suspended('suspended');
+  suspended('suspended'),
+  // Backend 072: membresía de vinculación sin aceptar — el ⋮ solo
+  // ofrece reenviar/cancelar y el chip muestra "Invitado" (ámbar).
+  invited('invited');
 
   const MemberStatus(this.apiValue);
 
@@ -28,7 +31,20 @@ class OrgMember extends Equatable {
   final String email;
   final String name;
   final UserRole role;
+
+  /// Estado de la MEMBRESÍA en la org (`status` del contrato) —
+  /// active/suspended/invited (backend 072). No confundir con
+  /// `invitePending` (estado global).
   final MemberStatus status;
+
+  /// `true` solo cuando el miembro es un **invitado que aún no aceptó**
+  /// (`invitePending` del contrato — backend 071, Email-C): la regla es
+  /// `userStatus=pending_verification` Y sin password, derivada en el
+  /// backend. Un auto-registrado sin verificar también es
+  /// `pending_verification` pero TIENE password → no es invitado y esto
+  /// queda `false` (el gate exacto de "Reenviar invitación", doc 018).
+  /// Ausente en backends viejos → `false` (degradación limpia).
+  final bool invitePending;
   final String organizationId;
 
   /// `true` cuando el email ya existía globalmente y `POST /auth/users`
@@ -50,6 +66,7 @@ class OrgMember extends Equatable {
     required this.name,
     required this.role,
     required this.status,
+    required this.invitePending,
     required this.organizationId,
     this.linked = false,
     this.isOwner = false,
@@ -64,6 +81,7 @@ class OrgMember extends Equatable {
     String? name,
     UserRole? role,
     MemberStatus? status,
+    bool? invitePending,
     String? organizationId,
     bool? linked,
     bool? isOwner,
@@ -73,6 +91,7 @@ class OrgMember extends Equatable {
     name: name ?? this.name,
     role: role ?? this.role,
     status: status ?? this.status,
+    invitePending: invitePending ?? this.invitePending,
     organizationId: organizationId ?? this.organizationId,
     linked: linked ?? this.linked,
     isOwner: isOwner ?? this.isOwner,
@@ -85,6 +104,7 @@ class OrgMember extends Equatable {
     name,
     role,
     status,
+    invitePending,
     organizationId,
     linked,
     isOwner,

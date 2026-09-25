@@ -170,6 +170,80 @@ void main() {
     });
   });
 
+  group('acceptInvite (propuesta 68 — doc 017, Email-C)', () {
+    const tToken = 'invite-token-abc';
+    const tPassword = 'NuevaPass123';
+    const tResponse = {
+      'id': '1',
+      'email': 'invitado@test.com',
+      'name': 'Invitado',
+      'accessToken': 'token-personal',
+      'refreshToken': 'refresh-personal',
+    };
+
+    setUp(() {
+      when(
+        () => mockDeviceInfoService.getDeviceId(),
+      ).thenAnswer((_) async => 'device-1');
+      when(
+        () => mockDeviceInfoService.getDeviceName(),
+      ).thenAnswer((_) async => 'Pixel 8');
+    });
+
+    test(
+      'POSTea a /auth/accept-invite con {token, password, deviceId, deviceName} '
+      'y devuelve el UserModel (auto-login — mismo shape que verify-email)',
+      () async {
+        when(
+          () => mockNetworkService.post<Map<String, dynamic>>(
+            '/auth/accept-invite',
+            data: {
+              'token': tToken,
+              'password': tPassword,
+              'deviceId': 'device-1',
+              'deviceName': 'Pixel 8',
+            },
+          ),
+        ).thenAnswer((_) async => tResponse);
+
+        final user = await dataSource.acceptInvite(
+          token: tToken,
+          password: tPassword,
+        );
+
+        expect(user.id, '1');
+        expect(user.email, 'invitado@test.com');
+        expect(user.token, 'token-personal');
+        expect(user.refreshToken, 'refresh-personal');
+        verify(
+          () => mockNetworkService.post<Map<String, dynamic>>(
+            '/auth/accept-invite',
+            data: {
+              'token': tToken,
+              'password': tPassword,
+              'deviceId': 'device-1',
+              'deviceName': 'Pixel 8',
+            },
+          ),
+        ).called(1);
+      },
+    );
+
+    test('propaga la excepción del network service (400 token inválido)', () {
+      when(
+        () => mockNetworkService.post<Map<String, dynamic>>(
+          '/auth/accept-invite',
+          data: any(named: 'data'),
+        ),
+      ).thenThrow(Exception('400'));
+
+      expect(
+        () => dataSource.acceptInvite(token: tToken, password: tPassword),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
   group('resendVerification (propuesta 67 — doc 016)', () {
     const tEmail = 'test@test.com';
 

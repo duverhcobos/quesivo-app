@@ -207,6 +207,16 @@ void main() {
       },
     );
 
+    test('sin sesión (AuthInitial) en /accept-invite (ruta pública §68 — '
+        'Email-C), no redirige', () {
+      final result = authGuard.evaluate(
+        AuthGuard.acceptInviteRoute,
+        const AuthInitial(),
+      );
+
+      expect(result, isNull);
+    });
+
     group('sin entrar a quesera (§57) — enteredOrg=false', () {
       test('AuthSuccess con org en el JWT pero sin entrar intentando '
           'entrar a un módulo redirige a /home — el selector vive ahí', () {

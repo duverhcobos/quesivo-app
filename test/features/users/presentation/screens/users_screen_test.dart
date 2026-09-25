@@ -73,6 +73,7 @@ void main() {
     name: 'Usuario Nuevo',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 
@@ -82,6 +83,7 @@ void main() {
     name: 'Ana Vieja',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
     linked: true,
   );
@@ -96,6 +98,7 @@ void main() {
         name: 'User $i',
         role: UserRole.operator,
         status: i == 0 ? MemberStatus.suspended : MemberStatus.active,
+        invitePending: false,
         organizationId: 'org-1',
       ),
   ];
@@ -137,6 +140,7 @@ void main() {
         name: 'FB',
         role: UserRole.operator,
         status: MemberStatus.active,
+        invitePending: false,
         organizationId: 'org-1',
       ),
     );
@@ -182,6 +186,10 @@ void main() {
       final role = invocation.positionalArguments[1] as UserRole;
       return Right(member.copyWith(role: role));
     });
+    // §68 — Email-C: default éxito (204); los tests de la regla lo pisan.
+    when(
+      () => mockListCubit.resendInvite(any()),
+    ).thenAnswer((_) async => const Right(null));
     locator.registerFactory<UsersListCubit>(() => mockListCubit);
 
     // ── AuthCubit — solo lo lee `UsersListBody` para `isSelf` (§52) ──
@@ -274,6 +282,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('users-speed-dial-create')));
     await tester.pumpAndSettle();
+    // §68 — el sheet abre en modo "Invitar por correo": el campo de
+    // contraseña temporal solo existe tras pasar a "Contraseña manual".
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NewUserSheet),
+        matching: find.text('Contraseña manual'),
+      ),
+    );
+    await tester.pump();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Nombre completo'),
       'Usuario Nuevo',
@@ -579,6 +596,7 @@ void main() {
           name: 'Dueño Queso',
           role: UserRole.admin,
           status: MemberStatus.active,
+          invitePending: false,
           organizationId: 'org-1',
           isOwner: true,
         ),
@@ -748,7 +766,7 @@ void main() {
   );
 
   testWidgets(
-    'la acción "Vincular existente" abre el LinkUserSheet y su resultado inserta el miembro + toast info',
+    'la acción "Invitar existente" abre el LinkUserSheet y su resultado inserta el miembro + toast info de invitación enviada',
     (tester) async {
       useTallSurface(tester);
       currentListState = loadedState();
@@ -760,8 +778,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('users-speed-dial-link')));
       await tester.pumpAndSettle();
 
-      // El sheet de vinculación abierto — solo email + rol (§48).
-      expect(find.text('Vincular usuario'), findsOneWidget);
+      // El sheet de invitación abierto — solo email + rol (§48/§69).
+      expect(find.text('Invitar usuario existente'), findsOneWidget);
       expect(find.byType(LinkUserSheet), findsOneWidget);
 
       await tester.enterText(
@@ -777,7 +795,7 @@ void main() {
         ),
       );
       await tester.pump();
-      await tester.tap(find.text('Vincular'));
+      await tester.tap(find.text('Enviar invitación'));
       await tester.pump();
 
       // El submit salió al cubit con los valores del form.
@@ -788,8 +806,8 @@ void main() {
         ),
       ).called(1);
 
-      // 201 con linked:true — solo se creó la membresía, el usuario
-      // conserva su contraseña actual (no hay temporal que compartir).
+      // 201 con linked:true — backend 072: la membresía quedó invited,
+      // NO active — el otro entra cuando acepta la invitación.
       linkStateController.add(
         const LinkUserState(
           status: FormzSubmissionStatus.success,
@@ -800,13 +818,11 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
 
-      // Sheet cerrado + toast info azul de vinculación arriba — la
-      // semántica es informativa: no se creó cuenta, solo membresía.
-      expect(find.text('Vincular usuario'), findsNothing);
+      // Sheet cerrado + toast info azul de invitación enviada arriba —
+      // semántica §69: el invitado entra cuando ACEPTA, no ya.
+      expect(find.text('Invitar usuario existente'), findsNothing);
       expect(
-        find.text(
-          'Ana Vieja ya tenía cuenta — quedó vinculado y entra con su contraseña actual',
-        ),
+        find.text('Invitación enviada — Ana Vieja entra cuando la acepte'),
         findsOneWidget,
       );
       expect(find.text('Usuario creado con éxito'), findsNothing);
@@ -1057,4 +1073,131 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  group('Email-C (§68) — invitación pendiente y reenvío', () {
+    const tPending = OrgMember(
+      id: 'pending-1',
+      email: 'invitado@mail.com',
+      name: 'Invitado Nuevo',
+      role: UserRole.operator,
+      // Membresía activa, cuenta GLOBAL pendiente — dos ejes distintos.
+      status: MemberStatus.active,
+      invitePending: true,
+      organizationId: 'org-1',
+    );
+
+    UsersListState pendingState() => loadedState(
+      members: [tPending, ...tMembers(3)],
+      total: 4,
+      hasMore: false,
+    );
+
+    testWidgets('la card del invitado pendiente muestra el badge ámbar y su ⋮ '
+        'ofrece "Reenviar invitación"', (tester) async {
+      currentListState = pendingState();
+      await tester.pumpWidget(buildApp());
+
+      expect(find.text('Invitación pendiente'), findsOneWidget);
+
+      final card = find.ancestor(
+        of: find.text('Invitado Nuevo'),
+        matching: find.byType(OrgMemberCard),
+      );
+      final menuButton = find.descendant(
+        of: card,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      await tester.ensureVisible(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reenviar invitación'), findsOneWidget);
+    });
+
+    testWidgets(
+      '"Reenviar invitación" dispara resendInvite del cubit y muestra '
+      'el toast con el email del invitado',
+      (tester) async {
+        currentListState = pendingState();
+        await tester.pumpWidget(buildApp());
+
+        final card = find.ancestor(
+          of: find.text('Invitado Nuevo'),
+          matching: find.byType(OrgMemberCard),
+        );
+        final menuButton = find.descendant(
+          of: card,
+          matching: find.byIcon(Icons.more_vert),
+        );
+        await tester.ensureVisible(menuButton);
+        await tester.pumpAndSettle();
+        await tester.tap(menuButton);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Reenviar invitación'));
+        await tester.pumpAndSettle();
+
+        verify(
+          () => mockListCubit.resendInvite(
+            any(that: isA<OrgMember>().having((m) => m.id, 'id', 'pending-1')),
+          ),
+        ).called(1);
+        expect(
+          find.text('Invitación reenviada a invitado@mail.com'),
+          findsOneWidget,
+        );
+
+        // Drena el auto-dismiss del toast (~2.6s).
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets('resendInvite con InviteNotPendingFailure muestra el toast de '
+        'ya-aceptó (data stale — doc 018)', (tester) async {
+      currentListState = pendingState();
+      when(
+        () => mockListCubit.resendInvite(any()),
+      ).thenAnswer((_) async => const Left(InviteNotPendingFailure()));
+      await tester.pumpWidget(buildApp());
+
+      final card = find.ancestor(
+        of: find.text('Invitado Nuevo'),
+        matching: find.byType(OrgMemberCard),
+      );
+      final menuButton = find.descendant(
+        of: card,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      await tester.ensureVisible(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reenviar invitación'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('El usuario ya aceptó la invitación'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('las cards de miembros activos NO muestran badge ni la opción '
+        'de reenvío en el ⋮', (tester) async {
+      currentListState = loadedState(members: tMembers(2), total: 2);
+      await tester.pumpWidget(buildApp());
+
+      expect(find.text('Invitación pendiente'), findsNothing);
+
+      final menuButton = find.descendant(
+        of: find.byType(OrgMemberCard).first,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      await tester.ensureVisible(menuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reenviar invitación'), findsNothing);
+    });
+  });
 }

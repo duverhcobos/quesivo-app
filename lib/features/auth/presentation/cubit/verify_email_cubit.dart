@@ -68,9 +68,7 @@ class VerifyEmailCubit extends Cubit<VerifyEmailState> {
           errorMessage: failure.message,
         ),
       ),
-      (_) => emit(
-        state.copyWith(resendStatus: FormzSubmissionStatus.success),
-      ),
+      (_) => emit(state.copyWith(resendStatus: FormzSubmissionStatus.success)),
     );
   }
 }

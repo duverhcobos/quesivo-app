@@ -28,6 +28,7 @@ void main() {
     name: tName,
     role: tRole,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 
@@ -145,6 +146,44 @@ void main() {
 
     expect(cubit.state, const CreateUserState());
   });
+
+  blocTest<CreateUserCubit, CreateUserState>(
+    'modo invitación (§68 Email-C): submit sin password pasa null al '
+    'use case y emite success igual',
+    build: () {
+      when(
+        () => mockCreateUser(
+          name: tName,
+          email: tEmail,
+          password: null,
+          role: tRole,
+        ),
+      ).thenAnswer((_) async => const Right(tMember));
+      return cubit;
+    },
+    act: (c) =>
+        c.submit(name: tName, email: tEmail, password: null, role: tRole),
+    expect: () => [
+      isA<CreateUserState>().having(
+        (s) => s.status,
+        'status',
+        FormzSubmissionStatus.inProgress,
+      ),
+      isA<CreateUserState>()
+          .having((s) => s.status, 'status', FormzSubmissionStatus.success)
+          .having((s) => s.createdMember, 'createdMember', tMember),
+    ],
+    verify: (_) {
+      verify(
+        () => mockCreateUser(
+          name: tName,
+          email: tEmail,
+          password: null,
+          role: tRole,
+        ),
+      ).called(1);
+    },
+  );
 
   test('submit completado tras cerrar el sheet no emite ni lanza', () async {
     // El BlocProvider cierra el cubit al desmontar el sheet — si el POST

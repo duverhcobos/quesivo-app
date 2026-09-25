@@ -35,6 +35,14 @@ class AuthGuard {
   static const String resetPasswordRoute = '/reset-password';
   static const String checkEmailRoute = '/check-email';
   static const String verifyEmailRoute = '/verify-email';
+  // Aceptación de invitación por correo (Email-C, propuesta 68 — doc
+  // 017): el link del email abre acá con `?token=…&email=…`.
+  static const String acceptInviteRoute = '/accept-invite';
+  // Deep link del mail de invitación a organización (backend 072):
+  // `quesivo://org-invites` → la sección de invitaciones vive en /home
+  // — no es una GoRoute real, el deep-link service la mapea a homeRoute
+  // y el guard ya bota al login si no hay sesión.
+  static const String orgInvitesRoute = '/org-invites';
   static const String onboardingRoute = '/onboarding';
 
   // Rutas de los 17 módulos del drawer (propuesta §26-modulos-placeholder,
@@ -74,6 +82,7 @@ class AuthGuard {
     resetPasswordRoute,
     checkEmailRoute,
     verifyEmailRoute,
+    acceptInviteRoute,
     onboardingRoute,
   ];
 

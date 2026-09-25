@@ -344,7 +344,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fabCreateUser => 'Criar usuário';
 
   @override
-  String get fabLinkUser => 'Vincular existente';
+  String get fabLinkUser => 'Convidar existente';
 
   @override
   String get roleOperator => 'Operador';
@@ -372,6 +372,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get memberStatusSuspended => 'Suspenso';
+
+  @override
+  String get memberStatusInvited => 'Convidado';
 
   @override
   String get memberActionsTooltip => 'Opções do usuário';
@@ -442,14 +445,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get createUserButton => 'Criar usuário';
 
   @override
-  String get linkUserSheetTitle => 'Vincular usuário';
+  String get linkUserSheetTitle => 'Convidar usuário existente';
 
   @override
   String get linkUserSheetHint =>
-      'O e-mail já tem conta no Quesivo — será vinculado à sua queijaria mantendo a senha atual';
+      'O e-mail já tem conta no Quesivo — ele recebe um convite por e-mail e entra na sua queijaria quando aceitar';
 
   @override
-  String get linkUserSubmit => 'Vincular';
+  String get linkUserSubmit => 'Enviar convite';
 
   @override
   String get memberCreatedFeedback => 'Usuário criado com sucesso';
@@ -509,8 +512,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String memberLinkedFeedback(String name) {
-    return '$name já tinha conta — ficou vinculado e entra com a senha atual';
+  String inviteLinkSentFeedback(String name) {
+    return 'Convite enviado — $name entra quando aceitar';
   }
 
   @override
@@ -523,7 +526,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get emailAlreadyExistsError =>
-      'Esse e-mail já tem conta — vincule-o em \"Vincular existente\"';
+      'Esse e-mail já tem conta — convide-o em \"Convidar existente\"';
 
   @override
   String get userNotFoundError =>
@@ -637,4 +640,88 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get verifyEmailInvalidDescription =>
       'O link de verificação expirou ou já foi usado. Você pode pedir um novo.';
+
+  @override
+  String get acceptInviteTitle => 'Defina sua senha';
+
+  @override
+  String acceptInviteDescription(String email) {
+    return 'Você foi convidado. Crie sua senha para $email.';
+  }
+
+  @override
+  String get acceptInviteButton => 'Criar senha e entrar';
+
+  @override
+  String get acceptInviteInvalidTitle => 'Este link não é mais válido';
+
+  @override
+  String get acceptInviteInvalidDescription =>
+      'O link de convite expirou ou já foi usado. Peça um novo.';
+
+  @override
+  String get acceptInviteResendButton => 'Pedir novo link';
+
+  @override
+  String get newUserInviteMode => 'Convidar por e-mail';
+
+  @override
+  String get newUserManualMode => 'Senha manual';
+
+  @override
+  String get newUserInviteHint =>
+      'Eles receberão um e-mail com um link para criar a senha.';
+
+  @override
+  String get invitePendingBadge => 'Convite pendente';
+
+  @override
+  String get resendInviteAction => 'Reenviar convite';
+
+  @override
+  String inviteResentFeedback(String email) {
+    return 'Convite reenviado para $email';
+  }
+
+  @override
+  String get inviteNotPendingError => 'O usuário já aceitou o convite';
+
+  @override
+  String get orgInvitesSectionTitle => 'Convites';
+
+  @override
+  String get orgInviteCardTitle => 'Você foi convidado para';
+
+  @override
+  String get orgInviteAcceptCta => 'Aceitar';
+
+  @override
+  String get orgInviteDeclineCta => 'Recusar';
+
+  @override
+  String orgInviteAcceptedFeedback(String org) {
+    return 'Agora você faz parte de $org';
+  }
+
+  @override
+  String get orgInviteGoneError =>
+      'O convite não existe mais — atualize e verifique de novo';
+
+  @override
+  String get cancelInviteAction => 'Cancelar convite';
+
+  @override
+  String get cancelInviteConfirmTitle => 'Cancelar o convite?';
+
+  @override
+  String cancelInviteConfirmBody(String email) {
+    return '$email não poderá usar este convite — se tentar de novo, envie um novo.';
+  }
+
+  @override
+  String get memberNotInvitedError =>
+      'Não há mais um convite pendente para este usuário';
+
+  @override
+  String get inviteCancelledFeedback => 'Convite cancelado';
 }

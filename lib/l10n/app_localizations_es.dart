@@ -344,7 +344,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fabCreateUser => 'Crear usuario';
 
   @override
-  String get fabLinkUser => 'Vincular existente';
+  String get fabLinkUser => 'Invitar existente';
 
   @override
   String get roleOperator => 'Operario';
@@ -372,6 +372,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get memberStatusSuspended => 'Suspendido';
+
+  @override
+  String get memberStatusInvited => 'Invitado';
 
   @override
   String get memberActionsTooltip => 'Opciones del usuario';
@@ -442,14 +445,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get createUserButton => 'Crear usuario';
 
   @override
-  String get linkUserSheetTitle => 'Vincular usuario';
+  String get linkUserSheetTitle => 'Invitar usuario existente';
 
   @override
   String get linkUserSheetHint =>
-      'El correo ya tiene cuenta en Quesivo — se vincula a tu quesera y conserva su contraseña actual';
+      'El correo ya tiene cuenta en Quesivo — le llega una invitación por mail y entra a tu quesera cuando la acepte';
 
   @override
-  String get linkUserSubmit => 'Vincular';
+  String get linkUserSubmit => 'Enviar invitación';
 
   @override
   String get memberCreatedFeedback => 'Usuario creado con éxito';
@@ -509,8 +512,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String memberLinkedFeedback(String name) {
-    return '$name ya tenía cuenta — quedó vinculado y entra con su contraseña actual';
+  String inviteLinkSentFeedback(String name) {
+    return 'Invitación enviada — $name entra cuando la acepte';
   }
 
   @override
@@ -523,7 +526,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get emailAlreadyExistsError =>
-      'Ese correo ya tiene cuenta — vinculalo desde \"Vincular existente\"';
+      'Ese correo ya tiene cuenta — invitalo desde \"Invitar existente\"';
 
   @override
   String get userNotFoundError =>
@@ -635,4 +638,88 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get verifyEmailInvalidDescription =>
       'El enlace de verificación expiró o ya fue usado. Podés pedir uno nuevo.';
+
+  @override
+  String get acceptInviteTitle => 'Definí tu contraseña';
+
+  @override
+  String acceptInviteDescription(String email) {
+    return 'Te invitaron a unirte. Creá tu contraseña para $email.';
+  }
+
+  @override
+  String get acceptInviteButton => 'Crear contraseña y entrar';
+
+  @override
+  String get acceptInviteInvalidTitle => 'Este enlace ya no es válido';
+
+  @override
+  String get acceptInviteInvalidDescription =>
+      'El enlace de invitación expiró o ya fue usado. Pedí uno nuevo.';
+
+  @override
+  String get acceptInviteResendButton => 'Pedir link nuevo';
+
+  @override
+  String get newUserInviteMode => 'Invitar por correo';
+
+  @override
+  String get newUserManualMode => 'Contraseña manual';
+
+  @override
+  String get newUserInviteHint =>
+      'Le llegará un correo con un enlace para crear su contraseña.';
+
+  @override
+  String get invitePendingBadge => 'Invitación pendiente';
+
+  @override
+  String get resendInviteAction => 'Reenviar invitación';
+
+  @override
+  String inviteResentFeedback(String email) {
+    return 'Invitación reenviada a $email';
+  }
+
+  @override
+  String get inviteNotPendingError => 'El usuario ya aceptó la invitación';
+
+  @override
+  String get orgInvitesSectionTitle => 'Invitaciones';
+
+  @override
+  String get orgInviteCardTitle => 'Te invitaron a unirte';
+
+  @override
+  String get orgInviteAcceptCta => 'Aceptar';
+
+  @override
+  String get orgInviteDeclineCta => 'Rechazar';
+
+  @override
+  String orgInviteAcceptedFeedback(String org) {
+    return 'Ya sos parte de $org';
+  }
+
+  @override
+  String get orgInviteGoneError =>
+      'La invitación ya no existe — actualizá y revisá de nuevo';
+
+  @override
+  String get cancelInviteAction => 'Cancelar invitación';
+
+  @override
+  String get cancelInviteConfirmTitle => '¿Cancelar la invitación?';
+
+  @override
+  String cancelInviteConfirmBody(String email) {
+    return '$email no va a recibir ni usar esta invitación — si vuelve a intentarlo, generá una nueva.';
+  }
+
+  @override
+  String get memberNotInvitedError =>
+      'Ya no hay una invitación pendiente para este usuario';
+
+  @override
+  String get inviteCancelledFeedback => 'Invitación cancelada';
 }

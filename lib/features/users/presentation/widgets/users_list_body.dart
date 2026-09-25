@@ -36,6 +36,8 @@ class UsersListBody extends StatelessWidget {
     required this.onStatusToggle,
     required this.onPasswordReset,
     required this.onRoleChange,
+    required this.onResendInvite,
+    required this.onCancelInvite,
   });
 
   final UsersListState state;
@@ -55,6 +57,16 @@ class UsersListBody extends StatelessWidget {
   /// El admin confirmó el `ChangeRoleDialog` — la screen dispara
   /// `PATCH /auth/users/:id/role` (§54).
   final void Function(OrgMember member, UserRole role) onRoleChange;
+
+  /// §68 — el admin eligió "Reenviar invitación" en el ⋮ (solo con
+  /// cuenta `pendingVerification`) — la screen dispara
+  /// `POST /auth/users/:id/resend-invite` y decide el toast.
+  final ValueChanged<OrgMember> onResendInvite;
+
+  /// §69 — el admin confirmó "Cancelar invitación" en el ⋮ (solo con
+  /// `invitePending`) — la screen dispara `DELETE /auth/users/:id` y
+  /// decide el toast.
+  final ValueChanged<OrgMember> onCancelInvite;
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +154,8 @@ class UsersListBody extends StatelessWidget {
             onStatusToggle: (s) => onStatusToggle(member, s),
             onPasswordReset: onPasswordReset,
             onRoleChange: (r) => onRoleChange(member, r),
+            onResendInvite: () => onResendInvite(member),
+            onCancelInvite: () => onCancelInvite(member),
             sheetTopInset: sheetTopInset,
           );
         },

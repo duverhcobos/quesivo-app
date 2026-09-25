@@ -34,6 +34,9 @@ import '../../features/auth/data/datasources/implementations/remote_auth_datasou
 import '../../features/auth/data/datasources/implementations/secure_local_auth_datasource_impl.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 
+import '../../features/auth/domain/use_cases/accept_invite_use_case.dart';
+import '../../features/auth/domain/use_cases/accept_org_invite_use_case.dart';
+import '../../features/auth/domain/use_cases/decline_org_invite_use_case.dart';
 import '../../features/auth/domain/use_cases/login_use_case.dart';
 import '../../features/auth/domain/use_cases/login_with_google_use_case.dart';
 import '../../features/auth/domain/use_cases/check_auth_status_use_case.dart';
@@ -44,6 +47,7 @@ import '../../features/auth/domain/use_cases/resend_verification_use_case.dart';
 import '../../features/auth/domain/use_cases/reset_password_use_case.dart';
 import '../../features/auth/domain/use_cases/select_organization_use_case.dart';
 import '../../features/auth/domain/use_cases/verify_email_use_case.dart';
+import '../../features/auth/presentation/cubit/accept_invite_cubit.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/check_email_cubit.dart';
 import '../../features/auth/presentation/cubit/login_cubit.dart';
@@ -58,6 +62,8 @@ import '../../features/users/domain/repositories/i_users_repository.dart';
 import '../../features/users/domain/use_cases/create_user_use_case.dart';
 import '../../features/users/domain/use_cases/link_user_use_case.dart';
 import '../../features/users/domain/use_cases/list_users_use_case.dart';
+import '../../features/users/domain/use_cases/remove_org_member_use_case.dart';
+import '../../features/users/domain/use_cases/resend_invite_use_case.dart';
 import '../../features/users/domain/use_cases/update_user_password_use_case.dart';
 import '../../features/users/domain/use_cases/update_user_role_use_case.dart';
 import '../../features/users/domain/use_cases/update_user_status_use_case.dart';
@@ -66,6 +72,7 @@ import '../../features/users/presentation/cubit/link_user_cubit.dart';
 import '../../features/users/presentation/cubit/reset_password_cubit.dart'
     as users_reset_password;
 import '../../features/users/presentation/cubit/users_list_cubit.dart';
+import '../../features/queseras/presentation/cubit/org_invites_cubit.dart';
 import '../../features/queseras/presentation/cubit/quesera_selection_cubit.dart';
 import '../localization/cubit/locale_cubit.dart';
 
@@ -191,10 +198,24 @@ void setupDI() {
     () => VerifyEmailUseCase(locator<IAuthRepository>()),
   );
   locator.registerLazySingleton(
+    () => AcceptInviteUseCase(locator<IAuthRepository>()),
+  );
+  locator.registerLazySingleton(
     () => ResendVerificationUseCase(locator<IAuthRepository>()),
   );
   locator.registerLazySingleton(
     () => SelectOrganizationUseCase(locator<IAuthRepository>()),
+  );
+  // §69 — invitaciones de org (backend 072): accept/decline de la capa
+  // personal + cancelación admin.
+  locator.registerLazySingleton(
+    () => AcceptOrgInviteUseCase(locator<IAuthRepository>()),
+  );
+  locator.registerLazySingleton(
+    () => DeclineOrgInviteUseCase(locator<IAuthRepository>()),
+  );
+  locator.registerLazySingleton(
+    () => RemoveOrgMemberUseCase(locator<IUsersRepository>()),
   );
 
   // 5. Blocs / Cubits
@@ -234,12 +255,31 @@ void setupDI() {
       email: email,
     ),
   );
+  // §68 — Email-C: token + email del deep link `quesivo://accept-invite?…`.
+  locator.registerFactoryParam<AcceptInviteCubit, String, String>(
+    (token, email) => AcceptInviteCubit(
+      locator<AcceptInviteUseCase>(),
+      locator<ResendVerificationUseCase>(),
+      token: token,
+      email: email,
+    ),
+  );
 
   // Capa personal (§55/§56): cubit del tap en card de quesera —
   // factory, nace y muere con el QueseraHeroCarousel del Inicio.
   locator.registerFactory(
     () => QueseraSelectionCubit(
       locator<SelectOrganizationUseCase>(),
+      locator<AuthCubit>(),
+    ),
+  );
+
+  // §69 — cards de invitación de la capa personal: factory, nace y
+  // muere con OrgInvitesSection.
+  locator.registerFactory(
+    () => OrgInvitesCubit(
+      locator<AcceptOrgInviteUseCase>(),
+      locator<DeclineOrgInviteUseCase>(),
       locator<AuthCubit>(),
     ),
   );
@@ -273,6 +313,10 @@ void setupDI() {
   locator.registerLazySingleton(
     () => UpdateUserRoleUseCase(locator<IUsersRepository>()),
   );
+  // §68 — Email-C: reenvío de la invitación (POST /auth/users/:id/resend-invite).
+  locator.registerLazySingleton(
+    () => ResendInviteUseCase(locator<IUsersRepository>()),
+  );
   // Cubits de sheet: factory — nacen y mueren con cada apertura.
   locator.registerFactory(() => CreateUserCubit(locator<CreateUserUseCase>()));
   locator.registerFactory(() => LinkUserCubit(locator<LinkUserUseCase>()));
@@ -290,6 +334,8 @@ void setupDI() {
       locator<ListUsersUseCase>(),
       locator<UpdateUserStatusUseCase>(),
       locator<UpdateUserRoleUseCase>(),
+      locator<ResendInviteUseCase>(),
+      locator<RemoveOrgMemberUseCase>(),
     ),
   );
 

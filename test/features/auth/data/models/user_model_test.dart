@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quesivo/features/auth/data/models/user_model.dart';
+import 'package:quesivo/features/auth/domain/entities/org_invite.dart';
 import 'package:quesivo/features/auth/domain/entities/organization_summary.dart';
 
 void main() {
@@ -72,6 +73,72 @@ void main() {
       ]);
       // Round-trip: el perfil cacheado vuelve con sus queseras.
       expect(UserModel.fromJson(json).organizations, model.organizations);
+    });
+  });
+
+  group('UserModel.fromJson — pendingInvites (§69, backend 072)', () {
+    test('parsea pendingInvites[] del payload de GET /auth/me', () {
+      final model = UserModel.fromJson({
+        'id': 'u1',
+        'email': 'ana@test.com',
+        'name': 'Ana',
+        'pendingInvites': [
+          {
+            'id': 'mem-1',
+            'organizationId': 'org-9',
+            'organizationName': 'Quesera Norte',
+            'role': 'OPERATOR',
+          },
+        ],
+      });
+
+      expect(model.pendingInvites, [
+        const OrgInvite(
+          id: 'mem-1',
+          organizationId: 'org-9',
+          organizationName: 'Quesera Norte',
+          role: 'OPERATOR',
+        ),
+      ]);
+    });
+
+    test('pendingInvites ausente (login/register, /me viejo) → '
+        'lista vacía', () {
+      final model = UserModel.fromJson({
+        'id': 'u1',
+        'email': 'ana@test.com',
+        'name': 'Ana',
+      });
+
+      expect(model.pendingInvites, isEmpty);
+    });
+
+    test('toJson serializa pendingInvites y el round-trip lo conserva', () {
+      const model = UserModel(
+        id: 'u1',
+        email: 'ana@test.com',
+        name: 'Ana',
+        pendingInvites: [
+          OrgInvite(
+            id: 'mem-1',
+            organizationId: 'org-9',
+            organizationName: 'Quesera Norte',
+            role: 'OPERATOR',
+          ),
+        ],
+      );
+
+      final json = model.toJson();
+
+      expect(json['pendingInvites'], [
+        {
+          'id': 'mem-1',
+          'organizationId': 'org-9',
+          'organizationName': 'Quesera Norte',
+          'role': 'OPERATOR',
+        },
+      ]);
+      expect(UserModel.fromJson(json).pendingInvites, model.pendingInvites);
     });
   });
 }

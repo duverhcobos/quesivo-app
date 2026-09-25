@@ -64,9 +64,19 @@ class AppLinksDeepLinkServiceImpl implements IDeepLinkService {
     const knownRoutes = {
       AuthGuard.resetPasswordRoute,
       AuthGuard.verifyEmailRoute,
+      AuthGuard.acceptInviteRoute,
+      AuthGuard.orgInvitesRoute,
     };
     if (!knownRoutes.contains(path)) {
       _logger.warning('Deep link con ruta desconocida ignorado: $path');
+      return;
+    }
+
+    // `/org-invites` es alias, no ruta real: las invitaciones viven en
+    // la sección de la capa personal — el mail del org-invite aterriza
+    // en /home (sin sesión el guard bota a welcome/login igual).
+    if (path == AuthGuard.orgInvitesRoute) {
+      router.go(AuthGuard.homeRoute);
       return;
     }
 

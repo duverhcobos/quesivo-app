@@ -43,6 +43,18 @@ class DioNetworkServiceImpl implements INetworkService {
     }
   }
 
+  @override
+  Future<T> delete<T>(String path) async {
+    try {
+      final response = await dio.delete<T>(path);
+      return response.data as T;
+    } on DioException catch (e) {
+      _handleDioError(e);
+    } catch (e) {
+      throw ServerException();
+    }
+  }
+
   Never _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response!.statusCode ?? 500;

@@ -24,6 +24,7 @@ void main() {
     name: tName,
     role: tRole,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 
@@ -181,5 +182,30 @@ void main() {
         ),
       ).called(1);
     });
+
+    test(
+      'modo invitación (§68 Email-C): password null no valida el VO y '
+      'llega null al repo — el backend manda el mail accept-invite',
+      () async {
+        stubCreateUser(const Right(tMember));
+
+        final result = await useCase(
+          name: tName,
+          email: tEmail,
+          password: null,
+          role: tRole,
+        );
+
+        expect(result, const Right(tMember));
+        verify(
+          () => mockRepository.createUser(
+            name: tName,
+            email: tEmail,
+            password: null,
+            role: tRole,
+          ),
+        ).called(1);
+      },
+    );
   });
 }

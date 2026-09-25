@@ -92,6 +92,13 @@ class InvalidOrExpiredTokenFailure extends AuthFailure {
       );
 }
 
+/// La invitación a la org ya no existe (404 `ORG_INVITE_NOT_FOUND`,
+/// backend 072): la declinaste/cancelaron entre el load y el tap —
+/// dato stale; la UI refresca `pendingInvites` y muestra un toast.
+class OrgInviteNotFoundFailure extends AuthFailure {
+  const OrgInviteNotFoundFailure() : super('La invitación ya no existe.');
+}
+
 /// El password nuevo no cumple las reglas de fuerza del backend (HTTP 400
 /// + errorCode `INVALID_PASSWORD`) — caso borde: el formulario ya valida
 /// las mismas reglas client-side (RegisterPassword VO) antes de enviar.

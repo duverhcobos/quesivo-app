@@ -24,12 +24,26 @@ abstract class IUsersRepository {
   /// `POST /auth/users` — solo crea (propuesta backend 058): un email
   /// ya existente globalmente da `EmailAlreadyExistsFailure`; la
   /// vinculación de un user global vive en `linkUser`.
+  /// `password == null` → modo invitación (Email-C, backend 070): el
+  /// user nace `pending_verification` y el backend le manda el correo
+  /// con el link `accept-invite`.
   Future<Either<UsersFailure, OrgMember>> createUser({
     required String name,
     required String email,
-    required String password,
+    required String? password,
     required UserRole role,
   });
+
+  /// `POST /auth/users/:id/resend-invite` — reenvía el mail de invitación
+  /// (doc 018). Errores: `InviteNotPendingFailure` (400 — ya aceptó),
+  /// `MemberNotFoundFailure` (404), 403/429/red como arriba.
+  Future<Either<UsersFailure, void>> resendInvite({required String userId});
+
+  /// `DELETE /auth/users/:id` — cancela la invitación pendiente (doc
+  /// 021, backend 072). Errores: `MemberNotFoundFailure` (404 — IDOR
+  /// o ya declinada), `MemberNotInvitedFailure` (409 — ya no es una
+  /// invitación pendiente; para sacar acceso se suspende), 403/429/red.
+  Future<Either<UsersFailure, void>> removeMember({required String userId});
 
   /// `POST /auth/users/link` — vincula a la organización un usuario que
   /// ya tiene cuenta global (`{email, role}` → solo membresía; el 201

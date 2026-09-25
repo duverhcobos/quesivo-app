@@ -10,6 +10,8 @@ import 'package:quesivo/features/users/domain/entities/user_role.dart';
 import 'package:quesivo/features/users/domain/entities/users_page.dart';
 import 'package:quesivo/features/users/domain/failures/users_failure.dart';
 import 'package:quesivo/features/users/domain/use_cases/list_users_use_case.dart';
+import 'package:quesivo/features/users/domain/use_cases/remove_org_member_use_case.dart';
+import 'package:quesivo/features/users/domain/use_cases/resend_invite_use_case.dart';
 import 'package:quesivo/features/users/domain/use_cases/update_user_role_use_case.dart';
 import 'package:quesivo/features/users/domain/use_cases/update_user_status_use_case.dart';
 import 'package:quesivo/features/users/presentation/cubit/users_list_cubit.dart';
@@ -23,11 +25,18 @@ class MockUpdateUserStatusUseCase extends Mock
 
 class MockUpdateUserRoleUseCase extends Mock implements UpdateUserRoleUseCase {}
 
+class MockResendInviteUseCase extends Mock implements ResendInviteUseCase {}
+
+class MockRemoveOrgMemberUseCase extends Mock
+    implements RemoveOrgMemberUseCase {}
+
 void main() {
   late UsersListCubit cubit;
   late MockListUsersUseCase mockListUsers;
   late MockUpdateUserStatusUseCase mockUpdateStatus;
   late MockUpdateUserRoleUseCase mockUpdateRole;
+  late MockResendInviteUseCase mockResendInvite;
+  late MockRemoveOrgMemberUseCase mockRemoveOrgMember;
 
   /// Gate manual para demorar una respuesta del use case — permite
   /// probar el token de generación (respuesta vieja que vuelve tarde).
@@ -39,6 +48,7 @@ void main() {
     name: 'Ana Pérez',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
   const tM2 = OrgMember(
@@ -47,6 +57,7 @@ void main() {
     name: 'Juan Gómez',
     role: UserRole.admin,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
     isOwner: true,
   );
@@ -56,6 +67,7 @@ void main() {
     name: 'Pedro Ruiz',
     role: UserRole.collector,
     status: MemberStatus.suspended,
+    invitePending: false,
     organizationId: 'org-1',
   );
   const tM4 = OrgMember(
@@ -64,6 +76,7 @@ void main() {
     name: 'Lucía Torres',
     role: UserRole.producer,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 
@@ -128,7 +141,15 @@ void main() {
     mockListUsers = MockListUsersUseCase();
     mockUpdateStatus = MockUpdateUserStatusUseCase();
     mockUpdateRole = MockUpdateUserRoleUseCase();
-    cubit = UsersListCubit(mockListUsers, mockUpdateStatus, mockUpdateRole);
+    mockResendInvite = MockResendInviteUseCase();
+    mockRemoveOrgMember = MockRemoveOrgMemberUseCase();
+    cubit = UsersListCubit(
+      mockListUsers,
+      mockUpdateStatus,
+      mockUpdateRole,
+      mockResendInvite,
+      mockRemoveOrgMember,
+    );
     loadMoreGate = Completer<Either<UsersFailure, UsersPage>>();
   });
 
@@ -678,6 +699,7 @@ void main() {
       name: 'Ana Pérez',
       role: UserRole.operator,
       status: MemberStatus.suspended,
+      invitePending: false,
       organizationId: 'org-1',
     );
 
@@ -805,6 +827,7 @@ void main() {
       name: 'Ana Pérez',
       role: UserRole.collector,
       status: MemberStatus.active,
+      invitePending: false,
       organizationId: 'org-1',
     );
 
@@ -920,6 +943,203 @@ void main() {
 
         await expectLater(pending, completes);
       },
+    );
+  });
+
+  group('resendInvite (§68 — Email-C, POST /auth/users/:id/resend-invite)', () {
+    void stubResendInvite(Future<Either<UsersFailure, void>> answer) {
+      when(
+        () => mockResendInvite(userId: any(named: 'userId')),
+      ).thenAnswer((_) => answer);
+    }
+
+    blocTest<UsersListCubit, UsersListState>(
+      'éxito: marca busy, llama al use case y libera busy (sin merge — '
+      'el 204 no trae body y el miembro sigue pendiente)',
+      build: () {
+        stubResendInvite(Future.value(const Right(null)));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) => c.resendInvite(tM1),
+      expect: () => [
+        // busy ON — la card muestra loader en vez del ⋮
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        // busy OFF — la lista queda intacta (sin merge ni estado nuevo)
+        isA<UsersListState>()
+            .having(
+              (s) => s.busyMemberIds,
+              'busyMemberIds',
+              isNot(contains('u1')),
+            )
+            .having((s) => s.members, 'members', tLoadedPage1.members),
+      ],
+      verify: (_) {
+        verify(() => mockResendInvite(userId: 'u1')).called(1);
+      },
+    );
+
+    blocTest<UsersListCubit, UsersListState>(
+      'failure (INVITE_NOT_PENDING con data stale): libera busy y el '
+      'Either vuelve a la screen para el toast',
+      build: () {
+        stubResendInvite(Future.value(const Left(InviteNotPendingFailure())));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) async {
+        final result = await c.resendInvite(tM1);
+        // El Either crudo vuelve a la screen para el toast mapeado.
+        expect(result, const Left(InviteNotPendingFailure()));
+      },
+      expect: () => [
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          isNot(contains('u1')),
+        ),
+      ],
+    );
+
+    test('segundo reenvío sobre la misma card con el POST en vuelo es '
+        'no-op defensivo', () async {
+      final gate = Completer<Either<UsersFailure, void>>();
+      stubResendInvite(gate.future);
+
+      final first = cubit.resendInvite(tM1);
+      await pumpEventQueue(); // deja emitir el busy
+      expect(cubit.state.busyMemberIds, contains('u1'));
+
+      // Segunda llamada: no invoca el use case de nuevo — Right(null)
+      // sin error falso.
+      final second = await cubit.resendInvite(tM1);
+      expect(second, const Right(null));
+      verify(() => mockResendInvite(userId: any(named: 'userId'))).called(1);
+
+      gate.complete(const Right(null));
+      await first;
+    });
+
+    test(
+      'resendInvite completado tras cerrar la pantalla no emite ni lanza',
+      () async {
+        stubResendInvite(Future.value(const Right(null)));
+        final pending = cubit.resendInvite(tM1);
+        await cubit.close();
+
+        await expectLater(pending, completes);
+      },
+    );
+  });
+
+  group('cancelInvite (§69 — DELETE /auth/users/:id, doc 021)', () {
+    void stubRemoveMember(Future<Either<UsersFailure, void>> answer) {
+      when(
+        () => mockRemoveOrgMember(userId: any(named: 'userId')),
+      ).thenAnswer((_) => answer);
+    }
+
+    blocTest<UsersListCubit, UsersListState>(
+      'éxito (204): marca busy, llama al use case, libera busy y la fila '
+      'sale del listado con total-1',
+      build: () {
+        stubRemoveMember(Future.value(const Right(null)));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) async {
+        final result = await c.cancelInvite(tM1);
+        expect(result, const Right(null));
+      },
+      expect: () => [
+        // busy ON — la card muestra loader en vez del ⋮
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        // busy OFF
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          isNot(contains('u1')),
+        ),
+        // splice local — u1 desaparece y el contador baja a 3.
+        isA<UsersListState>()
+            .having((s) => s.members, 'members', [tM2])
+            .having((s) => s.total, 'total', 3),
+      ],
+      verify: (_) {
+        verify(() => mockRemoveOrgMember(userId: 'u1')).called(1);
+      },
+    );
+
+    blocTest<UsersListCubit, UsersListState>(
+      'failure (409 MEMBERSHIP_NOT_INVITED, data stale): libera busy, la '
+      'fila sigue y el Either vuelve a la screen para el toast',
+      build: () {
+        stubRemoveMember(Future.value(const Left(MemberNotInvitedFailure())));
+        return cubit;
+      },
+      seed: () => tLoadedPage1,
+      act: (c) async {
+        final result = await c.cancelInvite(tM1);
+        expect(result, const Left(MemberNotInvitedFailure()));
+      },
+      expect: () => [
+        isA<UsersListState>().having(
+          (s) => s.busyMemberIds,
+          'busyMemberIds',
+          contains('u1'),
+        ),
+        isA<UsersListState>()
+            .having(
+              (s) => s.busyMemberIds,
+              'busyMemberIds',
+              isNot(contains('u1')),
+            )
+            .having((s) => s.members, 'members', tLoadedPage1.members)
+            .having((s) => s.total, 'total', 4),
+      ],
+      verify: (_) {
+        verify(() => mockRemoveOrgMember(userId: 'u1')).called(1);
+      },
+    );
+
+    test('segundo cancel sobre la misma card con el DELETE en vuelo es '
+        'no-op defensivo', () async {
+      final gate = Completer<Either<UsersFailure, void>>();
+      stubRemoveMember(gate.future);
+
+      final first = cubit.cancelInvite(tM1);
+      await pumpEventQueue(); // deja emitir el busy
+      expect(cubit.state.busyMemberIds, contains('u1'));
+
+      // Segunda llamada: no invoca el use case de nuevo — Right(null)
+      // sin error falso.
+      final second = await cubit.cancelInvite(tM1);
+      expect(second, const Right(null));
+      verify(() => mockRemoveOrgMember(userId: any(named: 'userId'))).called(1);
+
+      gate.complete(const Right(null));
+      await first;
+    });
+
+    blocTest<UsersListCubit, UsersListState>(
+      'removeMember con id ausente no emite (defensivo)',
+      build: () => cubit,
+      seed: () => tLoadedPage1,
+      act: (c) => c.removeMember('inexistente'),
+      expect: () => <UsersListState>[],
     );
   });
 }

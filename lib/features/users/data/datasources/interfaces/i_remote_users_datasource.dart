@@ -16,14 +16,23 @@ abstract class IRemoteUsersDataSource {
     UserRole? role,
   });
 
-  /// `POST /auth/users` — lanza `RestApiException`/`UnauthorizedException`
-  /// según el status; el repository los mapea a `UsersFailure`.
+  /// `POST /auth/users` — `password == null` → modo invitación (Email-C,
+  /// backend 070): el user queda `pending_verification` y recibe el mail.
+  /// Lanza `RestApiException`/`UnauthorizedException` según el status;
+  /// el repository los mapea a `UsersFailure`.
   Future<OrgMemberModel> createUser({
     required String name,
     required String email,
-    required String password,
+    required String? password,
     required UserRole role,
   });
+
+  /// `POST /auth/users/:id/resend-invite` — reenvía el mail al miembro
+  /// pendiente (doc 018). 204 sin body; `INVITE_NOT_PENDING` si ya aceptó.
+  Future<void> resendInvite({required String userId});
+
+  /// `DELETE /auth/users/:id` real (doc 021) — 204 sin body.
+  Future<void> removeMember({required String userId});
 
   /// `POST /auth/users/link` — vincula un user global existente a la org
   /// del JWT (propuesta backend 058).

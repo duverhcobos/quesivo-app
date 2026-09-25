@@ -5,6 +5,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
+import '../../../queseras/presentation/widgets/org_invites_section.dart';
 import '../../../queseras/presentation/widgets/quesera_hero_carousel.dart';
 import '../widgets/home_quick_actions.dart';
 import '../widgets/home_recent_activity.dart';
@@ -80,6 +81,9 @@ class HomeTab extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 20),
+        // §69 — invitaciones pendientes primero (accionables): aceptar
+        // hace aparecer la card "Entrar" en el selector de abajo.
+        const OrgInvitesSection(),
         const QueseraHeroCarousel(),
         const SizedBox(height: 24),
         const HomeQuickActions(),

@@ -22,6 +22,7 @@ void main() {
     name: 'María Quesera',
     role: tRole,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
     linked: true,
   );

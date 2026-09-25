@@ -94,16 +94,17 @@ class _QueseraHeroCarouselState extends State<QueseraHeroCarousel> {
     // usuario ya entró en esta sesión de app. Con token restaurado
     // (orgId presente pero enteredOrg=false) todas son cards "Entrar":
     // el selector siempre arranca limpio.
-    final (orgs, activeOrgId) = context
-        .select<AuthCubit, (List<OrganizationSummary>, String?)>(
+    final (orgs, activeOrgId, hasPendingInvites) = context
+        .select<AuthCubit, (List<OrganizationSummary>, String?, bool)>(
           (cubit) => cubit.state is AuthSuccess
               ? (
                   (cubit.state as AuthSuccess).user.organizations,
                   (cubit.state as AuthSuccess).enteredOrg
                       ? (cubit.state as AuthSuccess).user.organizationId
                       : null,
+                  (cubit.state as AuthSuccess).user.pendingInvites.isNotEmpty,
                 )
-              : (const <OrganizationSummary>[], null),
+              : (const <OrganizationSummary>[], null, false),
         );
 
     // La activa primero; el resto detrás, en el orden del /me.
@@ -152,7 +153,10 @@ class _QueseraHeroCarouselState extends State<QueseraHeroCarousel> {
             builder: (context, selection) {
               // Defensivo (el gate 065 hace que no ocurra, pero el estado
               // vacío no debe crashear): sin queseras → mensaje centrado.
+              // Con invitaciones pendientes arriba (§69) el "no tenés
+              // queseras" contradice la card — la sección ya lo comunica.
               if (ordered.isEmpty) {
+                if (hasPendingInvites) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 32),
                   child: Center(

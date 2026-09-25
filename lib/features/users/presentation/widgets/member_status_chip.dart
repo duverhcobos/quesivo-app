@@ -14,14 +14,24 @@ class MemberStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final (color, label) = switch (status) {
+    final (color, label, textColor) = switch (status) {
       MemberStatus.active => (
         AppColors.quesivoSuccess,
         l10n.memberStatusActive,
+        AppColors.quesivoSuccess,
       ),
       MemberStatus.suspended => (
         AppColors.quesivoError,
         l10n.memberStatusSuspended,
+        AppColors.quesivoError,
+      ),
+      // §69 — backend 072: tinte ámbar + texto amber-deep (la lectura
+      // sobre el tinte claro exige el deep, no el warning puro — mismo
+      // criterio del _PendingInviteBadge).
+      MemberStatus.invited => (
+        AppColors.quesivoWarning,
+        l10n.memberStatusInvited,
+        AppColors.quesivoAmberDeep,
       ),
     };
 
@@ -45,7 +55,7 @@ class MemberStatusChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: color,
+              color: textColor,
             ),
           ),
         ],

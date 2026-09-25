@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:quesivo/core/session/session_expired_notifier.dart';
+import 'package:quesivo/features/auth/domain/entities/org_invite.dart';
 import 'package:quesivo/features/auth/domain/entities/organization_session.dart';
 import 'package:quesivo/features/auth/domain/entities/organization_summary.dart';
 import 'package:quesivo/features/auth/domain/entities/user.dart';
@@ -357,4 +358,120 @@ void main() {
       expect: () => <AuthState>[],
     );
   });
+
+  group(
+    'applyOrgInviteAccepted / applyOrgInviteDeclined (§69 — backend 072)',
+    () {
+      const tInvite = OrgInvite(
+        id: 'mem-1',
+        organizationId: 'org-9',
+        organizationName: 'Quesera Norte',
+        role: 'ADMIN',
+      );
+      const tUserConInvite = User(
+        id: '1',
+        email: tEmail,
+        name: 'John Doe',
+        token: 'token',
+        pendingInvites: [tInvite],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'accept: mueve la invitación de pendingInvites a organizations '
+        '(la card Entrar aparece sin /me extra) preservando enteredOrg',
+        build: () => cubit,
+        seed: () => const AuthSuccess(tUserConInvite, enteredOrg: true),
+        act: (cubit) => cubit.applyOrgInviteAccepted(tInvite),
+        expect: () => [
+          const AuthSuccess(
+            User(
+              id: '1',
+              email: tEmail,
+              name: 'John Doe',
+              token: 'token',
+              organizations: [
+                OrganizationSummary(
+                  id: 'org-9',
+                  name: 'Quesera Norte',
+                  role: 'ADMIN',
+                ),
+              ],
+              pendingInvites: [],
+            ),
+            enteredOrg: true,
+          ),
+        ],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'accept sobre una org que ya está en organizations no la duplica '
+        '(dedup — race o re-emit)',
+        build: () => cubit,
+        seed: () => const AuthSuccess(
+          User(
+            id: '1',
+            email: tEmail,
+            name: 'John Doe',
+            token: 'token',
+            organizations: [
+              OrganizationSummary(
+                id: 'org-9',
+                name: 'Quesera Norte',
+                role: 'ADMIN',
+              ),
+            ],
+            pendingInvites: [tInvite],
+          ),
+        ),
+        act: (cubit) => cubit.applyOrgInviteAccepted(tInvite),
+        expect: () => [
+          const AuthSuccess(
+            User(
+              id: '1',
+              email: tEmail,
+              name: 'John Doe',
+              token: 'token',
+              organizations: [
+                OrganizationSummary(
+                  id: 'org-9',
+                  name: 'Quesera Norte',
+                  role: 'ADMIN',
+                ),
+              ],
+              pendingInvites: [],
+            ),
+          ),
+        ],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'decline: saca la invitación de pendingInvites sin tocar organizations',
+        build: () => cubit,
+        seed: () => const AuthSuccess(tUserConInvite),
+        act: (cubit) => cubit.applyOrgInviteDeclined(tInvite),
+        expect: () => [
+          const AuthSuccess(
+            User(
+              id: '1',
+              email: tEmail,
+              name: 'John Doe',
+              token: 'token',
+              pendingInvites: [],
+            ),
+          ),
+        ],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'fuera de AuthSuccess no hace nada (ni accept ni decline)',
+        build: () => cubit,
+        seed: () => const AuthInitial(),
+        act: (cubit) {
+          cubit.applyOrgInviteAccepted(tInvite);
+          cubit.applyOrgInviteDeclined(tInvite);
+        },
+        expect: () => <AuthState>[],
+      );
+    },
+  );
 }

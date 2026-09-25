@@ -96,6 +96,22 @@ class OwnerRoleChangeFailure extends UsersFailure {
     : super('No se puede cambiar el rol del dueño de la organización.');
 }
 
+/// El miembro no está pendiente de invitación (`400 + INVITE_NOT_PENDING`,
+/// doc 018 — Email-C 070): ya aceptó o fue creado con password manual.
+/// Defensivo — el ⋮ no ofrece reenviar a un activo; llega solo con data
+/// stale.
+class InviteNotPendingFailure extends UsersFailure {
+  const InviteNotPendingFailure() : super('El usuario ya aceptó la invitación');
+}
+
+/// `DELETE /auth/users/:id` sobre una membresía que ya no es una
+/// invitación pendiente (409 `MEMBERSHIP_NOT_INVITED`, backend 072) —
+/// llega solo con data stale (aceptó o ya se canceló en otro lado).
+class MemberNotInvitedFailure extends UsersFailure {
+  const MemberNotInvitedFailure()
+    : super('Ya no hay una invitación pendiente para este usuario.');
+}
+
 /// `404 + MEMBERSHIP_NOT_FOUND` — el target ya no tiene membresía en la
 /// org (card stale: la acción llegó después de que salió — ej. otro
 /// cliente la modificó). Distinto de `UserNotFoundFailure` (link).

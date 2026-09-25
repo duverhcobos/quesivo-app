@@ -132,6 +132,48 @@ void main() {
       ).called(1);
     });
 
+    test('quesivo://accept-invite?token=x&email=y navega a '
+        '/accept-invite?token=x&email=y (propuesta 68 — Email-C)', () async {
+      linkStream.add(
+        Uri.parse('quesivo://accept-invite?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/accept-invite?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
+    test('quesivo:/accept-invite (una sola barra) normaliza igual', () async {
+      linkStream.add(
+        Uri.parse('quesivo:/accept-invite?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/accept-invite?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
+    test('quesivo://accept-invite/ (trailing slash) normaliza igual', () async {
+      linkStream.add(
+        Uri.parse('quesivo://accept-invite/?token=abc123&email=a%40b.com'),
+      );
+      await pumpEventQueue();
+
+      verify(
+        () => mockRouter.go('/accept-invite?token=abc123&email=a%40b.com'),
+      ).called(1);
+    });
+
+    test('quesivo://org-invites navega a /home (alias §69 — la sección '
+        'de invitaciones vive en la capa personal, backend 072)', () async {
+      linkStream.add(Uri.parse('quesivo://org-invites'));
+      await pumpEventQueue();
+
+      verify(() => mockRouter.go('/home')).called(1);
+    });
+
     test('esquema distinto a quesivo se ignora por completo', () async {
       linkStream.add(Uri.parse('https://reset-password?token=abc123'));
       await pumpEventQueue();

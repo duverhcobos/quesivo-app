@@ -216,6 +216,9 @@ class AuthRepositoryImpl implements IAuthRepository {
         roles: fresh.roles,
         status: fresh.status,
         organizations: fresh.organizations,
+        // Backend 072: sin esto el merge tira las invitaciones que
+        // /me sí devolvió — la sección OrgInvites jamás aparecería.
+        pendingInvites: fresh.pendingInvites,
       );
       await localDataSource.saveUserSession(merged);
       return Right(merged);
@@ -288,6 +291,7 @@ class AuthRepositoryImpl implements IAuthRepository {
             roles: role.isEmpty ? cached.roles : [role.first],
             status: cached.status,
             organizations: cached.organizations,
+            pendingInvites: cached.pendingInvites,
           ),
         );
       }
@@ -466,6 +470,53 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
+  Future<Either<AuthFailure, User>> acceptInvite({
+    required String token,
+    required String password,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      // Auto-login (backend 070 — doc 017): la sesión emitida se guarda
+      // igual que en verifyEmail — el listener de la pantalla llama
+      // refreshSession() y el AuthGuard rutea a /home.
+      final userModel = await remoteDataSource.acceptInvite(
+        token: token,
+        password: password,
+      );
+      await localDataSource.saveUserSession(userModel);
+      return Right(userModel);
+    } on RestApiException catch (e, stackTrace) {
+      // Contrato real (api/auth/017): 400 + errorCode distingue token
+      // inválido/expirado de password débil — mismo mapeo que
+      // resetPassword.
+      if (e.statusCode == 400) {
+        if (e.errorCode == 'INVALID_OR_EXPIRED_TOKEN') {
+          return const Left(InvalidOrExpiredTokenFailure());
+        }
+        if (e.errorCode == 'INVALID_PASSWORD') {
+          return const Left(WeakPasswordFailure());
+        }
+      }
+      logger.error(
+        'Error de API al aceptar invitación',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Left(_mapUnmappedError(e));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al aceptar invitación',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(ServerFailure('Error inesperado de red'));
+    }
+  }
+
+  @override
   Future<Either<AuthFailure, void>> resendVerification(String email) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure());
@@ -494,6 +545,75 @@ class AuthRepositoryImpl implements IAuthRepository {
     } catch (e, stackTrace) {
       logger.error(
         'Error inesperado al reenviar verificación',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(ServerFailure('Error inesperado de red'));
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, void>> acceptOrgInvite(
+    String organizationId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      await remoteDataSource.acceptOrgInvite(organizationId);
+      return const Right(null);
+    } on RestApiException catch (e, stackTrace) {
+      // 404 ORG_INVITE_NOT_FOUND — la invitación ya no está pendiente
+      // (la declinaste en otro device o el admin la canceló): dato
+      // stale, la sección se refresca tras el toast.
+      if (e.statusCode == 404) {
+        return const Left(OrgInviteNotFoundFailure());
+      }
+      if (e.statusCode == 429) {
+        return const Left(TooManyAttemptsFailure());
+      }
+      logger.error(
+        'Error de API al aceptar invitación de organización',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Left(_mapUnmappedError(e));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al aceptar invitación de organización',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(ServerFailure('Error inesperado de red'));
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, void>> declineOrgInvite(
+    String organizationId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      await remoteDataSource.declineOrgInvite(organizationId);
+      return const Right(null);
+    } on RestApiException catch (e, stackTrace) {
+      if (e.statusCode == 404) {
+        return const Left(OrgInviteNotFoundFailure());
+      }
+      if (e.statusCode == 429) {
+        return const Left(TooManyAttemptsFailure());
+      }
+      logger.error(
+        'Error de API al rechazar invitación de organización',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return Left(_mapUnmappedError(e));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado al rechazar invitación de organización',
         error: e,
         stackTrace: stackTrace,
       );

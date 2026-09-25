@@ -41,9 +41,28 @@ abstract class IAuthRepository {
   /// User con token personal (auto-login — backend 069).
   Future<Either<AuthFailure, User>> verifyEmail({required String token});
 
+  /// Acepta la invitación por correo (`quesivo://accept-invite?token=…`
+  /// — Email-C, backend 070): define la contraseña del invitado y el
+  /// backend emite la sesión de una. Éxito = sesión guardada + User
+  /// con token personal (auto-login — mismo shape que verifyEmail).
+  Future<Either<AuthFailure, User>> acceptInvite({
+    required String token,
+    required String password,
+  });
+
   /// Reenvía el correo de verificación. Siempre 200 server-side —
   /// nunca revela si el email existe ni si ya está verificado.
   Future<Either<AuthFailure, void>> resendVerification(String email);
+
+  /// `POST /auth/me/org-invites/:orgId/accept` (doc 019 — backend 072):
+  /// activa la membresía `invited`. Errores: `OrgInviteNotFoundFailure`
+  /// (404 — ya no está pendiente), `TooManyAttemptsFailure` (429),
+  /// `NetworkFailure` sin conexión.
+  Future<Either<AuthFailure, void>> acceptOrgInvite(String organizationId);
+
+  /// `POST /auth/me/org-invites/:orgId/decline` (doc 020): borra la
+  /// membresía `invited`. Mismos errores que accept.
+  Future<Either<AuthFailure, void>> declineOrgInvite(String organizationId);
 
   /// Verifica si hay una sesión activa guardada localmente
   Future<Either<AuthFailure, User>> checkAuthStatus();

@@ -37,6 +37,7 @@ void main() {
     name: tName,
     role: tRole,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 
@@ -118,6 +119,36 @@ void main() {
       final result = await callCreateUser();
 
       expect(result, const Right(tMemberModel));
+    });
+
+    test('modo invitación (§68 Email-C): password null llega null al '
+        'datasource — el body sale sin la key', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.createUser(
+          name: tName,
+          email: tEmail,
+          password: null,
+          role: tRole,
+        ),
+      ).thenAnswer((_) async => tMemberModel);
+
+      final result = await repository.createUser(
+        name: tName,
+        email: tEmail,
+        password: null,
+        role: tRole,
+      );
+
+      expect(result, const Right(tMemberModel));
+      verify(
+        () => mockRemoteDataSource.createUser(
+          name: tName,
+          email: tEmail,
+          password: null,
+          role: tRole,
+        ),
+      ).called(1);
     });
 
     test('403 → UsersForbiddenFailure', () async {
@@ -847,6 +878,194 @@ void main() {
       final result = await callUpdateRole();
 
       expect(result, const Left(UsersRateLimitFailure()));
+    });
+  });
+
+  group('resendInvite (§68 — Email-C, doc 018)', () {
+    void stubResendThrow(Object error) {
+      when(
+        () => mockRemoteDataSource.resendInvite(userId: any(named: 'userId')),
+      ).thenThrow(error);
+    }
+
+    Future<Either<UsersFailure, void>> callResend() =>
+        repository.resendInvite(userId: 'uuid-1');
+
+    test('retorna UsersNetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await callResend();
+
+      expect(result, const Left(UsersNetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.resendInvite(userId: any(named: 'userId')),
+      );
+    });
+
+    test('retorna Right(null) en éxito (204 sin body)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.resendInvite(userId: 'uuid-1'),
+      ).thenAnswer((_) async {});
+
+      final result = await callResend();
+
+      expect(result, const Right(null));
+      verify(
+        () => mockRemoteDataSource.resendInvite(userId: 'uuid-1'),
+      ).called(1);
+    });
+
+    test('400 + INVITE_NOT_PENDING → InviteNotPendingFailure '
+        '(el invitado ya aceptó — data stale)', () async {
+      mockConnected(true);
+      stubResendThrow(
+        RestApiException(
+          statusCode: 400,
+          message: 'x',
+          errorCode: 'INVITE_NOT_PENDING',
+        ),
+      );
+
+      final result = await callResend();
+
+      expect(result, const Left(InviteNotPendingFailure()));
+    });
+
+    test('404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure', () async {
+      mockConnected(true);
+      stubResendThrow(
+        RestApiException(
+          statusCode: 404,
+          message: 'x',
+          errorCode: 'MEMBERSHIP_NOT_FOUND',
+        ),
+      );
+
+      final result = await callResend();
+
+      expect(result, const Left(MemberNotFoundFailure()));
+    });
+
+    test('403 → UsersForbiddenFailure', () async {
+      mockConnected(true);
+      stubResendThrow(RestApiException(statusCode: 403, message: 'x'));
+
+      final result = await callResend();
+
+      expect(result, const Left(UsersForbiddenFailure()));
+    });
+
+    test('429 → UsersRateLimitFailure', () async {
+      mockConnected(true);
+      stubResendThrow(RestApiException(statusCode: 429, message: 'x'));
+
+      final result = await callResend();
+
+      expect(result, const Left(UsersRateLimitFailure()));
+    });
+
+    test('error inesperado → UsersServerFailure genérico', () async {
+      mockConnected(true);
+      stubResendThrow(Exception('cualquier cosa'));
+
+      final result = await callResend();
+
+      expect(result, const Left(UsersServerFailure()));
+    });
+  });
+
+  group('removeMember (DELETE /auth/users/:id — §69, doc 021)', () {
+    void stubRemoveThrow(Object error) {
+      when(
+        () => mockRemoteDataSource.removeMember(userId: any(named: 'userId')),
+      ).thenThrow(error);
+    }
+
+    Future<Either<UsersFailure, void>> callRemove() =>
+        repository.removeMember(userId: 'uuid-1');
+
+    test('retorna UsersNetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await callRemove();
+
+      expect(result, const Left(UsersNetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.removeMember(userId: any(named: 'userId')),
+      );
+    });
+
+    test('retorna Right(null) en éxito (204 sin body)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.removeMember(userId: 'uuid-1'),
+      ).thenAnswer((_) async {});
+
+      final result = await callRemove();
+
+      expect(result, const Right(null));
+      verify(
+        () => mockRemoteDataSource.removeMember(userId: 'uuid-1'),
+      ).called(1);
+    });
+
+    test('409 + MEMBERSHIP_NOT_INVITED → MemberNotInvitedFailure '
+        '(ya no es invitación pendiente — data stale)', () async {
+      mockConnected(true);
+      stubRemoveThrow(
+        RestApiException(
+          statusCode: 409,
+          message: 'x',
+          errorCode: 'MEMBERSHIP_NOT_INVITED',
+        ),
+      );
+
+      final result = await callRemove();
+
+      expect(result, const Left(MemberNotInvitedFailure()));
+    });
+
+    test('404 + MEMBERSHIP_NOT_FOUND → MemberNotFoundFailure', () async {
+      mockConnected(true);
+      stubRemoveThrow(
+        RestApiException(
+          statusCode: 404,
+          message: 'x',
+          errorCode: 'MEMBERSHIP_NOT_FOUND',
+        ),
+      );
+
+      final result = await callRemove();
+
+      expect(result, const Left(MemberNotFoundFailure()));
+    });
+
+    test('403 → UsersForbiddenFailure', () async {
+      mockConnected(true);
+      stubRemoveThrow(RestApiException(statusCode: 403, message: 'x'));
+
+      final result = await callRemove();
+
+      expect(result, const Left(UsersForbiddenFailure()));
+    });
+
+    test('429 → UsersRateLimitFailure', () async {
+      mockConnected(true);
+      stubRemoveThrow(RestApiException(statusCode: 429, message: 'x'));
+
+      final result = await callRemove();
+
+      expect(result, const Left(UsersRateLimitFailure()));
+    });
+
+    test('error inesperado → UsersServerFailure genérico', () async {
+      mockConnected(true);
+      stubRemoveThrow(Exception('cualquier cosa'));
+
+      final result = await callRemove();
+
+      expect(result, const Left(UsersServerFailure()));
     });
   });
 }

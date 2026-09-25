@@ -87,9 +87,9 @@ void main() {
     'verify con falla emite [inProgress, failure] con errorMessage',
     build: buildCubit,
     setUp: () {
-      when(() => mockVerifyEmailUseCase(token: tToken)).thenAnswer(
-        (_) async => const Left(InvalidOrExpiredTokenFailure()),
-      );
+      when(
+        () => mockVerifyEmailUseCase(token: tToken),
+      ).thenAnswer((_) async => const Left(InvalidOrExpiredTokenFailure()));
     },
     act: (cubit) => cubit.verify(),
     expect: () => [
@@ -142,9 +142,9 @@ void main() {
     'resend con falla emite resendStatus failure con errorMessage',
     build: buildCubit,
     setUp: () {
-      when(() => mockResendVerificationUseCase(tEmail)).thenAnswer(
-        (_) async => const Left(TooManyAttemptsFailure()),
-      );
+      when(
+        () => mockResendVerificationUseCase(tEmail),
+      ).thenAnswer((_) async => const Left(TooManyAttemptsFailure()));
     },
     act: (cubit) => cubit.resend(),
     expect: () => [

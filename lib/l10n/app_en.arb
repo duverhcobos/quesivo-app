@@ -115,7 +115,7 @@
   },
   "newUserButton": "New user",
   "fabCreateUser": "Create user",
-  "fabLinkUser": "Link existing",
+  "fabLinkUser": "Invite existing",
   "roleOperator": "Operator",
   "roleCollector": "Collector",
   "roleProducer": "Producer",
@@ -125,6 +125,7 @@
   "noSearchResultsHint": "Try another name, email, or filter.",
   "memberStatusActive": "Active",
   "memberStatusSuspended": "Suspended",
+  "memberStatusInvited": "Invited",
   "memberActionsTooltip": "User options",
   "suspendUserAction": "Suspend user",
   "reactivateUserAction": "Reactivate user",
@@ -155,9 +156,9 @@
   "memberNameFormatError": "Use only letters, spaces, hyphens and apostrophes",
   "invalidTempPasswordError": "At least 8 characters, one uppercase, one lowercase and one digit",
   "createUserButton": "Create user",
-  "linkUserSheetTitle": "Link user",
-  "linkUserSheetHint": "The email already has a Quesivo account — it links to your organization keeping its current password",
-  "linkUserSubmit": "Link",
+  "linkUserSheetTitle": "Invite existing user",
+  "linkUserSheetHint": "The email already has a Quesivo account — they'll get an invitation by email and join your organization once they accept it",
+  "linkUserSubmit": "Send invitation",
   "memberCreatedFeedback": "User created successfully",
   "suspendMemberTitle": "Suspend {name}?",
   "@suspendMemberTitle": {
@@ -214,8 +215,8 @@
       }
     }
   },
-  "memberLinkedFeedback": "{name} already had an account — linked and signs in with their current password",
-  "@memberLinkedFeedback": {
+  "inviteLinkSentFeedback": "Invitation sent — {name} gets in once they accept",
+  "@inviteLinkSentFeedback": {
     "placeholders": {
       "name": {
         "type": "String"
@@ -224,7 +225,7 @@
   },
   "membershipExistsError": "That email already belongs to this organization",
   "linkedUserSuspendedError": "That account is suspended — it can't be linked",
-  "emailAlreadyExistsError": "That email already has an account — link it from \"Link existing\"",
+  "emailAlreadyExistsError": "That email already has an account — invite them from \"Invite existing\"",
   "userNotFoundError": "That email has no account — create it from \"Create user\"",
   "userIsOwnerError": "That email owns another organization — it cannot be linked",
   "selfSuspensionError": "You can't suspend your own membership",
@@ -263,5 +264,57 @@
   "verifyEmailVerifyingTitle": "Verifying your email",
   "verifyEmailVerifyingDescription": "One moment, we are confirming your account.",
   "verifyEmailInvalidTitle": "This link is no longer valid",
-  "verifyEmailInvalidDescription": "The verification link expired or was already used. You can request a new one."
+  "verifyEmailInvalidDescription": "The verification link expired or was already used. You can request a new one.",
+  "acceptInviteTitle": "Set your password",
+  "acceptInviteDescription": "You were invited to join. Create your password for {email}.",
+  "@acceptInviteDescription": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "acceptInviteButton": "Create password & sign in",
+  "acceptInviteInvalidTitle": "This link is no longer valid",
+  "acceptInviteInvalidDescription": "The invite link expired or was already used. Ask for a new one.",
+  "acceptInviteResendButton": "Request new link",
+  "newUserInviteMode": "Invite by email",
+  "newUserManualMode": "Manual password",
+  "newUserInviteHint": "They'll get an email with a link to set their password.",
+  "invitePendingBadge": "Invite pending",
+  "resendInviteAction": "Resend invitation",
+  "inviteResentFeedback": "Invitation resent to {email}",
+  "@inviteResentFeedback": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteNotPendingError": "The user already accepted the invitation",
+  "orgInvitesSectionTitle": "Invitations",
+  "orgInviteCardTitle": "You were invited to join",
+  "orgInviteAcceptCta": "Accept",
+  "orgInviteDeclineCta": "Decline",
+  "orgInviteAcceptedFeedback": "You're now part of {org}",
+  "@orgInviteAcceptedFeedback": {
+    "placeholders": {
+      "org": {
+        "type": "String"
+      }
+    }
+  },
+  "orgInviteGoneError": "The invitation no longer exists — refresh and check again",
+  "cancelInviteAction": "Cancel invitation",
+  "cancelInviteConfirmTitle": "Cancel the invitation?",
+  "cancelInviteConfirmBody": "{email} won't be able to use this invitation — if they try again, send a new one.",
+  "@cancelInviteConfirmBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "memberNotInvitedError": "There's no pending invitation for this user anymore",
+  "inviteCancelledFeedback": "Invitation cancelled"
 }

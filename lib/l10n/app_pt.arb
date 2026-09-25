@@ -115,7 +115,7 @@
   },
   "newUserButton": "Novo usuário",
   "fabCreateUser": "Criar usuário",
-  "fabLinkUser": "Vincular existente",
+  "fabLinkUser": "Convidar existente",
   "roleOperator": "Operador",
   "roleCollector": "Coletor",
   "roleProducer": "Produtor",
@@ -125,6 +125,7 @@
   "noSearchResultsHint": "Tente outro nome, e-mail ou filtro.",
   "memberStatusActive": "Ativo",
   "memberStatusSuspended": "Suspenso",
+  "memberStatusInvited": "Convidado",
   "memberActionsTooltip": "Opções do usuário",
   "suspendUserAction": "Suspender usuário",
   "reactivateUserAction": "Reativar usuário",
@@ -155,9 +156,9 @@
   "memberNameFormatError": "Use apenas letras, espaços, hífens e apóstrofos",
   "invalidTempPasswordError": "Mínimo 8 caracteres, uma maiúscula, uma minúscula e um número",
   "createUserButton": "Criar usuário",
-  "linkUserSheetTitle": "Vincular usuário",
-  "linkUserSheetHint": "O e-mail já tem conta no Quesivo — será vinculado à sua queijaria mantendo a senha atual",
-  "linkUserSubmit": "Vincular",
+  "linkUserSheetTitle": "Convidar usuário existente",
+  "linkUserSheetHint": "O e-mail já tem conta no Quesivo — ele recebe um convite por e-mail e entra na sua queijaria quando aceitar",
+  "linkUserSubmit": "Enviar convite",
   "memberCreatedFeedback": "Usuário criado com sucesso",
   "suspendMemberTitle": "Suspender {name}?",
   "@suspendMemberTitle": {
@@ -214,8 +215,8 @@
       }
     }
   },
-  "memberLinkedFeedback": "{name} já tinha conta — ficou vinculado e entra com a senha atual",
-  "@memberLinkedFeedback": {
+  "inviteLinkSentFeedback": "Convite enviado — {name} entra quando aceitar",
+  "@inviteLinkSentFeedback": {
     "placeholders": {
       "name": {
         "type": "String"
@@ -224,7 +225,7 @@
   },
   "membershipExistsError": "Esse e-mail já pertence a esta organização",
   "linkedUserSuspendedError": "Essa conta está suspensa — não pode ser vinculada",
-  "emailAlreadyExistsError": "Esse e-mail já tem conta — vincule-o em \"Vincular existente\"",
+  "emailAlreadyExistsError": "Esse e-mail já tem conta — convide-o em \"Convidar existente\"",
   "userNotFoundError": "Esse e-mail não tem conta — crie-o em \"Criar usuário\"",
   "userIsOwnerError": "Esse e-mail é dono de outra queijaria — não pode ser vinculado",
   "selfSuspensionError": "Você não pode suspender a própria associação",
@@ -263,5 +264,57 @@
   "verifyEmailVerifyingTitle": "Verificando seu e-mail",
   "verifyEmailVerifyingDescription": "Um momento, estamos confirmando sua conta.",
   "verifyEmailInvalidTitle": "Este link não é mais válido",
-  "verifyEmailInvalidDescription": "O link de verificação expirou ou já foi usado. Você pode pedir um novo."
+  "verifyEmailInvalidDescription": "O link de verificação expirou ou já foi usado. Você pode pedir um novo.",
+  "acceptInviteTitle": "Defina sua senha",
+  "acceptInviteDescription": "Você foi convidado. Crie sua senha para {email}.",
+  "@acceptInviteDescription": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "acceptInviteButton": "Criar senha e entrar",
+  "acceptInviteInvalidTitle": "Este link não é mais válido",
+  "acceptInviteInvalidDescription": "O link de convite expirou ou já foi usado. Peça um novo.",
+  "acceptInviteResendButton": "Pedir novo link",
+  "newUserInviteMode": "Convidar por e-mail",
+  "newUserManualMode": "Senha manual",
+  "newUserInviteHint": "Eles receberão um e-mail com um link para criar a senha.",
+  "invitePendingBadge": "Convite pendente",
+  "resendInviteAction": "Reenviar convite",
+  "inviteResentFeedback": "Convite reenviado para {email}",
+  "@inviteResentFeedback": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteNotPendingError": "O usuário já aceitou o convite",
+  "orgInvitesSectionTitle": "Convites",
+  "orgInviteCardTitle": "Você foi convidado para",
+  "orgInviteAcceptCta": "Aceitar",
+  "orgInviteDeclineCta": "Recusar",
+  "orgInviteAcceptedFeedback": "Agora você faz parte de {org}",
+  "@orgInviteAcceptedFeedback": {
+    "placeholders": {
+      "org": {
+        "type": "String"
+      }
+    }
+  },
+  "orgInviteGoneError": "O convite não existe mais — atualize e verifique de novo",
+  "cancelInviteAction": "Cancelar convite",
+  "cancelInviteConfirmTitle": "Cancelar o convite?",
+  "cancelInviteConfirmBody": "{email} não poderá usar este convite — se tentar de novo, envie um novo.",
+  "@cancelInviteConfirmBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "memberNotInvitedError": "Não há mais um convite pendente para este usuário",
+  "inviteCancelledFeedback": "Convite cancelado"
 }

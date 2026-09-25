@@ -57,7 +57,28 @@ abstract class IRemoteAuthDataSource {
   /// auto-login con token personal, mismo shape que login.
   Future<UserModel> verifyEmail(String token);
 
+  /// Acepta la invitación por correo (`POST /auth/accept-invite`,
+  /// doc 017 — Email-C, backend 070): el invitado define su contraseña
+  /// y el backend emite la sesión de una — auto-login con token
+  /// personal, mismo shape que verify-email/login.
+  Future<UserModel> acceptInvite({
+    required String token,
+    required String password,
+  });
+
   /// Reenvía el correo de verificación (`POST /auth/resend-verification`,
   /// doc 016). Siempre 200 — anti-enumeración.
   Future<void> resendVerification(String email);
+
+  /// Acepta la invitación a una organización (`POST
+  /// /auth/me/org-invites/:orgId/accept`, doc 019 — backend 072): la
+  /// membresía `invited` pasa a `active` y la org aparece en
+  /// `organizations` del próximo `/me`. 404 = ya no está pendiente
+  /// (la declinaste o el admin la canceló — dato stale).
+  Future<void> acceptOrgInvite(String organizationId);
+
+  /// Rechaza la invitación (`POST /auth/me/org-invites/:orgId/decline`,
+  /// doc 020 — backend 072): borra la membresía `invited` — el typo de
+  /// email del admin se resuelve solo. 404 = idem accept.
+  Future<void> declineOrgInvite(String organizationId);
 }

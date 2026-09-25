@@ -16,7 +16,7 @@ import '../theme/app_colors.dart';
 /// no es decorativo (feedback del usuario):
 /// ```dart
 /// QuesivoToast.success(context, message: l10n.memberCreatedFeedback);
-/// QuesivoToast.info(context, message: l10n.memberLinkedFeedback(name));
+/// QuesivoToast.info(context, message: l10n.inviteLinkSentFeedback(name));
 /// QuesivoToast.warning(context, message: l10n.memberSuspendedFeedback);
 /// QuesivoToast.error(context, message: l10n.genericError);
 /// ```

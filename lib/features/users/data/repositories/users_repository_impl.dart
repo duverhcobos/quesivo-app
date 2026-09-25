@@ -57,11 +57,14 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
+  /// `POST /auth/users` — `password == null` → modo invitación (Email-C,
+  /// backend 070): el body viaja sin password y el backend le manda al
+  /// invitado el correo con el link accept-invite.
   @override
   Future<Either<UsersFailure, OrgMember>> createUser({
     required String name,
     required String email,
-    required String password,
+    required String? password,
     required UserRole role,
   }) async {
     if (!await networkInfo.isConnected) {
@@ -196,6 +199,58 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
+  /// `POST /auth/users/:id/resend-invite` — doc 018 (Email-C, §68):
+  /// reenvía el mail de invitación al miembro pendiente. 204 sin body;
+  /// `INVITE_NOT_PENDING` (400) si ya aceptó — el ⋮ no lo ofrece, llega
+  /// solo con data stale.
+  @override
+  Future<Either<UsersFailure, void>> resendInvite({
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(UsersNetworkFailure());
+    }
+    try {
+      await remoteDataSource.resendInvite(userId: userId);
+      return const Right(null);
+    } on RestApiException catch (e, stackTrace) {
+      return Left(_mapError(e, stackTrace));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado reenviando invitación',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(UsersServerFailure());
+    }
+  }
+
+  /// `DELETE /auth/users/:id` — doc 021 (backend 072): cancela la
+  /// invitación pendiente (unión invitePending). 204 sin body;
+  /// `MEMBERSHIP_NOT_INVITED` (409) si ya no está pendiente — llega
+  /// solo con data stale.
+  @override
+  Future<Either<UsersFailure, void>> removeMember({
+    required String userId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(UsersNetworkFailure());
+    }
+    try {
+      await remoteDataSource.removeMember(userId: userId);
+      return const Right(null);
+    } on RestApiException catch (e, stackTrace) {
+      return Left(_mapError(e, stackTrace));
+    } catch (e, stackTrace) {
+      logger.error(
+        'Error inesperado cancelando invitación',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(UsersServerFailure());
+    }
+  }
+
   /// Un 401 que llega hasta acá ya pasó por el RefreshTokenInterceptor:
   /// si el refresh también falló, la sesión se está cerrando vía
   /// SessionExpiredNotifier — se reporta genérico, no hay acción de UI.
@@ -222,6 +277,9 @@ class UsersRepositoryImpl implements IUsersRepository {
           'INVALID_PASSWORD' => const InvalidMemberDataFailure(),
           'SELF_ROLE_CHANGE' => const SelfRoleChangeFailure(),
           'OWNER_ROLE_CHANGE' => const OwnerRoleChangeFailure(),
+          // §68 — Email-C (doc 018): el reenvío solo aplica a invitados
+          // pendientes; llega acá solo con data stale.
+          'INVITE_NOT_PENDING' => const InviteNotPendingFailure(),
           _ => null,
         };
         if (mapped != null) return mapped;
@@ -252,6 +310,7 @@ class UsersRepositoryImpl implements IUsersRepository {
           'USER_SUSPENDED' => const LinkedUserSuspendedFailure(),
           'EMAIL_ALREADY_EXISTS' => const EmailAlreadyExistsFailure(),
           'USER_IS_OWNER' => const UserIsOwnerFailure(),
+          'MEMBERSHIP_NOT_INVITED' => const MemberNotInvitedFailure(),
           _ => null,
         };
         if (mapped409 != null) return mapped409;

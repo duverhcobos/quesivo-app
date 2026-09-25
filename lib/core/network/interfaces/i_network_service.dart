@@ -12,4 +12,9 @@ abstract class INetworkService {
   Future<T> post<T>(String path, {Map<String, dynamic>? data});
   Future<T> get<T>(String path, {Map<String, dynamic>? queryParameters});
   Future<T> patch<T>(String path, {Map<String, dynamic>? data});
+
+  /// Sin body — el identificador viaja en el path (ej. `DELETE
+  /// /auth/users/:id`, backend 072). Devuelve el body parseado si lo hay
+  /// (los 204 llegan como null → `delete<void>`).
+  Future<T> delete<T>(String path);
 }

@@ -27,6 +27,7 @@ void main() {
     name: 'María Quesera',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 

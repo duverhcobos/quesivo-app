@@ -12,6 +12,11 @@ import '../value_objects/temp_password.dart';
 /// (`POST /auth/users`, doc 007). Re-valida con los VOs como única
 /// fuente de verdad — la sheet ya valida, pero el dominio no confía en
 /// la UI (mismo patrón que `LoginUseCase` con `Password.dirty`).
+///
+/// `password == null` → modo invitación (Email-C, backend 070): el body
+/// sale sin password, el user nace `pending_verification` y recibe el
+/// correo con el link accept-invite — el invitado elige su password, no
+/// circula un temporal en claro.
 class CreateUserUseCase {
   final IUsersRepository repository;
 
@@ -20,13 +25,15 @@ class CreateUserUseCase {
   Future<Either<UsersFailure, OrgMember>> call({
     required String name,
     required String email,
-    required String password,
+    required String? password,
     required UserRole role,
   }) {
+    // `TempPassword` solo aplica cuando viene — el invite mode no pide
+    // password (el invitado elige el suyo al aceptar).
     final valid =
         MemberName.dirty(name).isValid &&
         MemberEmail.dirty(email).isValid &&
-        TempPassword.dirty(password).isValid;
+        (password == null || TempPassword.dirty(password).isValid);
     if (!valid) {
       return Future.value(const Left(InvalidMemberDataFailure()));
     }

@@ -14,10 +14,12 @@ class CreateUserCubit extends Cubit<CreateUserState> {
 
   CreateUserCubit(this._createUser) : super(const CreateUserState());
 
+  /// `password == null` → modo invitación (Email-C, §68): el backend
+  /// crea el user `pending_verification` y le manda el correo.
   Future<void> submit({
     required String name,
     required String email,
-    required String password,
+    required String? password,
     required UserRole role,
   }) async {
     // Anti doble-tap: un submit en vuelo ignora los siguientes.

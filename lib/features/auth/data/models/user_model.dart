@@ -1,4 +1,5 @@
 // lib/features/auth/data/models/user_model.dart
+import '../../domain/entities/org_invite.dart';
 import '../../domain/entities/organization_summary.dart';
 import '../../domain/entities/user.dart';
 
@@ -22,6 +23,7 @@ class UserModel extends User {
     super.roles,
     super.status,
     super.organizations,
+    super.pendingInvites,
   });
 
   /// Factory Data constructor — shape real de AuthResponseDto.
@@ -49,6 +51,20 @@ class UserModel extends User {
               )
               .toList() ??
           const [],
+      // Backend 072 — invitaciones a orgs pendientes (membresías
+      // `invited`). Ausente en respuestas que no lo traen → [].
+      pendingInvites:
+          (json['pendingInvites'] as List?)
+              ?.map(
+                (e) => OrgInvite(
+                  id: e['id']?.toString() ?? '',
+                  organizationId: e['organizationId']?.toString() ?? '',
+                  organizationName: e['organizationName']?.toString() ?? '',
+                  role: e['role']?.toString() ?? '',
+                ),
+              )
+              .toList() ??
+          const [],
     );
   }
 
@@ -65,6 +81,16 @@ class UserModel extends User {
       'status': status,
       'organizations': organizations
           .map((o) => {'id': o.id, 'name': o.name, 'role': o.role})
+          .toList(),
+      'pendingInvites': pendingInvites
+          .map(
+            (i) => {
+              'id': i.id,
+              'organizationId': i.organizationId,
+              'organizationName': i.organizationName,
+              'role': i.role,
+            },
+          )
           .toList(),
     };
   }

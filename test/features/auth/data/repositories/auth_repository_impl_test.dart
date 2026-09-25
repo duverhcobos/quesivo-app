@@ -10,6 +10,7 @@ import 'package:quesivo/features/auth/data/exceptions/auth_exceptions.dart';
 import 'package:quesivo/features/auth/data/models/organization_session_model.dart';
 import 'package:quesivo/features/auth/data/models/user_model.dart';
 import 'package:quesivo/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:quesivo/features/auth/domain/entities/org_invite.dart';
 import 'package:quesivo/features/auth/domain/entities/organization_summary.dart';
 import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
 
@@ -354,6 +355,44 @@ void main() {
         expect(user.token, tUserModel.token); // tokens se conservan
       });
       verify(() => mockLocalDataSource.saveUserSession(any())).called(1);
+    });
+
+    test('conserva pendingInvites del /me en el merge y al persistir '
+        '(regresión §69 — el merge manual los tiraba y las cards de '
+        'invitación nunca aparecían)', () async {
+      const tFreshConInvite = UserModel(
+        id: '1',
+        email: tEmail,
+        name: 'John Doe',
+        status: 'active',
+        pendingInvites: [
+          OrgInvite(
+            id: 'mem-1',
+            organizationId: 'org-9',
+            organizationName: 'Quesera Norte',
+            role: 'ADMIN',
+          ),
+        ],
+      );
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => tUserModel);
+      when(
+        () => mockRemoteDataSource.getMe(),
+      ).thenAnswer((_) async => tFreshConInvite);
+
+      final result = await repository.checkAuthStatus();
+
+      result.fold((_) => fail('debía ser Right'), (user) {
+        expect(user.pendingInvites, hasLength(1));
+        expect(user.pendingInvites.single.organizationId, 'org-9');
+      });
+      final saved =
+          verify(
+                () => mockLocalDataSource.saveUserSession(captureAny()),
+              ).captured.single
+              as UserModel;
+      expect(saved.pendingInvites, hasLength(1));
     });
 
     test('retorna sesión local sin conectividad (sin llamar remoto)', () async {
@@ -932,6 +971,134 @@ void main() {
     });
   });
 
+  group('acceptInvite (propuesta 68 — doc 017, Email-C)', () {
+    const tToken = 'invite-token-abc';
+    const tPassword = 'NuevaPass123';
+
+    test('retorna NetworkFailure si no hay conexión a internet', () async {
+      mockConnected(false);
+
+      final result = await repository.acceptInvite(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(NetworkFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.acceptInvite(
+          token: any(named: 'token'),
+          password: any(named: 'password'),
+        ),
+      );
+    });
+
+    test('retorna Right(user) y persiste la sesión en éxito '
+        '(auto-login — backend 070, mismo patrón que verifyEmail)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.acceptInvite(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenAnswer((_) async => tUserModel);
+      when(
+        () => mockLocalDataSource.saveUserSession(tUserModel),
+      ).thenAnswer((_) async {});
+
+      final result = await repository.acceptInvite(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Right(tUserModel));
+      verify(() => mockLocalDataSource.saveUserSession(tUserModel)).called(1);
+    });
+
+    test('400 + INVALID_OR_EXPIRED_TOKEN → InvalidOrExpiredTokenFailure '
+        '(link usado/vencido → vista de link inválido)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.acceptInvite(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 400,
+          message: 'Invalid token',
+          errorCode: 'INVALID_OR_EXPIRED_TOKEN',
+        ),
+      );
+
+      final result = await repository.acceptInvite(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(InvalidOrExpiredTokenFailure()));
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
+    });
+
+    test('400 + INVALID_PASSWORD → WeakPasswordFailure '
+        '(segunda línea del VO — la pantalla ya validó)', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.acceptInvite(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 400,
+          message: 'Weak password',
+          errorCode: 'INVALID_PASSWORD',
+        ),
+      );
+
+      final result = await repository.acceptInvite(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(WeakPasswordFailure()));
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
+    });
+
+    test('RestApiException no mapeada → ServerFailure genérico', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.acceptInvite(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(RestApiException(statusCode: 500, message: 'Boom'));
+
+      final result = await repository.acceptInvite(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(ServerFailure()));
+    });
+
+    test('retorna ServerFailure ante una excepción inesperada', () async {
+      mockConnected(true);
+      when(
+        () => mockRemoteDataSource.acceptInvite(
+          token: tToken,
+          password: tPassword,
+        ),
+      ).thenThrow(Exception('cualquier cosa'));
+
+      final result = await repository.acceptInvite(
+        token: tToken,
+        password: tPassword,
+      );
+
+      expect(result, const Left(ServerFailure('Error inesperado de red')));
+    });
+  });
+
   group('resendVerification', () {
     test('retorna NetworkFailure si no hay conexión a internet', () async {
       mockConnected(false);
@@ -1060,6 +1227,14 @@ void main() {
             role: 'OPERATOR',
           ),
         ],
+        pendingInvites: [
+          OrgInvite(
+            id: 'mem-1',
+            organizationId: 'org-9',
+            organizationName: 'Quesera Este',
+            role: 'ADMIN',
+          ),
+        ],
       );
       when(
         () => mockRemoteDataSource.selectOrganization(tOrgId),
@@ -1091,6 +1266,8 @@ void main() {
       expect(saved.organizationName, 'Quesera Norte');
       expect(saved.roles, ['ADMIN']);
       expect(saved.organizations, tCached.organizations);
+      // §69 — el merge manual no debe perder las invitaciones pendientes.
+      expect(saved.pendingInvites, tCached.pendingInvites);
     });
 
     test('retorna InvalidCredentialsFailure ante UnauthorizedException (401: '
@@ -1145,5 +1322,99 @@ void main() {
 
       expect(result, const Left(ServerFailure('Error inesperado de red')));
     });
+  });
+
+  group('acceptOrgInvite / declineOrgInvite (§69 — docs 019/020)', () {
+    for (final (name, call) in [
+      ('acceptOrgInvite', () => repository.acceptOrgInvite('org-9')),
+      ('declineOrgInvite', () => repository.declineOrgInvite('org-9')),
+    ]) {
+      group(name, () {
+        test('retorna NetworkFailure si no hay conexión', () async {
+          mockConnected(false);
+
+          final result = await call();
+
+          expect(result, const Left(NetworkFailure()));
+        });
+
+        test('éxito → Right(null) y pega al datasource con el orgId', () async {
+          mockConnected(true);
+          if (name == 'acceptOrgInvite') {
+            when(
+              () => mockRemoteDataSource.acceptOrgInvite('org-9'),
+            ).thenAnswer((_) async {});
+          } else {
+            when(
+              () => mockRemoteDataSource.declineOrgInvite('org-9'),
+            ).thenAnswer((_) async {});
+          }
+
+          final result = await call();
+
+          expect(result, const Right(null));
+          if (name == 'acceptOrgInvite') {
+            verify(
+              () => mockRemoteDataSource.acceptOrgInvite('org-9'),
+            ).called(1);
+          } else {
+            verify(
+              () => mockRemoteDataSource.declineOrgInvite('org-9'),
+            ).called(1);
+          }
+        });
+
+        test('404 → OrgInviteNotFoundFailure (invitación stale)', () async {
+          mockConnected(true);
+          if (name == 'acceptOrgInvite') {
+            when(() => mockRemoteDataSource.acceptOrgInvite(any())).thenThrow(
+              RestApiException(statusCode: 404, message: 'not found'),
+            );
+          } else {
+            when(() => mockRemoteDataSource.declineOrgInvite(any())).thenThrow(
+              RestApiException(statusCode: 404, message: 'not found'),
+            );
+          }
+
+          final result = await call();
+
+          expect(result, const Left(OrgInviteNotFoundFailure()));
+        });
+
+        test('429 → TooManyAttemptsFailure', () async {
+          mockConnected(true);
+          if (name == 'acceptOrgInvite') {
+            when(() => mockRemoteDataSource.acceptOrgInvite(any())).thenThrow(
+              RestApiException(statusCode: 429, message: 'rate limit'),
+            );
+          } else {
+            when(() => mockRemoteDataSource.declineOrgInvite(any())).thenThrow(
+              RestApiException(statusCode: 429, message: 'rate limit'),
+            );
+          }
+
+          final result = await call();
+
+          expect(result, const Left(TooManyAttemptsFailure()));
+        });
+
+        test('error inesperado → ServerFailure genérico', () async {
+          mockConnected(true);
+          if (name == 'acceptOrgInvite') {
+            when(
+              () => mockRemoteDataSource.acceptOrgInvite(any()),
+            ).thenThrow(Exception('cualquier cosa'));
+          } else {
+            when(
+              () => mockRemoteDataSource.declineOrgInvite(any()),
+            ).thenThrow(Exception('cualquier cosa'));
+          }
+
+          final result = await call();
+
+          expect(result, const Left(ServerFailure('Error inesperado de red')));
+        });
+      });
+    }
   });
 }

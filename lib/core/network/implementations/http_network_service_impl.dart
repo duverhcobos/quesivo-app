@@ -59,8 +59,23 @@ class HttpNetworkServiceImpl implements INetworkService {
     }
   }
 
+  @override
+  Future<T> delete<T>(String path) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final response = await client.delete(uri);
+      return _processResponse<T>(response);
+    } catch (e) {
+      if (e is RestApiException) rethrow;
+      throw ServerException();
+    }
+  }
+
   T _processResponse<T>(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      // 204 sin body (DELETE /users/:id, resend-invite) — decode del
+      // string vacío lanza FormatException; el caller pide void/null.
+      if (response.body.isEmpty) return null as T;
       return jsonDecode(response.body) as T;
     } else if (response.statusCode == 401) {
       throw UnauthorizedException();

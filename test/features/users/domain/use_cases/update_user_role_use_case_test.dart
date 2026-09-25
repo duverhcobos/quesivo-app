@@ -21,6 +21,7 @@ void main() {
     name: 'María Quesera',
     role: UserRole.collector,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 

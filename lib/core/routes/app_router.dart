@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
+import '../../features/auth/presentation/cubit/accept_invite_cubit.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/check_email_cubit.dart';
 import '../../features/auth/presentation/cubit/forgot_password_cubit.dart';
@@ -9,6 +10,7 @@ import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/presentation/cubit/register_cubit.dart';
 import '../../features/auth/presentation/cubit/reset_password_cubit.dart';
 import '../../features/auth/presentation/cubit/verify_email_cubit.dart';
+import '../../features/auth/presentation/screens/accept_invite_screen.dart';
 import '../../features/auth/presentation/screens/check_email_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -138,6 +140,21 @@ class AppRouter {
           // Token + email del deep link `quesivo://verify-email?…`.
           child: VerifyEmailScreen(
             cubit: locator<VerifyEmailCubit>(
+              param1: state.uri.queryParameters['token'] ?? '',
+              param2: state.uri.queryParameters['email'] ?? '',
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AuthGuard.acceptInviteRoute,
+        pageBuilder: (context, state) => CustomTransitions.slideUp(
+          context: context,
+          state: state,
+          // Token + email del deep link `quesivo://accept-invite?…`
+          // (Email-C, propuesta 68 — doc 017).
+          child: AcceptInviteScreen(
+            cubit: locator<AcceptInviteCubit>(
               param1: state.uri.queryParameters['token'] ?? '',
               param2: state.uri.queryParameters['email'] ?? '',
             ),

@@ -20,6 +20,7 @@ void main() {
     name: 'Ana Pérez',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org',
   );
 

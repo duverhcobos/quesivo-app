@@ -54,9 +54,9 @@ void main() {
     'resend con falla emite [inProgress, failure] con errorMessage',
     build: buildCubit,
     setUp: () {
-      when(() => mockResendVerificationUseCase(tEmail)).thenAnswer(
-        (_) async => const Left(TooManyAttemptsFailure()),
-      );
+      when(
+        () => mockResendVerificationUseCase(tEmail),
+      ).thenAnswer((_) async => const Left(TooManyAttemptsFailure()));
     },
     act: (cubit) => cubit.resend(),
     expect: () => [

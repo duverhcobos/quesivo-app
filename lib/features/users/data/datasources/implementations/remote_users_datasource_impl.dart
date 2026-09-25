@@ -39,7 +39,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
   Future<OrgMemberModel> createUser({
     required String name,
     required String email,
-    required String password,
+    required String? password,
     required UserRole role,
   }) async {
     final data = await networkService.post<Map<String, dynamic>>(
@@ -47,16 +47,35 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
       data: {
         'name': name,
         'email': email,
-        'password': password,
+        // Ausente = invite mode (Email-C, backend 070): el backend crea
+        // el user pending_verification + manda el mail con el link
+        // accept-invite.
+        if (password != null) 'password': password,
         'role': role.apiValue,
       },
     );
-    return OrgMemberModel.fromJson(data);
+    // Doc 007: el `status` del 201 es el del USER global — la membresía
+    // nueva nace active (fromCreatedJson lo interpreta así).
+    return OrgMemberModel.fromCreatedJson(data);
+  }
+
+  /// `POST /auth/users/:id/resend-invite` real (doc 018) — 204 sin body.
+  @override
+  Future<void> resendInvite({required String userId}) async {
+    await networkService.post<void>('/auth/users/$userId/resend-invite');
+  }
+
+  /// `DELETE /auth/users/:id` real (doc 021 — backend 072): cancela la
+  /// invitación pendiente; la org la infiere el backend del JWT.
+  @override
+  Future<void> removeMember({required String userId}) async {
+    await networkService.delete<void>('/auth/users/$userId');
   }
 
   /// `POST /auth/users/link` real — contrato doc 007 post-058: solo
   /// membresía (`{email, role}`); el 201 trae el mismo shape que create
-  /// (`linked:true`). La org la infiere el backend del JWT del admin.
+  /// (`linked:true` — su `status` también es el del user global, por eso
+  /// parsea con `fromCreatedJson`). La org la infiere el backend del JWT.
   @override
   Future<OrgMemberModel> linkUser({
     required String email,
@@ -66,7 +85,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
       '/auth/users/link',
       data: {'email': email, 'role': role.apiValue},
     );
-    return OrgMemberModel.fromJson(data);
+    return OrgMemberModel.fromCreatedJson(data);
   }
 
   /// `PATCH /auth/users/:id/status` real (doc 009) — la org la infiere

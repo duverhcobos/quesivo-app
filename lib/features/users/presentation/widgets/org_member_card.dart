@@ -23,6 +23,15 @@ import 'member_status_chip.dart';
 /// propia (`isSelf` — SELF_SUSPENSION garantizado y resetearse revocaría
 /// la sesión propia) y con un PATCH en vuelo (`isBusy`) cede a un
 /// `QuesivoLoader` chico navy.
+/// §68 — Email-C: cuando `member.invitePending` es
+/// `pendingVerification` el Wrap de chips gana el badge ámbar
+/// "Invitación pendiente" (la cuenta global todavía no aceptó el mail)
+/// y el ⋮ `MemberActionsMenu` ofrece "Reenviar invitación" — el POST
+/// real lo dispara la screen vía `onResendInvite`.
+/// §69 — backend 072: con membresía `invited` el chip "Invitado" ya
+/// dice lo mismo → el badge ámbar se reserva al artefacto
+/// pending+passwordless (un solo marcador ámbar por fila) y el ⋮ gana
+/// "Cancelar invitación" vía `onCancelInvite`.
 class OrgMemberCard extends StatelessWidget {
   const OrgMemberCard({
     super.key,
@@ -30,6 +39,8 @@ class OrgMemberCard extends StatelessWidget {
     required this.onStatusToggle,
     required this.onPasswordReset,
     required this.onRoleChange,
+    required this.onResendInvite,
+    required this.onCancelInvite,
     this.sheetTopInset = 0,
     this.isSelf = false,
     this.isBusy = false,
@@ -42,6 +53,14 @@ class OrgMemberCard extends StatelessWidget {
   /// Recibe el `UserRole` nuevo del `ChangeRoleDialog` (§54) — la
   /// screen dispara el PATCH real.
   final ValueChanged<UserRole> onRoleChange;
+
+  /// §68 — el admin eligió "Reenviar invitación" en el ⋮ (solo visible
+  /// con cuenta `pendingVerification`) — la screen dispara el POST.
+  final VoidCallback onResendInvite;
+
+  /// §69 — el admin confirmó "Cancelar invitación" en el ⋮ (solo con
+  /// `invitePending`) — la screen dispara el `DELETE /auth/users/:id`.
+  final VoidCallback onCancelInvite;
 
   /// Tope del `ResetPasswordSheet` — lo mide la pantalla sobre el hero.
   final double sheetTopInset;
@@ -107,6 +126,13 @@ class OrgMemberCard extends StatelessWidget {
                   children: [
                     MemberRoleChip(role: member.role),
                     MemberStatusChip(status: member.status),
+                    // §68 — badge ámbar del invite pendiente: regla
+                    // derivada del backend (pending + passwordless).
+                    // §69 — sobre membresía `invited` el chip "Invitado"
+                    // ya dice lo mismo (un solo marcador ámbar por fila).
+                    if (member.invitePending &&
+                        member.status != MemberStatus.invited)
+                      const _PendingInviteBadge(),
                     if (member.isOwner) const _OwnerBadge(),
                   ],
                 ),
@@ -132,8 +158,53 @@ class OrgMemberCard extends StatelessWidget {
               onStatusToggle: onStatusToggle,
               onPasswordReset: onPasswordReset,
               onRoleChange: onRoleChange,
+              onResendInvite: onResendInvite,
+              onCancelInvite: onCancelInvite,
               sheetTopInset: sheetTopInset,
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pill "Invitación pendiente" (§68 — Email-C): piel de
+/// `MemberStatusChip` (tinte 12% + punto + label 12px w600) en ámbar
+/// `quesivoWarning` — warning suave: la cuenta existe pero el invitado
+/// todavía no definió su password; texto en `quesivoAmberDeep` para
+/// legibilidad sobre el tinte claro. Solo marca, sin interacción.
+class _PendingInviteBadge extends StatelessWidget {
+  const _PendingInviteBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.quesivoWarning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.quesivoWarning,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            l10n.invitePendingBadge,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.quesivoAmberDeep,
+            ),
+          ),
         ],
       ),
     );

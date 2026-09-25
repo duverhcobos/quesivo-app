@@ -1,6 +1,7 @@
 // lib/features/auth/domain/entities/user.dart
 import 'package:equatable/equatable.dart';
 
+import 'org_invite.dart';
 import 'organization_summary.dart';
 
 /// Usuario autenticado en la aplicación.
@@ -34,6 +35,13 @@ class User extends Equatable {
   /// está autenticado pero fuera de toda quesera (capa personal).
   final List<OrganizationSummary> organizations;
 
+  /// Invitaciones a queseras pendientes de responder — `pendingInvites`
+  /// de `GET /auth/me` (backend 072): membresías `invited` que alguien
+  /// creó con `POST /auth/users/link`. La capa personal las muestra como
+  /// cards con Aceptar/Rechazar; al aceptar la org aparece en
+  /// `organizations`.
+  final List<OrgInvite> pendingInvites;
+
   const User({
     required this.id,
     required this.email,
@@ -45,6 +53,7 @@ class User extends Equatable {
     this.roles = const [],
     this.status,
     this.organizations = const [],
+    this.pendingInvites = const [],
   });
 
   /// Update en el lugar (§63): tras un select-organization exitoso el
@@ -61,6 +70,7 @@ class User extends Equatable {
     List<String>? roles,
     String? status,
     List<OrganizationSummary>? organizations,
+    List<OrgInvite>? pendingInvites,
   }) {
     return User(
       id: id ?? this.id,
@@ -73,6 +83,7 @@ class User extends Equatable {
       roles: roles ?? this.roles,
       status: status ?? this.status,
       organizations: organizations ?? this.organizations,
+      pendingInvites: pendingInvites ?? this.pendingInvites,
     );
   }
 
@@ -88,5 +99,6 @@ class User extends Equatable {
     roles,
     status,
     organizations,
+    pendingInvites,
   ];
 }

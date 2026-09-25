@@ -6,8 +6,9 @@ import '../../../shell/presentation/widgets/shell_insets.dart';
 
 /// Speed dial del listado de usuarios (§48) — el FAB amarillo ahora
 /// expande dos acciones porque el backend 058 separó las intenciones
-/// que `POST /auth/users` fusionaba: "Crear usuario" (alta nueva) y
-/// "Vincular existente" (solo membresía para un user con cuenta global).
+/// que `POST /auth/users` fusionaba: "Crear usuario" (alta nueva) e
+/// "Invitar existente" (desde §69/backend 072 envía invitación — el
+/// user con cuenta global entra cuando la acepta).
 ///
 /// Mecánica: el tap en el FAB morfa el ícono `person_add_outlined` →
 /// `close` y las dos acciones suben con fade+slide ~200ms sobre un
@@ -33,7 +34,7 @@ class UsersSpeedDial extends StatefulWidget {
   /// Acción "Crear usuario" — se dispara tras cerrar el dial.
   final VoidCallback onCreate;
 
-  /// Acción "Vincular existente" — se dispara tras cerrar el dial.
+  /// Acción "Invitar existente" — se dispara tras cerrar el dial.
   final VoidCallback onLink;
 
   @override

@@ -35,6 +35,7 @@ void main() {
     name: 'Usuario Nuevo',
     role: UserRole.operator,
     status: MemberStatus.active,
+    invitePending: false,
     organizationId: 'org-1',
   );
 
@@ -100,7 +101,15 @@ void main() {
 
   Finder field(String hint) => find.widgetWithText(TextFormField, hint);
 
+  /// §68 — el campo "Contraseña temporal" solo existe en modo manual:
+  /// el helper lo habilita antes de llenar el form.
+  Future<void> switchToManualMode(WidgetTester tester) async {
+    await tester.tap(find.text('Contraseña manual'));
+    await tester.pump();
+  }
+
   Future<void> fillValidForm(WidgetTester tester) async {
+    await switchToManualMode(tester);
     await tester.enterText(field('Nombre completo'), 'Usuario Nuevo');
     await tester.enterText(field('Correo electrónico'), 'nuevo@mail.com');
     await tester.enterText(field('Contraseña temporal'), 'Temporal1');
@@ -108,22 +117,75 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('renderiza campos, chips de rol y acciones', (tester) async {
+  testWidgets('renderiza campos, chips de rol y acciones — modo '
+      'invitación por defecto (§68)', (tester) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
     await openSheet(tester);
 
     expect(find.text('Nuevo usuario'), findsOneWidget);
-    expect(find.byType(QuesivoTextField), findsNWidgets(3));
+    // Invite mode default: nombre + email (el temporal vive en manual).
+    expect(find.byType(QuesivoTextField), findsNWidgets(2));
     expect(field('Nombre completo'), findsOneWidget);
     expect(field('Correo electrónico'), findsOneWidget);
-    expect(field('Contraseña temporal'), findsOneWidget);
+    expect(field('Contraseña temporal'), findsNothing);
+    // Toggle de modo + hint del correo de invitación.
+    expect(find.text('Invitar por correo'), findsOneWidget);
+    expect(find.text('Contraseña manual'), findsOneWidget);
+    expect(
+      find.text('Le llegará un correo con un enlace para crear su contraseña.'),
+      findsOneWidget,
+    );
     expect(find.text('Administrador'), findsOneWidget);
     expect(find.text('Operario'), findsOneWidget);
     expect(find.text('Recolector'), findsOneWidget);
     expect(find.text('Productor'), findsOneWidget);
     expect(find.text('Crear usuario'), findsOneWidget);
     expect(find.text('Cancelar'), findsOneWidget);
+  });
+
+  testWidgets('el modo manual muestra el campo temporal y el checklist', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    await switchToManualMode(tester);
+
+    expect(field('Contraseña temporal'), findsOneWidget);
+    expect(find.byType(QuesivoTextField), findsNWidgets(3));
+    // El hint de invitación se reemplaza por el checklist de la sección.
+    expect(
+      find.text('Le llegará un correo con un enlace para crear su contraseña.'),
+      findsNothing,
+    );
+    expect(find.text('La contraseña debe tener:'), findsOneWidget);
+  });
+
+  testWidgets('submit en modo invitación manda password null al cubit '
+      '(§68 — el backend crea pending_verification + manda el mail)', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    await tester.enterText(field('Nombre completo'), 'Usuario Nuevo');
+    await tester.enterText(field('Correo electrónico'), 'nuevo@mail.com');
+    await tester.tap(find.text('Operario'));
+    await tester.pump();
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pump();
+
+    verify(
+      () => mockCubit.submit(
+        name: 'Usuario Nuevo',
+        email: 'nuevo@mail.com',
+        password: null,
+        role: UserRole.operator,
+      ),
+    ).called(1);
   });
 
   testWidgets(
@@ -138,11 +200,12 @@ void main() {
 
       expect(find.text('Ingresá el nombre completo'), findsOneWidget);
       expect(find.text('Ingresa un correo con formato válido'), findsOneWidget);
+      // §68 — en modo invitación no hay password que validar.
       expect(
         find.text(
           'Mínimo 8 caracteres, una mayúscula, una minúscula y un número',
         ),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.text('Elegí un rol'), findsOneWidget);
       // No hubo pop — el sheet sigue abierto.
@@ -158,6 +221,33 @@ void main() {
     },
   );
 
+  testWidgets('submit vacío en modo manual también marca el password', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(buildApp());
+    await openSheet(tester);
+
+    await switchToManualMode(tester);
+    await tester.tap(find.text('Crear usuario'));
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Mínimo 8 caracteres, una mayúscula, una minúscula y un número',
+      ),
+      findsOneWidget,
+    );
+    verifyNever(
+      () => mockCubit.submit(
+        name: any(named: 'name'),
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+        role: any(named: 'role'),
+      ),
+    );
+  });
+
   testWidgets('con campos válidos pero sin rol solo muestra "Elegí un rol"', (
     tester,
   ) async {
@@ -165,6 +255,7 @@ void main() {
     await tester.pumpWidget(buildApp());
     await openSheet(tester);
 
+    await switchToManualMode(tester);
     await tester.enterText(field('Nombre completo'), 'Juan Prueba');
     await tester.enterText(field('Correo electrónico'), 'juan@mail.com');
     await tester.enterText(field('Contraseña temporal'), 'Temporal1');
@@ -191,13 +282,13 @@ void main() {
     );
   });
 
-  testWidgets('submit válido llama al cubit con los valores normalizados', (
-    tester,
-  ) async {
+  testWidgets('submit válido en modo manual llama al cubit con los '
+      'valores normalizados', (tester) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
     await openSheet(tester);
 
+    await switchToManualMode(tester);
     await tester.enterText(field('Nombre completo'), '  Usuario Nuevo ');
     await tester.enterText(field('Correo electrónico'), 'Nuevo@Mail.com ');
     await tester.enterText(field('Contraseña temporal'), 'Temporal1');
@@ -240,7 +331,9 @@ void main() {
             .isLoading,
         isTrue,
       );
-      // Los 3 campos quedan bloqueados mientras el submit está en vuelo.
+      // Los campos visibles quedan bloqueados mientras el submit está
+      // en vuelo (en invite mode son nombre+email; el temporal vive
+      // en modo manual).
       for (final f in tester.widgetList<QuesivoTextField>(
         find.byType(QuesivoTextField),
       )) {
@@ -379,13 +472,13 @@ void main() {
     expect(find.text('ab@c'), findsOneWidget);
   });
 
-  testWidgets('el formatter de contraseña bloquea símbolos al tipear', (
-    tester,
-  ) async {
+  testWidgets('el formatter de contraseña bloquea símbolos al tipear '
+      '(modo manual — §68)', (tester) async {
     useTallSurface(tester);
     await tester.pumpWidget(buildApp());
     await openSheet(tester);
 
+    await switchToManualMode(tester);
     // TempPassword solo admite lo que el requisito pide (a-zA-Z0-9) —
     // '!@#' queda filtrado a nivel tecla.
     await tester.enterText(field('Contraseña temporal'), 'Abc1!@#x');
