@@ -59,10 +59,11 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     return OrgMemberModel.fromCreatedJson(data);
   }
 
-  /// `POST /auth/users/:id/resend-invite` real (doc 018) — 204 sin body.
+  /// `POST /users/:id/resend-invite` real (doc users/018 — ruta nueva
+  /// desde la 081) — 204 sin body.
   @override
   Future<void> resendInvite({required String userId}) async {
-    await networkService.post<void>('/auth/users/$userId/resend-invite');
+    await networkService.post<void>('/users/$userId/resend-invite');
   }
 
   /// `DELETE /users/:id` real (doc users/021 — backend 072, ruta nueva

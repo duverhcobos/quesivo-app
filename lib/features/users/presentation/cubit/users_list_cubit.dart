@@ -261,7 +261,7 @@ class UsersListCubit extends Cubit<UsersListState> {
     return result;
   }
 
-  /// `POST /auth/users/:id/resend-invite` real (Email-C, §68 — doc
+  /// `POST /users/:id/resend-invite` real (Email-C, §68 — doc
   /// 018): busy mientras vuela, Either a la screen para el toast. Sin
   /// merge — el 204 no trae body y el estado no cambia (el miembro
   /// sigue pendiente hasta que acepte la invitación).

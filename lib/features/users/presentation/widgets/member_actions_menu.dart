@@ -21,7 +21,7 @@ import 'reset_password_sheet.dart';
 /// §68 — Email-C: cuando `member.invitePending` es
 /// `pendingVerification` el menú abre con "Reenviar invitación" (ícono
 /// `send`, navy — no destructiva) que dispara
-/// `POST /auth/users/:id/resend-invite` vía `onResendInvite`. El gate
+/// `POST /users/:id/resend-invite` vía `onResendInvite`. El gate
 /// es el estado GLOBAL de la cuenta, no el de la membresía: el invitado
 /// pendiente tiene `MemberStatus.active` pero todavía no aceptó el mail.
 ///
@@ -54,7 +54,7 @@ class MemberActionsMenu extends StatelessWidget {
   /// Recibe el `OrgMember` del 200 cuando el sheet completó el reset.
   final ValueChanged<OrgMember> onPasswordReset;
 
-  /// §68 — reenvío de invitación (`POST /auth/users/:id/resend-invite`):
+  /// §68 — reenvío de invitación (`POST /users/:id/resend-invite`):
   /// la screen dispara el POST real y decide el toast — el menú solo
   /// notifica (no hay diálogo: la acción no es destructiva).
   final VoidCallback onResendInvite;

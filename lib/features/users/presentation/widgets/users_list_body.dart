@@ -60,7 +60,7 @@ class UsersListBody extends StatelessWidget {
 
   /// §68 — el admin eligió "Reenviar invitación" en el ⋮ (solo con
   /// cuenta `pendingVerification`) — la screen dispara
-  /// `POST /auth/users/:id/resend-invite` y decide el toast.
+  /// `POST /users/:id/resend-invite` y decide el toast.
   final ValueChanged<OrgMember> onResendInvite;
 
   /// §69 — el admin confirmó "Cancelar invitación" en el ⋮ (solo con

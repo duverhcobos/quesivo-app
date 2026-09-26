@@ -34,7 +34,7 @@ abstract class IUsersRepository {
     required UserRole role,
   });
 
-  /// `POST /auth/users/:id/resend-invite` — reenvía el mail de invitación
+  /// `POST /users/:id/resend-invite` — reenvía el mail de invitación
   /// (doc 018). Errores: `InviteNotPendingFailure` (400 — ya aceptó),
   /// `MemberNotFoundFailure` (404), 403/429/red como arriba.
   Future<Either<UsersFailure, void>> resendInvite({required String userId});

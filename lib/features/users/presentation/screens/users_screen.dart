@@ -243,7 +243,7 @@ class _UsersViewState extends State<_UsersView> {
   }
 
   /// §68 — reenvío de invitación REAL vía
-  /// `POST /auth/users/:id/resend-invite`: el cubit pone la card en
+  /// `POST /users/:id/resend-invite`: el cubit pone la card en
   /// busy y devuelve el Either — éxito → toast verde con el email del
   /// invitado; `InviteNotPendingFailure` (el invitado aceptó entre el
   /// listado y el tap — dato stale, doc 018) → toast de error propio.

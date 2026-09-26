@@ -946,7 +946,7 @@ void main() {
     );
   });
 
-  group('resendInvite (§68 — Email-C, POST /auth/users/:id/resend-invite)', () {
+  group('resendInvite (§68 — Email-C, POST /users/:id/resend-invite)', () {
     void stubResendInvite(Future<Either<UsersFailure, void>> answer) {
       when(
         () => mockResendInvite(userId: any(named: 'userId')),

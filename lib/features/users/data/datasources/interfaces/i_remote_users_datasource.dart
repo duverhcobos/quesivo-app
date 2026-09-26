@@ -27,7 +27,7 @@ abstract class IRemoteUsersDataSource {
     required UserRole role,
   });
 
-  /// `POST /auth/users/:id/resend-invite` — reenvía el mail al miembro
+  /// `POST /users/:id/resend-invite` — reenvía el mail al miembro
   /// pendiente (doc 018). 204 sin body; `INVITE_NOT_PENDING` si ya aceptó.
   Future<void> resendInvite({required String userId});
 

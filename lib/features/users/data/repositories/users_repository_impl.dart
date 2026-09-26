@@ -199,7 +199,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `POST /auth/users/:id/resend-invite` — doc 018 (Email-C, §68):
+  /// `POST /users/:id/resend-invite` — doc 018 (Email-C, §68):
   /// reenvía el mail de invitación al miembro pendiente. 204 sin body;
   /// `INVITE_NOT_PENDING` (400) si ya aceptó — el ⋮ no lo ofrece, llega
   /// solo con data stale.
