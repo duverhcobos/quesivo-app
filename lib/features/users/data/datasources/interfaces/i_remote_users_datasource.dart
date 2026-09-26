@@ -16,7 +16,7 @@ abstract class IRemoteUsersDataSource {
     UserRole? role,
   });
 
-  /// `POST /auth/users` — `password == null` → modo invitación (Email-C,
+  /// `POST /users` — `password == null` → modo invitación (Email-C,
   /// backend 070): el user queda `pending_verification` y recibe el mail.
   /// Lanza `RestApiException`/`UnauthorizedException` según el status;
   /// el repository los mapea a `UsersFailure`.

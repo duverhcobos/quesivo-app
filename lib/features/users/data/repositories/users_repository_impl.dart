@@ -57,7 +57,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `POST /auth/users` — `password == null` → modo invitación (Email-C,
+  /// `POST /users` — `password == null` → modo invitación (Email-C,
   /// backend 070): el body viaja sin password y el backend le manda al
   /// invitado el correo con el link accept-invite.
   @override

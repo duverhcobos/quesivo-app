@@ -87,7 +87,7 @@ class DioNetworkServiceImpl implements INetworkService {
   }
 
   /// `errorCode` estable del DomainExceptionFilter (ej. los dos 409 de
-  /// POST /auth/users) — ausente en errores de guard/validación.
+  /// POST /users) — ausente en errores de guard/validación.
   String? _extractErrorCode(dynamic data) {
     if (data is! Map<String, dynamic>) return null;
     final code = data['errorCode'];

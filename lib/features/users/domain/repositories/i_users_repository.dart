@@ -21,7 +21,7 @@ abstract class IUsersRepository {
     UserRole? role,
   });
 
-  /// `POST /auth/users` — solo crea (propuesta backend 058): un email
+  /// `POST /users` — solo crea (propuesta backend 058): un email
   /// ya existente globalmente da `EmailAlreadyExistsFailure`; la
   /// vinculación de un user global vive en `linkUser`.
   /// `password == null` → modo invitación (Email-C, backend 070): el

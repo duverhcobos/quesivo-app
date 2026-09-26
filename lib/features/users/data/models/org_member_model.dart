@@ -2,7 +2,7 @@ import '../../domain/entities/org_member.dart';
 import '../../domain/entities/user_role.dart';
 
 /// Modelo de `OrgMember` — única responsable de parsear el JSON del API
-/// (shape de `POST /auth/users` → 201, doc 007; el mismo shape repite
+/// (shape de `POST /users` → 201, doc 007; el mismo shape repite
 /// `GET /users` por ítem).
 ///
 /// SOLID (SRP): la entidad no sabe parsear JSON — igual que

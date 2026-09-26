@@ -6,7 +6,7 @@ import '../../domain/use_cases/create_user_use_case.dart';
 import 'create_user_state.dart';
 
 /// Cubit del `NewUserSheet` — orquesta SOLO el submit contra
-/// `POST /auth/users` (registerFactory: muere con el sheet). La
+/// `POST /users` (registerFactory: muere con el sheet). La
 /// validación de campos es de la sheet vía VOs; acá solo llega el
 /// comando ya válido.
 class CreateUserCubit extends Cubit<CreateUserState> {

@@ -5,8 +5,9 @@ import '../../models/org_member_model.dart';
 import '../../models/users_page_model.dart';
 import '../interfaces/i_remote_users_datasource.dart';
 
-/// `POST /auth/users` real — contrato doc 007. La organización NO viaja
-/// en el body: la infiere el backend del JWT del admin (IDOR).
+/// `POST /users` real — contrato doc users/007 (ruta nueva desde la 083).
+/// La organización NO viaja en el body: la infiere el backend del JWT del
+/// admin (IDOR).
 class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
   final INetworkService networkService;
 
@@ -43,7 +44,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     required UserRole role,
   }) async {
     final data = await networkService.post<Map<String, dynamic>>(
-      '/auth/users',
+      '/users',
       data: {
         'name': name,
         'email': email,
@@ -54,8 +55,8 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
         'role': role.apiValue,
       },
     );
-    // Doc 007: el `status` del 201 es el del USER global — la membresía
-    // nueva nace active (fromCreatedJson lo interpreta así).
+    // Doc users/007: el `status` del 201 es el del USER global — la
+    // membresía nueva nace active (fromCreatedJson lo interpreta así).
     return OrgMemberModel.fromCreatedJson(data);
   }
 

@@ -130,7 +130,7 @@ class _UsersViewState extends State<_UsersView> {
     return box.size.height;
   }
 
-  /// §44/§46 — abre el sheet de creación, que pega a `POST /auth/users`
+  /// §44/§46 — abre el sheet de creación, que pega a `POST /users`
   /// real vía `CreateUserCubit`; al volver con el miembro del backend lo
   /// inserta al tope del listado (reflejo optimista — el orden real es
   /// `created_at ASC`) y muestra feedback.

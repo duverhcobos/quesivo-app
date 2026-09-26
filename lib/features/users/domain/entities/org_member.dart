@@ -47,7 +47,7 @@ class OrgMember extends Equatable {
   final bool invitePending;
   final String organizationId;
 
-  /// `true` cuando el email ya existía globalmente y `POST /auth/users`
+  /// `true` cuando el email ya existía globalmente y `POST /users`
   /// solo creó la membresía (doc 007) — el usuario conserva su password
   /// y el admin no tiene contraseña temporal que compartir. Solo viene
   /// en las respuestas de create/link: los ítems de `GET /users`

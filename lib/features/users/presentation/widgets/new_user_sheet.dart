@@ -23,7 +23,7 @@ import 'new_user_sheet/manual_password_section.dart';
 import 'role_selector_chips.dart';
 
 /// Bottom sheet de creación de usuario (§44) — el primero de la app.
-/// Integrado en §46: el submit pega a `POST /auth/users` real vía
+/// Integrado en §46: el submit pega a `POST /users` real vía
 /// `CreateUserCubit` y el sheet devuelve por `Navigator.pop` el
 /// `OrgMember` que responde el backend (uuid, `status`, `linked`).
 ///

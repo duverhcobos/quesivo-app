@@ -6,7 +6,7 @@ import '../../../shell/presentation/widgets/shell_insets.dart';
 
 /// Speed dial del listado de usuarios (§48) — el FAB amarillo ahora
 /// expande dos acciones porque el backend 058 separó las intenciones
-/// que `POST /auth/users` fusionaba: "Crear usuario" (alta nueva) e
+/// que `POST /users` fusionaba: "Crear usuario" (alta nueva) e
 /// "Invitar existente" (desde §69/backend 072 envía invitación — el
 /// user con cuenta global entra cuando la acepta).
 ///

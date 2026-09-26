@@ -9,7 +9,7 @@ import '../value_objects/member_name.dart';
 import '../value_objects/temp_password.dart';
 
 /// Caso de Uso: crear o vincular un miembro de la organización
-/// (`POST /auth/users`, doc 007). Re-valida con los VOs como única
+/// (`POST /users`, doc 007). Re-valida con los VOs como única
 /// fuente de verdad — la sheet ya valida, pero el dominio no confía en
 /// la UI (mismo patrón que `LoginUseCase` con `Password.dirty`).
 ///

@@ -5,7 +5,7 @@ import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/domain/entities/user_role.dart';
 
 void main() {
-  group('OrgMemberModel.fromJson — contrato POST /auth/users (doc 007)', () {
+  group('OrgMemberModel.fromJson — contrato POST /users (doc 007)', () {
     test('parsea el shape completo del 201', () {
       final model = OrgMemberModel.fromJson({
         'id': 'uuid-123',
