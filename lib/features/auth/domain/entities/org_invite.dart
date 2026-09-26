@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Invitación pendiente a una organización — ítem de `pendingInvites[]`
 /// de `GET /auth/me` (propuesta backend 072): alguien te vinculó con
-/// `POST /auth/users/link` y tu membresía quedó `invited` hasta que la
+/// `POST /users/link` y tu membresía quedó `invited` hasta que la
 /// aceptes o la rechaces con sesión (consentimiento — un typo de email
 /// del admin ya no te mete adentro sin autorización).
 ///

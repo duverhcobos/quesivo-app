@@ -34,7 +34,7 @@ abstract class IRemoteUsersDataSource {
   /// `DELETE /users/:id` real (doc 021) — 204 sin body.
   Future<void> removeMember({required String userId});
 
-  /// `POST /auth/users/link` — vincula un user global existente a la org
+  /// `POST /users/link` — vincula un user global existente a la org
   /// del JWT (propuesta backend 058).
   Future<OrgMemberModel> linkUser({
     required String email,

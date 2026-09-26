@@ -45,7 +45,7 @@ abstract class IUsersRepository {
   /// invitación pendiente; para sacar acceso se suspende), 403/429/red.
   Future<Either<UsersFailure, void>> removeMember({required String userId});
 
-  /// `POST /auth/users/link` — vincula a la organización un usuario que
+  /// `POST /users/link` — vincula a la organización un usuario que
   /// ya tiene cuenta global (`{email, role}` → solo membresía; el 201
   /// trae `OrgMember.linked == true`). Errores del contrato:
   /// `UserNotFoundFailure` (404), `LinkedUserSuspendedFailure`/

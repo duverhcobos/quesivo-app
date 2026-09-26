@@ -6,7 +6,7 @@ import '../../domain/use_cases/link_user_use_case.dart';
 import 'link_user_state.dart';
 
 /// Cubit del `LinkUserSheet` — orquesta SOLO el submit contra
-/// `POST /auth/users/link` (registerFactory: muere con el sheet). La
+/// `POST /users/link` (registerFactory: muere con el sheet). La
 /// validación de campos es de la sheet vía VOs; acá solo llega el
 /// comando ya válido.
 class LinkUserCubit extends Cubit<LinkUserState> {

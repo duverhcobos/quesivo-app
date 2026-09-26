@@ -91,7 +91,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `POST /auth/users/link` — vincula un user global existente (solo
+  /// `POST /users/link` — vincula un user global existente (solo
   /// membresía; propuesta backend 058). Mismo try/catch de `createUser`.
   @override
   Future<Either<UsersFailure, OrgMember>> linkUser({

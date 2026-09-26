@@ -161,7 +161,7 @@ class _UsersViewState extends State<_UsersView> {
     );
   }
 
-  /// §48 — abre el sheet de invitación (`POST /auth/users/link` vía
+  /// §48 — abre el sheet de invitación (`POST /users/link` vía
   /// `LinkUserCubit`): desde §69 (backend 072) el 201 ya no "vinculó" —
   /// envió una invitación que el otro acepta con sesión (`linked:true`
   /// sigue marcando "cuenta existente"). Al volver inserta el

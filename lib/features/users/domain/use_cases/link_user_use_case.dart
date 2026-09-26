@@ -7,7 +7,7 @@ import '../repositories/i_users_repository.dart';
 import '../value_objects/member_email.dart';
 
 /// Caso de Uso: vincular a la organización un usuario que ya tiene
-/// cuenta global (`POST /auth/users/link`, propuesta backend 058) —
+/// cuenta global (`POST /users/link`, propuesta backend 058) —
 /// espejo de `CreateUserUseCase` sin `MemberName`/`TempPassword` (no
 /// aplican: el user ya existe, solo se crea la membresía). Re-valida
 /// con el VO como única fuente de verdad — la sheet ya valida, pero el

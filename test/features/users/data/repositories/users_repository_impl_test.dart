@@ -256,7 +256,7 @@ void main() {
     });
   });
 
-  group('linkUser (POST /auth/users/link — backend 058)', () {
+  group('linkUser (POST /users/link — backend 058)', () {
     void stubLinkThrow(Object error) {
       when(
         () => mockRemoteDataSource.linkUser(

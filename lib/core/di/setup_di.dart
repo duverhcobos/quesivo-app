@@ -313,7 +313,7 @@ void setupDI() {
   locator.registerLazySingleton(
     () => UpdateUserRoleUseCase(locator<IUsersRepository>()),
   );
-  // §68 — Email-C: reenvío de la invitación (POST /auth/users/:id/resend-invite).
+  // §68 — Email-C: reenvío de la invitación (POST /users/:id/resend-invite).
   locator.registerLazySingleton(
     () => ResendInviteUseCase(locator<IUsersRepository>()),
   );

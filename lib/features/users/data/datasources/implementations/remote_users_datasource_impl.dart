@@ -74,17 +74,18 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     await networkService.delete<void>('/users/$userId');
   }
 
-  /// `POST /auth/users/link` real — contrato doc 007 post-058: solo
-  /// membresía (`{email, role}`); el 201 trae el mismo shape que create
-  /// (`linked:true` — su `status` también es el del user global, por eso
-  /// parsea con `fromCreatedJson`). La org la infiere el backend del JWT.
+  /// `POST /users/link` real — contrato doc users/011 (ruta nueva desde
+  /// la 082): solo membresía (`{email, role}`); el 201 trae el mismo
+  /// shape que create (`linked:true` — su `status` también es el del
+  /// user global, por eso parsea con `fromCreatedJson`). La org la
+  /// infiere el backend del JWT.
   @override
   Future<OrgMemberModel> linkUser({
     required String email,
     required UserRole role,
   }) async {
     final data = await networkService.post<Map<String, dynamic>>(
-      '/auth/users/link',
+      '/users/link',
       data: {'email': email, 'role': role.apiValue},
     );
     return OrgMemberModel.fromCreatedJson(data);

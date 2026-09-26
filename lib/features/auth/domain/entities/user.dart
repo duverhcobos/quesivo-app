@@ -37,7 +37,7 @@ class User extends Equatable {
 
   /// Invitaciones a queseras pendientes de responder — `pendingInvites`
   /// de `GET /auth/me` (backend 072): membresías `invited` que alguien
-  /// creó con `POST /auth/users/link`. La capa personal las muestra como
+  /// creó con `POST /users/link`. La capa personal las muestra como
   /// cards con Aceptar/Rechazar; al aceptar la org aparece en
   /// `organizations`.
   final List<OrgInvite> pendingInvites;

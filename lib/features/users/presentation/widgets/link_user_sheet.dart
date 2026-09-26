@@ -21,7 +21,7 @@ import 'role_selector_chips.dart';
 /// Bottom sheet de vinculación de usuario existente (§48) — espejo
 /// estructural de `NewUserSheet` menos nombre/password/checklist: el
 /// correo ya tiene cuenta global, así que el form solo pide email +
-/// rol y el submit pega a `POST /auth/users/link` vía `LinkUserCubit`
+/// rol y el submit pega a `POST /users/link` vía `LinkUserCubit`
 /// (propuesta backend 058 — el endpoint solo crea la membresía).
 ///
 /// Misma mecánica que el sheet de creación: validación manual al submit
