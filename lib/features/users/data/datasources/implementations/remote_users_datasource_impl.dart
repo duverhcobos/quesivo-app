@@ -12,7 +12,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
 
   RemoteUsersDataSourceImpl(this.networkService);
 
-  /// `GET /auth/users` real — contrato doc 008 (backend 052+059):
+  /// `GET /users` real — contrato doc users/008 (backend 052+059):
   /// paginación + filtros server-side. Solo viajan los params presentes
   /// (`search`/`role` se omiten cuando no hay filtro activo); la org y
   /// el orden (`created_at ASC` + tiebreaker `id`) los fija el backend.
@@ -24,7 +24,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     UserRole? role,
   }) async {
     final data = await networkService.get<Map<String, dynamic>>(
-      '/auth/users',
+      '/users',
       queryParameters: {
         'page': page,
         'limit': limit,
