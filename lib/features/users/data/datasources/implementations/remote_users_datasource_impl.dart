@@ -88,7 +88,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     return OrgMemberModel.fromCreatedJson(data);
   }
 
-  /// `PATCH /auth/users/:id/status` real (doc 009) — la org la infiere
+  /// `PATCH /users/:id/status` real (doc users/009) — la org la infiere
   /// el backend del JWT; el 200 trae el ítem fresco para mergear.
   @override
   Future<OrgMemberModel> updateUserStatus({
@@ -96,7 +96,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     required MemberStatus status,
   }) async {
     final data = await networkService.patch<Map<String, dynamic>>(
-      '/auth/users/$userId/status',
+      '/users/$userId/status',
       data: {'status': status.apiValue},
     );
     return OrgMemberModel.fromJson(data);
