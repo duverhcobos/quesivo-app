@@ -54,13 +54,13 @@ abstract class IAuthRepository {
   /// nunca revela si el email existe ni si ya está verificado.
   Future<Either<AuthFailure, void>> resendVerification(String email);
 
-  /// `POST /auth/me/org-invites/:orgId/accept` (doc 019 — backend 072):
+  /// `POST /me/org-invites/:orgId/accept` (doc 019 — backend 072):
   /// activa la membresía `invited`. Errores: `OrgInviteNotFoundFailure`
   /// (404 — ya no está pendiente), `TooManyAttemptsFailure` (429),
   /// `NetworkFailure` sin conexión.
   Future<Either<AuthFailure, void>> acceptOrgInvite(String organizationId);
 
-  /// `POST /auth/me/org-invites/:orgId/decline` (doc 020): borra la
+  /// `POST /me/org-invites/:orgId/decline` (doc 020): borra la
   /// membresía `invited`. Mismos errores que accept.
   Future<Either<AuthFailure, void>> declineOrgInvite(String organizationId);
 

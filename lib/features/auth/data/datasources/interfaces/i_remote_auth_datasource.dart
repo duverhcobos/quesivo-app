@@ -71,13 +71,13 @@ abstract class IRemoteAuthDataSource {
   Future<void> resendVerification(String email);
 
   /// Acepta la invitación a una organización (`POST
-  /// /auth/me/org-invites/:orgId/accept`, doc 019 — backend 072): la
+  /// /me/org-invites/:orgId/accept`, doc 019 — backend 072): la
   /// membresía `invited` pasa a `active` y la org aparece en
   /// `organizations` del próximo `/me`. 404 = ya no está pendiente
   /// (la declinaste o el admin la canceló — dato stale).
   Future<void> acceptOrgInvite(String organizationId);
 
-  /// Rechaza la invitación (`POST /auth/me/org-invites/:orgId/decline`,
+  /// Rechaza la invitación (`POST /me/org-invites/:orgId/decline`,
   /// doc 020 — backend 072): borra la membresía `invited` — el typo de
   /// email del admin se resuelve solo. 404 = idem accept.
   Future<void> declineOrgInvite(String organizationId);

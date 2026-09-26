@@ -7,7 +7,7 @@ import 'package:equatable/equatable.dart';
 /// del admin ya no te mete adentro sin autorización).
 ///
 /// `id` es el de la MEMBRESÍA; `organizationId` el path param de
-/// accept/decline (`/auth/me/org-invites/:orgId/*`, docs 019/020).
+/// accept/decline (`/me/org-invites/:orgId/*`, docs 019/020).
 class OrgInvite extends Equatable {
   final String id;
   final String organizationId;

@@ -191,21 +191,17 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
 
   @override
   Future<void> acceptOrgInvite(String organizationId) async {
-    // Contrato real (documentacion/api/auth/019-post-me-org-invites-
+    // Contrato real (documentacion/api/users/019-post-me-org-invites-
     // accept.md — backend 072): sesión personal u org-scoped — el
     // consentimiento es el JWT, sin token en el mail. 200 con body
     // {organizationId, organizationName, role} que la UI no necesita
     // (ya tiene la invitación completa en `pendingInvites`).
-    await networkService.post<void>(
-      '/auth/me/org-invites/$organizationId/accept',
-    );
+    await networkService.post<void>('/me/org-invites/$organizationId/accept');
   }
 
   @override
   Future<void> declineOrgInvite(String organizationId) async {
     // Doc 020 — borra la membresía invited (204 sin body).
-    await networkService.post<void>(
-      '/auth/me/org-invites/$organizationId/decline',
-    );
+    await networkService.post<void>('/me/org-invites/$organizationId/decline');
   }
 }

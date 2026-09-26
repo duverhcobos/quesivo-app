@@ -23,7 +23,7 @@ class OrgInvitesCubit extends Cubit<OrgInvitesState> {
     this._authCubit,
   ) : super(const OrgInvitesState());
 
-  /// POST /auth/me/org-invites/:orgId/accept → invited pasa a active.
+  /// POST /me/org-invites/:orgId/accept → invited pasa a active.
   /// Devuelve `true` si quedó aceptada (la sección muestra el toast de
   /// "ya eres parte de X"); error → `failure` para el listener.
   Future<bool> accept(OrgInvite invite) async {
@@ -52,7 +52,7 @@ class OrgInvitesCubit extends Cubit<OrgInvitesState> {
     );
   }
 
-  /// POST /auth/me/org-invites/:orgId/decline → borra la membresía
+  /// POST /me/org-invites/:orgId/decline → borra la membresía
   /// invited (el typo del admin se resuelve desde acá). En éxito la
   /// card desaparece — sin toast de "éxito" en una negativa, la
   /// desaparición ES el feedback.
