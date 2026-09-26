@@ -5,7 +5,7 @@ import '../../domain/use_cases/update_user_password_use_case.dart';
 import 'reset_password_state.dart';
 
 /// Cubit del `ResetPasswordSheet` — orquesta SOLO el submit contra
-/// `PATCH /auth/users/:id/password` (registerFactory: muere con el
+/// `PATCH /users/:id/password` (registerFactory: muere con el
 /// sheet, mismo molde que `LinkUserCubit`). La validación del campo es
 /// de la sheet vía `TempPassword`; acá solo llega el comando válido.
 class ResetPasswordCubit extends Cubit<ResetPasswordState> {

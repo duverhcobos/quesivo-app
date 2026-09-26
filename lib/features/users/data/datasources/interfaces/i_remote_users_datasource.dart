@@ -48,7 +48,7 @@ abstract class IRemoteUsersDataSource {
     required MemberStatus status,
   });
 
-  /// `PATCH /auth/users/:id/password` — reset por admin (doc 010):
+  /// `PATCH /users/:id/password` — reset por admin (doc 010):
   /// revoca las sesiones del target en esta org y levanta el lockout.
   Future<OrgMemberModel> updateUserPassword({
     required String userId,

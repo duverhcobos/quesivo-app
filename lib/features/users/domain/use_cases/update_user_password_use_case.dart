@@ -6,7 +6,7 @@ import '../repositories/i_users_repository.dart';
 import '../value_objects/temp_password.dart';
 
 /// Caso de Uso: reset manual de la contraseña de un miembro por el
-/// admin (`PATCH /auth/users/:id/password`, doc 010 — propuesta backend
+/// admin (`PATCH /users/:id/password`, doc 010 — propuesta backend
 /// 053). Re-valida con el VO como única fuente de verdad — la sheet ya
 /// valida, pero el dominio no confía en la UI (mismo patrón que
 /// `CreateUserUseCase` con `TempPassword.dirty`).

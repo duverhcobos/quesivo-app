@@ -20,7 +20,7 @@ import '../cubit/reset_password_state.dart';
 /// Sheet de reset de contraseña por admin (§45, integrado en §52) —
 /// mini-form con un solo campo, mismo contenedor y convenciones que
 /// `NewUserSheet`/`LinkUserSheet`. El submit pega a
-/// `PATCH /auth/users/:id/password` real vía `ResetPasswordCubit`
+/// `PATCH /users/:id/password` real vía `ResetPasswordCubit`
 /// (registerFactory: muere con el sheet; el reset además revoca las
 /// sesiones del target en esta org y levanta el lockout, doc 010) y
 /// devuelve por `Navigator.pop` el `OrgMember` del 200 — no cambia a

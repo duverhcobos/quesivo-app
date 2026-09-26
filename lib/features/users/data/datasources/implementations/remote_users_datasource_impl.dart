@@ -102,7 +102,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     return OrgMemberModel.fromJson(data);
   }
 
-  /// `PATCH /auth/users/:id/password` real (doc 010) — el password es
+  /// `PATCH /users/:id/password` real (doc users/010) — el password es
   /// global pero la autorización es por membresía; revoca solo las
   /// sesiones del target en ESTA org.
   @override
@@ -111,7 +111,7 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     required String password,
   }) async {
     final data = await networkService.patch<Map<String, dynamic>>(
-      '/auth/users/$userId/password',
+      '/users/$userId/password',
       data: {'password': password},
     );
     return OrgMemberModel.fromJson(data);

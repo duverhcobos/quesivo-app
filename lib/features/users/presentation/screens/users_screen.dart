@@ -304,7 +304,7 @@ class _UsersViewState extends State<_UsersView> {
         _ => l10n.genericError,
       };
 
-  /// §52 — el `ResetPasswordSheet` ya pegó `PATCH /auth/users/:id/password`
+  /// §52 — el `ResetPasswordSheet` ya pegó `PATCH /users/:id/password`
   /// con su cubit (el miembro devuelto no cambia a la vista); acá solo
   /// queda el toast — el temporal se comparte a mano (doc 010).
   void _resetMemberPassword(OrgMember member) {

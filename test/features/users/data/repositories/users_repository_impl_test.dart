@@ -644,7 +644,7 @@ void main() {
   });
 
   group(
-    'updateUserPassword (PATCH /auth/users/:id/password — §52, doc 010)',
+    'updateUserPassword (PATCH /users/:id/password — §52, doc 010)',
     () {
       void stubPasswordThrow(Object error) {
         when(

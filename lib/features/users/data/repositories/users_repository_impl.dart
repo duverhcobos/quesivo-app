@@ -145,7 +145,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `PATCH /auth/users/:id/password` — doc 010. Ídem.
+  /// `PATCH /users/:id/password` — doc 010. Ídem.
   @override
   Future<Either<UsersFailure, OrgMember>> updateUserPassword({
     required String userId,

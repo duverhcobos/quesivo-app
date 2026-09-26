@@ -66,7 +66,7 @@ abstract class IUsersRepository {
     required MemberStatus status,
   });
 
-  /// `PATCH /auth/users/:id/password` — reset manual por admin (doc
+  /// `PATCH /users/:id/password` — reset manual por admin (doc
   /// 010). Errores: `OwnerPasswordResetFailure`/`InvalidMemberDataFailure`
   /// (400), `MemberNotFoundFailure` (404), 403/429/red como arriba.
   Future<Either<UsersFailure, OrgMember>> updateUserPassword({
