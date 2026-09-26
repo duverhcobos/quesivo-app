@@ -975,7 +975,7 @@ void main() {
     });
   });
 
-  group('removeMember (DELETE /auth/users/:id — §69, doc 021)', () {
+  group('removeMember (DELETE /users/:id — §69, doc 021)', () {
     void stubRemoveThrow(Object error) {
       when(
         () => mockRemoteDataSource.removeMember(userId: any(named: 'userId')),

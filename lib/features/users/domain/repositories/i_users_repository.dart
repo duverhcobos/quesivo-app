@@ -39,7 +39,7 @@ abstract class IUsersRepository {
   /// `MemberNotFoundFailure` (404), 403/429/red como arriba.
   Future<Either<UsersFailure, void>> resendInvite({required String userId});
 
-  /// `DELETE /auth/users/:id` — cancela la invitación pendiente (doc
+  /// `DELETE /users/:id` — cancela la invitación pendiente (doc
   /// 021, backend 072). Errores: `MemberNotFoundFailure` (404 — IDOR
   /// o ya declinada), `MemberNotInvitedFailure` (409 — ya no es una
   /// invitación pendiente; para sacar acceso se suspende), 403/429/red.

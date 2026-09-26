@@ -65,11 +65,12 @@ class RemoteUsersDataSourceImpl implements IRemoteUsersDataSource {
     await networkService.post<void>('/auth/users/$userId/resend-invite');
   }
 
-  /// `DELETE /auth/users/:id` real (doc 021 — backend 072): cancela la
-  /// invitación pendiente; la org la infiere el backend del JWT.
+  /// `DELETE /users/:id` real (doc users/021 — backend 072, ruta nueva
+  /// desde la 080): cancela la invitación pendiente; la org la infiere
+  /// el backend del JWT.
   @override
   Future<void> removeMember({required String userId}) async {
-    await networkService.delete<void>('/auth/users/$userId');
+    await networkService.delete<void>('/users/$userId');
   }
 
   /// `POST /auth/users/link` real — contrato doc 007 post-058: solo

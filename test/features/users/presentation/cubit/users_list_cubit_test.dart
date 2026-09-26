@@ -1041,7 +1041,7 @@ void main() {
     );
   });
 
-  group('cancelInvite (§69 — DELETE /auth/users/:id, doc 021)', () {
+  group('cancelInvite (§69 — DELETE /users/:id, doc 021)', () {
     void stubRemoveMember(Future<Either<UsersFailure, void>> answer) {
       when(
         () => mockRemoveOrgMember(userId: any(named: 'userId')),

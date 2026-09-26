@@ -265,7 +265,7 @@ class _UsersViewState extends State<_UsersView> {
     }
   }
 
-  /// §69 — cancelación REAL vía `DELETE /auth/users/:id`: el ⋮ ya pidió
+  /// §69 — cancelación REAL vía `DELETE /users/:id`: el ⋮ ya pidió
   /// confirmación (CancelInviteDialog del menú); el cubit pone la card
   /// en busy, en 204 la fila sale del listado y el toast avisa.
   Future<void> _cancelInvite(OrgMember member) async {

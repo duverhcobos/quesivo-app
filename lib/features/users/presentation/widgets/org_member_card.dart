@@ -59,7 +59,7 @@ class OrgMemberCard extends StatelessWidget {
   final VoidCallback onResendInvite;
 
   /// §69 — el admin confirmó "Cancelar invitación" en el ⋮ (solo con
-  /// `invitePending`) — la screen dispara el `DELETE /auth/users/:id`.
+  /// `invitePending`) — la screen dispara el `DELETE /users/:id`.
   final VoidCallback onCancelInvite;
 
   /// Tope del `ResetPasswordSheet` — lo mide la pantalla sobre el hero.

@@ -296,7 +296,7 @@ class UsersListCubit extends Cubit<UsersListState> {
     );
   }
 
-  /// `DELETE /auth/users/:id` real (§69, doc 021): cancela la
+  /// `DELETE /users/:id` real (§69, doc 021): cancela la
   /// invitación pendiente — cubre ambos casos de `invitePending`
   /// (membresía invited y artefacto pending+passwordless). En éxito la
   /// fila sale del listado vía `removeMember`.

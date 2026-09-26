@@ -104,7 +104,7 @@ class InviteNotPendingFailure extends UsersFailure {
   const InviteNotPendingFailure() : super('El usuario ya aceptó la invitación');
 }
 
-/// `DELETE /auth/users/:id` sobre una membresía que ya no es una
+/// `DELETE /users/:id` sobre una membresía que ya no es una
 /// invitación pendiente (409 `MEMBERSHIP_NOT_INVITED`, backend 072) —
 /// llega solo con data stale (aceptó o ya se canceló en otro lado).
 class MemberNotInvitedFailure extends UsersFailure {

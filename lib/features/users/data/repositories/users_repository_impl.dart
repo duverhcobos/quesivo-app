@@ -225,7 +225,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `DELETE /auth/users/:id` — doc 021 (backend 072): cancela la
+  /// `DELETE /users/:id` — doc 021 (backend 072): cancela la
   /// invitación pendiente (unión invitePending). 204 sin body;
   /// `MEMBERSHIP_NOT_INVITED` (409) si ya no está pendiente — llega
   /// solo con data stale.

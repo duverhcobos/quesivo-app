@@ -28,7 +28,7 @@ import 'reset_password_sheet.dart';
 /// §69 — backend 072: sobre `invitePending` el menú solo ofrece
 /// Reenviar/Cancelar (suspend/rol/password son errores garantizados:
 /// `MEMBERSHIP_INVITED`/`NOT_INVITED` en backend). "Cancelar
-/// invitación" pide confirmación y dispara `DELETE /auth/users/:id`
+/// invitación" pide confirmación y dispara `DELETE /users/:id`
 /// vía `onCancelInvite`.
 class MemberActionsMenu extends StatelessWidget {
   const MemberActionsMenu({
@@ -59,7 +59,7 @@ class MemberActionsMenu extends StatelessWidget {
   /// notifica (no hay diálogo: la acción no es destructiva).
   final VoidCallback onResendInvite;
 
-  /// §69 — cancelación de la invitación (`DELETE /auth/users/:id`):
+  /// §69 — cancelación de la invitación (`DELETE /users/:id`):
   /// destructiva suave — el menú ya pidió confirmación con diálogo; la
   /// screen dispara el DELETE real y el toast.
   final VoidCallback onCancelInvite;

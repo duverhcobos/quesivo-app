@@ -64,7 +64,7 @@ class UsersListBody extends StatelessWidget {
   final ValueChanged<OrgMember> onResendInvite;
 
   /// §69 — el admin confirmó "Cancelar invitación" en el ⋮ (solo con
-  /// `invitePending`) — la screen dispara `DELETE /auth/users/:id` y
+  /// `invitePending`) — la screen dispara `DELETE /users/:id` y
   /// decide el toast.
   final ValueChanged<OrgMember> onCancelInvite;
 
