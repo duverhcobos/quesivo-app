@@ -5,7 +5,7 @@ import '../entities/user_role.dart';
 import '../failures/users_failure.dart';
 import '../repositories/i_users_repository.dart';
 
-/// Passthrough a `PATCH /auth/users/:id/role` (doc 012, §54) — las
+/// Passthrough a `PATCH /users/:id/role` (doc 012, §54) — las
 /// reglas de dominio (SELF/OWNER/LAST_ADMIN) son del backend; el
 /// `UserRole` ya es enum válido, no hay VO que verificar acá (mismo
 /// molde que `UpdateUserStatusUseCase`).

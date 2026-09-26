@@ -4,7 +4,7 @@ import 'package:quesivo/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/quesivo_primary_button.dart';
 
-/// Estado de error del listado de Usuarios (§49) — `GET /auth/users`
+/// Estado de error del listado de Usuarios (§49) — `GET /users`
 /// falló en la carga inicial o en el refresh (red/403/429/5xx). Mismo
 /// lenguaje visual que `UsersEmptyState`: círculo iconSurface con
 /// ícono navy + mensaje + primario de marca que relanza

@@ -22,7 +22,7 @@ class LinkUserCubit extends Cubit<LinkUserState> {
     final result = await _linkUser(email: email, role: role);
     // Si el sheet se cerró con el submit en vuelo, el BlocProvider ya
     // cerró el cubit: emitir sobre él lanza StateError. El miembro pudo
-    // haberse vinculado igual — aparecerá en el próximo GET /auth/users.
+    // haberse vinculado igual — aparecerá en el próximo GET /users.
     if (isClosed) return;
     result.fold(
       (failure) => emit(

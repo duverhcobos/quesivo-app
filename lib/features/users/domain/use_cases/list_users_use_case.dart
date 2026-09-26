@@ -5,7 +5,7 @@ import '../entities/users_page.dart';
 import '../failures/users_failure.dart';
 import '../repositories/i_users_repository.dart';
 
-/// Caso de Uso: una página del listado de miembros (`GET /auth/users`,
+/// Caso de Uso: una página del listado de miembros (`GET /users`,
 /// doc 008). Thin pass-through — el backend pagina y filtra
 /// (`search`/`role` viajan en el query); no hay VO que re-validar ni
 /// normalización local que adelantar (el backend hace trim del search).

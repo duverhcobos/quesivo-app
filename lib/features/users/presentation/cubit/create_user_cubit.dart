@@ -34,7 +34,7 @@ class CreateUserCubit extends Cubit<CreateUserState> {
     );
     // Si el sheet se cerró con el submit en vuelo, el BlocProvider ya
     // cerró el cubit: emitir sobre él lanza StateError. El miembro pudo
-    // haberse creado igual — aparecerá en el próximo GET /auth/users.
+    // haberse creado igual — aparecerá en el próximo GET /users.
     if (isClosed) return;
     result.fold(
       (failure) => emit(

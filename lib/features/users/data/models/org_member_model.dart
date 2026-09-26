@@ -3,7 +3,7 @@ import '../../domain/entities/user_role.dart';
 
 /// Modelo de `OrgMember` — única responsable de parsear el JSON del API
 /// (shape de `POST /auth/users` → 201, doc 007; el mismo shape repite
-/// `GET /auth/users` por ítem).
+/// `GET /users` por ítem).
 ///
 /// SOLID (SRP): la entidad no sabe parsear JSON — igual que
 /// `UserModel extends User` en auth.
@@ -25,7 +25,7 @@ class OrgMemberModel extends OrgMember {
   /// `invitePending` ausente (backend viejo) cae a `false` — degradación
   /// limpia: sin el campo no hay badge ni reenvío.
   ///
-  /// Contrato del listado (`GET /auth/users`, doc 008):
+  /// Contrato del listado (`GET /users`, doc 008):
   /// `{id,email,name,role,status,userStatus,invitePending,lastLoginAt,
   /// isOwner}` — los ítems del GET NO traen `organizationId` ni `linked`
   /// (la org es la del JWT y `linked` solo aplica a create/link): caen a

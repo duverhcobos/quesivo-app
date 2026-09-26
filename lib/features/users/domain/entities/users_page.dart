@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'org_member.dart';
 
 /// Una página del listado de miembros de la organización
-/// (`GET /auth/users`, doc 008 — propuestas backend 052+059). El
+/// (`GET /users`, doc 008 — propuestas backend 052+059). El
 /// backend pagina y filtra: `total`/`totalPages` del `meta` reflejan el
 /// `search`/`role` activo (total FILTRADO, no el de la org).
 class UsersPage extends Equatable {

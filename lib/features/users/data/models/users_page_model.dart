@@ -2,7 +2,7 @@ import '../../domain/entities/users_page.dart';
 import 'org_member_model.dart';
 
 /// Modelo de `UsersPage` — única responsable de parsear el JSON del API
-/// (shape de `GET /auth/users` → 200, doc 008): `{items: [...], meta:
+/// (shape de `GET /users` → 200, doc 008): `{items: [...], meta:
 /// {page, limit, total, totalPages}}`.
 ///
 /// SOLID (SRP): la entidad no sabe parsear JSON — mismo patrón que

@@ -27,7 +27,7 @@ import '../widgets/users_speed_dial.dart';
 
 /// Pantalla principal del módulo Usuarios (`/home/usuarios` — hija del
 /// branch Inicio). Desde §49 el listado es REAL: `UsersListCubit` pega a
-/// `GET /auth/users` con paginación server-side (`page`/`limit` +
+/// `GET /users` con paginación server-side (`page`/`limit` +
 /// `search`/`role` en el query, doc 008 + backend 059) — murieron el
 /// dataset sintético de 54 y el filtrado/chunking local. Las acciones
 /// de fila son reales desde §52 (PATCH status/password) y el speed
@@ -185,7 +185,7 @@ class _UsersViewState extends State<_UsersView> {
     );
   }
 
-  /// §52 — flip REAL vía `PATCH /auth/users/:id/status`: el cubit pone
+  /// §52 — flip REAL vía `PATCH /users/:id/status`: el cubit pone
   /// la card en busy y devuelve el Either — éxito mergea el miembro
   /// fresco del backend; error → toast con el mensaje de la regla
   /// (SELF_SUSPENSION/LAST_ADMIN/OWNER_* — doc 009).
@@ -216,7 +216,7 @@ class _UsersViewState extends State<_UsersView> {
     }
   }
 
-  /// §54 — cambio de rol REAL vía `PATCH /auth/users/:id/role`: el cubit
+  /// §54 — cambio de rol REAL vía `PATCH /users/:id/role`: el cubit
   /// pone la card en busy y devuelve el Either — éxito mergea el miembro
   /// fresco; error → toast con el mensaje de la regla (doc 012). El
   /// miembro queda deslogueado de la org (el backend revoca sus

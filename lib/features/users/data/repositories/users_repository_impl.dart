@@ -22,7 +22,7 @@ class UsersRepositoryImpl implements IUsersRepository {
 
   UsersRepositoryImpl(this.remoteDataSource, this.networkInfo, this.logger);
 
-  /// `GET /auth/users` — listado paginado real (doc 008, backend
+  /// `GET /users` — listado paginado real (doc 008, backend
   /// 052+059). Mismo try/catch + `_mapError` que `createUser`/`linkUser`;
   /// un 401 (JWT sin org) cae al default genérico — la sesión ya se está
   /// cerrando vía SessionExpiredNotifier.
@@ -117,7 +117,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `PATCH /auth/users/:id/status` — doc 009. Mismo try/catch +
+  /// `PATCH /users/:id/status` — doc 009. Mismo try/catch +
   /// `_mapError` de `createUser`/`linkUser`.
   @override
   Future<Either<UsersFailure, OrgMember>> updateUserStatus({
@@ -172,7 +172,7 @@ class UsersRepositoryImpl implements IUsersRepository {
     }
   }
 
-  /// `PATCH /auth/users/:id/role` — doc 012. Ídem `updateUserStatus`.
+  /// `PATCH /users/:id/role` — doc 012. Ídem `updateUserStatus`.
   @override
   Future<Either<UsersFailure, OrgMember>> updateUserRole({
     required String userId,

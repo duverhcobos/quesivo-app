@@ -6,7 +6,7 @@ import '../../models/users_page_model.dart';
 /// DataSource remoto del módulo Usuarios — habla con el API vía
 /// `INetworkService` (con auth/refresh ya cableados en el Dio principal).
 abstract class IRemoteUsersDataSource {
-  /// `GET /auth/users?page=&limit=&search=&role=` (doc 008 + backend
+  /// `GET /users?page=&limit=&search=&role=` (doc 008 + backend
   /// 059). Lanza `RestApiException`/`UnauthorizedException` según el
   /// status; el repository los mapea a `UsersFailure`.
   Future<UsersPageModel> getUsers({
@@ -41,7 +41,7 @@ abstract class IRemoteUsersDataSource {
     required UserRole role,
   });
 
-  /// `PATCH /auth/users/:id/status` — flip de la membresía (doc 009).
+  /// `PATCH /users/:id/status` — flip de la membresía (doc 009).
   /// Devuelve el `OrgMemberModel` fresco (mismo shape que el listado).
   Future<OrgMemberModel> updateUserStatus({
     required String userId,
@@ -55,7 +55,7 @@ abstract class IRemoteUsersDataSource {
     required String password,
   });
 
-  /// `PATCH /auth/users/:id/role` — cambio de rol de la membresía (doc
+  /// `PATCH /users/:id/role` — cambio de rol de la membresía (doc
   /// 012). Devuelve el `OrgMemberModel` fresco. El backend revoca las
   /// sesiones del target en la org (el JWT lleva `roles` adentro).
   Future<OrgMemberModel> updateUserRole({

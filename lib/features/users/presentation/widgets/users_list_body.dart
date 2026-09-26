@@ -47,7 +47,7 @@ class UsersListBody extends StatelessWidget {
   final double sheetTopInset;
 
   /// El admin confirmó el diálogo de estado — la screen dispara
-  /// `PATCH /auth/users/:id/status` (§52).
+  /// `PATCH /users/:id/status` (§52).
   final void Function(OrgMember member, MemberStatus status) onStatusToggle;
 
   /// El `ResetPasswordSheet` completó el PATCH y devolvió el miembro
@@ -55,7 +55,7 @@ class UsersListBody extends StatelessWidget {
   final ValueChanged<OrgMember> onPasswordReset;
 
   /// El admin confirmó el `ChangeRoleDialog` — la screen dispara
-  /// `PATCH /auth/users/:id/role` (§54).
+  /// `PATCH /users/:id/role` (§54).
   final void Function(OrgMember member, UserRole role) onRoleChange;
 
   /// §68 — el admin eligió "Reenviar invitación" en el ⋮ (solo con

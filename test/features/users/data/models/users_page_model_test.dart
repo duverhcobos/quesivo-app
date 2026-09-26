@@ -5,7 +5,7 @@ import 'package:quesivo/features/users/domain/entities/org_member.dart';
 import 'package:quesivo/features/users/domain/entities/user_role.dart';
 
 void main() {
-  group('UsersPageModel.fromJson (GET /auth/users — doc 008)', () {
+  group('UsersPageModel.fromJson (GET /users — doc 008)', () {
     test('parsea {items, meta} del contrato real', () {
       final model = UsersPageModel.fromJson({
         'items': [

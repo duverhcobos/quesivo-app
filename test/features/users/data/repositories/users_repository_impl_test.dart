@@ -376,7 +376,7 @@ void main() {
     });
   });
 
-  group('getUsers (GET /auth/users — §49, doc 008)', () {
+  group('getUsers (GET /users — §49, doc 008)', () {
     const tPageModel = UsersPageModel(
       items: [tMemberModel],
       page: 2,
@@ -534,7 +534,7 @@ void main() {
     });
   });
 
-  group('updateUserStatus (PATCH /auth/users/:id/status — §52, doc 009)', () {
+  group('updateUserStatus (PATCH /users/:id/status — §52, doc 009)', () {
     void stubStatusThrow(Object error) {
       when(
         () => mockRemoteDataSource.updateUserStatus(
@@ -765,7 +765,7 @@ void main() {
     },
   );
 
-  group('updateUserRole (PATCH /auth/users/:id/role — §54, doc 012)', () {
+  group('updateUserRole (PATCH /users/:id/role — §54, doc 012)', () {
     void stubRoleThrow(Object error) {
       when(
         () => mockRemoteDataSource.updateUserRole(

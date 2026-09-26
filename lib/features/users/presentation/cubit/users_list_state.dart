@@ -9,7 +9,7 @@ import '../../domain/failures/users_failure.dart';
 enum UsersListStatus { initial, loading, loaded, error }
 
 /// Estado del listado de usuarios — páginas acumuladas del
-/// `GET /auth/users` real (paginación server-side, doc 008 + backend
+/// `GET /users` real (paginación server-side, doc 008 + backend
 /// 059: `search`/`role` viajan en el query y `meta.total` es el total
 /// FILTRADO). A diferencia de los states de los sheets este sí lleva
 /// `copyWith`: las transiciones del listado mutan pocos campos sobre un

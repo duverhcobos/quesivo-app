@@ -56,7 +56,7 @@ abstract class IUsersRepository {
     required UserRole role,
   });
 
-  /// `PATCH /auth/users/:id/status` — activa/suspende la membresía (doc
+  /// `PATCH /users/:id/status` — activa/suspende la membresía (doc
   /// 009). Errores del contrato: `SelfSuspensionFailure`,
   /// `OwnerSuspensionFailure`, `LastAdminFailure` (400),
   /// `MemberNotFoundFailure` (404), `UsersForbiddenFailure` (403),
@@ -74,7 +74,7 @@ abstract class IUsersRepository {
     required String password,
   });
 
-  /// `PATCH /auth/users/:id/role` — cambia el rol de la membresía (doc
+  /// `PATCH /users/:id/role` — cambia el rol de la membresía (doc
   /// 012, propuesta backend 063). El backend revoca las sesiones del
   /// target en la org. Errores: `SelfRoleChangeFailure`/
   /// `OwnerRoleChangeFailure`/`LastAdminFailure` (400),

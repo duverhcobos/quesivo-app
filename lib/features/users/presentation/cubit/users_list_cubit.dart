@@ -12,7 +12,7 @@ import '../../domain/use_cases/update_user_status_use_case.dart';
 import 'users_list_state.dart';
 
 /// Cubit del `UsersScreen` — orquesta el listado real contra
-/// `GET /auth/users` (propuesta §49): paginación server-side con
+/// `GET /users` (propuesta §49): paginación server-side con
 /// `search`/`role` en el query (backend 059). RegisterFactory: nace y
 /// muere con la pantalla, como los cubits de los sheets.
 ///
@@ -195,7 +195,7 @@ class UsersListCubit extends Cubit<UsersListState> {
     emit(state.copyWith(members: updated));
   }
 
-  /// `PATCH /auth/users/:id/status` real (§52, doc 009): marca la card
+  /// `PATCH /users/:id/status` real (§52, doc 009): marca la card
   /// busy mientras vuela y devuelve el `Either` crudo — la screen lo
   /// traduce a toast (warning al suspender, success al reactivar,
   /// error mapeado al fallar). En éxito mergea el `OrgMember` fresco
@@ -231,7 +231,7 @@ class UsersListCubit extends Cubit<UsersListState> {
     return result;
   }
 
-  /// `PATCH /auth/users/:id/role` real (§54, doc 012): mismo contrato
+  /// `PATCH /users/:id/role` real (§54, doc 012): mismo contrato
   /// que `setMemberStatus` — busy mientras vuela, Either crudo a la
   /// screen, merge del `OrgMember` fresco en éxito, no-op defensivo si
   /// la card ya está busy. El backend revoca las sesiones del miembro

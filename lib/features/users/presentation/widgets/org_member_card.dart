@@ -17,7 +17,7 @@ import 'member_status_chip.dart';
 ///
 /// §49: cuando `member.isOwner` el Wrap de chips gana el badge "Dueño"
 /// (pill con borde navy — la marca distintiva del owner, `isOwner` del
-/// GET /auth/users) y el ⋮ `MemberActionsMenu` NO se renderiza:
+/// GET /users) y el ⋮ `MemberActionsMenu` NO se renderiza:
 /// suspender/reset sobre el dueño son `OWNER_*` en backend — ofrecerlos
 /// sería un error garantizado. §52: tampoco se renderiza en la card
 /// propia (`isSelf` — SELF_SUSPENSION garantizado y resetearse revocaría

@@ -9,7 +9,7 @@ import '../../domain/entities/org_member.dart';
 /// suspender = destructiva (rojo), reactivar = neutra (amarillo).
 ///
 /// Devuelve `true` si se confirmó. Solo UI: la mutación la hace el
-/// caller en el dataset local; al integrar `PATCH /auth/users/:id/status`
+/// caller en el dataset local; al integrar `PATCH /users/:id/status`
 /// las reglas `SELF_SUSPENSION`/`LAST_ADMIN` del backend se mapean a
 /// mensajes acá (doc 009).
 class MemberStatusDialog extends StatelessWidget {

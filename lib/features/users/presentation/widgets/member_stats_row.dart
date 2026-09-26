@@ -9,7 +9,7 @@ import '../../domain/entities/org_member.dart';
 /// activos). Números de dominio, no decoración.
 ///
 /// Desde §49 el conteo de miembros usa `meta.total` del
-/// `GET /auth/users` (total FILTRADO — con búsqueda/rol activo muestra
+/// `GET /users` (total FILTRADO — con búsqueda/rol activo muestra
 /// los que coinciden con la vista), no `members.length` que sería solo
 /// lo cargado por paginación. El dot de activos sigue contando sobre
 /// las filas cargadas — el backend no expone un conteo por estado.

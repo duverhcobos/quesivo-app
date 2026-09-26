@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/quesivo_loader.dart';
 
 /// Spinner al pie del listado mientras `UsersListCubit` trae la página
-/// siguiente del `GET /auth/users` real (§49 — paginación server-side;
+/// siguiente del `GET /users` real (§49 — paginación server-side;
 /// heredero del scroll paginado local de §43). Última fila del
 /// `ListView.separated` cuando `state.isLoadingMore || state.hasMore`.
 class UsersListFooterLoader extends StatelessWidget {
