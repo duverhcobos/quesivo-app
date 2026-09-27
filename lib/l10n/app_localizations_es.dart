@@ -723,4 +723,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get inviteCancelledFeedback => 'Invitación cancelada';
+
+  @override
+  String get orgNameSetupTitle => '¿Cómo se llama tu quesera?';
+
+  @override
+  String get orgNameSetupDescription =>
+      'La creamos con el nombre de tu cuenta de Google — cámbialo por el que quieras.';
+
+  @override
+  String get orgNameSetupFieldLabel => 'Nombre de la quesera';
+
+  @override
+  String get orgNameSetupSubmit => 'Guardar';
+
+  @override
+  String get orgNameSetupSkip => 'Por ahora no';
+
+  @override
+  String get orgNameSetupErrorGeneric =>
+      'No se pudo guardar el nombre. Inténtalo más tarde.';
+
+  @override
+  String get orgNameSetupErrorOffline =>
+      'No se pudo conectar al servidor — revisa tu conexión';
 }

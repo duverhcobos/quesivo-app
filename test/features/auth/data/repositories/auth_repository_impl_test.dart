@@ -525,6 +525,35 @@ void main() {
       expect(saved.pendingInvites, hasLength(1));
     });
 
+    test('preserva isNewSignup de la sesión local en el merge y al '
+        'persistir (§71 — /me no lo devuelve: nace en /auth/google y '
+        'solo vive en el storage; sin esto el nombrado se apagaba tras '
+        'un refresh)', () async {
+      const tLocalConFlag = UserModel(
+        id: '1',
+        email: tEmail,
+        name: 'John Doe',
+        token: 'token',
+        refreshToken: 'refresh',
+        isNewSignup: true,
+      );
+      when(
+        () => mockLocalDataSource.getUserSession(),
+      ).thenAnswer((_) async => tLocalConFlag);
+
+      final result = await repository.checkAuthStatus();
+
+      result.fold((_) => fail('debía ser Right'), (user) {
+        expect(user.isNewSignup, isTrue);
+      });
+      final saved =
+          verify(
+                () => mockLocalDataSource.saveUserSession(captureAny()),
+              ).captured.single
+              as UserModel;
+      expect(saved.isNewSignup, isTrue);
+    });
+
     test('retorna sesión local sin conectividad (sin llamar remoto)', () async {
       when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
       when(

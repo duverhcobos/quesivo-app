@@ -24,6 +24,7 @@ class QuesivoTextField extends StatefulWidget {
     this.onChanged,
     this.enabled = true,
     this.inputFormatters,
+    this.initialValue,
   });
 
   final String hintText;
@@ -42,6 +43,10 @@ class QuesivoTextField extends StatefulWidget {
   /// en email, símbolos en contraseña temporal).
   final List<TextInputFormatter>? inputFormatters;
 
+  /// Valor inicial del texto — la pantalla de nombrado (§71) pre-llena
+  /// el nombre generado por el signup para editar sobre él.
+  final String? initialValue;
+
   @override
   State<QuesivoTextField> createState() => _QuesivoTextFieldState();
 }
@@ -57,6 +62,7 @@ class _QuesivoTextFieldState extends State<QuesivoTextField> {
     );
 
     return TextFormField(
+      initialValue: widget.initialValue,
       obscureText: widget.isPassword && _obscure,
       keyboardType: widget.keyboardType,
       onChanged: widget.onChanged,

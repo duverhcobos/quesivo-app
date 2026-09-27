@@ -141,4 +141,67 @@ void main() {
       expect(UserModel.fromJson(json).pendingInvites, model.pendingInvites);
     });
   });
+
+  group('UserModel — isNewSignup (§71, backend 087)', () {
+    test('isNewSignup:true llega solo en la respuesta de /auth/google '
+        'cuando fue signup → parsea true', () {
+      final model = UserModel.fromJson({
+        'id': 'u1',
+        'email': 'ana@test.com',
+        'name': 'Ana',
+        'isNewSignup': true,
+      });
+
+      expect(model.isNewSignup, isTrue);
+    });
+
+    test('isNewSignup ausente (login/me/linked, backend viejo) → false', () {
+      final model = UserModel.fromJson({
+        'id': 'u1',
+        'email': 'ana@test.com',
+        'name': 'Ana',
+      });
+
+      expect(model.isNewSignup, isFalse);
+    });
+
+    test('isNewSignup:false explícito → false (no "truthy")', () {
+      final model = UserModel.fromJson({
+        'id': 'u1',
+        'email': 'ana@test.com',
+        'name': 'Ana',
+        'isNewSignup': false,
+      });
+
+      expect(model.isNewSignup, isFalse);
+    });
+
+    test('toJson persiste el flag y el round-trip lo conserva '
+        '(sobrevive al restart entre signup y nombrado)', () {
+      const model = UserModel(
+        id: 'u1',
+        email: 'ana@test.com',
+        name: 'Ana',
+        isNewSignup: true,
+      );
+
+      final json = model.toJson();
+
+      expect(json['isNewSignup'], isTrue);
+      expect(UserModel.fromJson(json).isNewSignup, isTrue);
+    });
+
+    test('copyWith preserva el flag si no se pasa (merge de /me no lo '
+        'apaga) y lo cambia si se pasa explícito', () {
+      const model = UserModel(
+        id: 'u1',
+        email: 'ana@test.com',
+        name: 'Ana',
+        isNewSignup: true,
+      );
+
+      expect(model.copyWith(name: 'Otra').isNewSignup, isTrue);
+      expect(model.copyWith(isNewSignup: false).isNewSignup, isFalse);
+    });
+  });
 }

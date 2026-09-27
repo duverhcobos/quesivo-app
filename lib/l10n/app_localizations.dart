@@ -1371,6 +1371,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Invitación cancelada'**
   String get inviteCancelledFeedback;
+
+  /// No description provided for @orgNameSetupTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cómo se llama tu quesera?'**
+  String get orgNameSetupTitle;
+
+  /// No description provided for @orgNameSetupDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'La creamos con el nombre de tu cuenta de Google — cámbialo por el que quieras.'**
+  String get orgNameSetupDescription;
+
+  /// No description provided for @orgNameSetupFieldLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la quesera'**
+  String get orgNameSetupFieldLabel;
+
+  /// No description provided for @orgNameSetupSubmit.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get orgNameSetupSubmit;
+
+  /// No description provided for @orgNameSetupSkip.
+  ///
+  /// In es, this message translates to:
+  /// **'Por ahora no'**
+  String get orgNameSetupSkip;
+
+  /// No description provided for @orgNameSetupErrorGeneric.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar el nombre. Inténtalo más tarde.'**
+  String get orgNameSetupErrorGeneric;
+
+  /// No description provided for @orgNameSetupErrorOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo conectar al servidor — revisa tu conexión'**
+  String get orgNameSetupErrorOffline;
 }
 
 class _AppLocalizationsDelegate

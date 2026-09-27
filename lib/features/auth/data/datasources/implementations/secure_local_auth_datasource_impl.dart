@@ -31,6 +31,7 @@ class SecureLocalAuthDataSourceImpl implements ILocalAuthDataSource {
       status: user.status,
       organizations: user.organizations,
       pendingInvites: user.pendingInvites,
+      isNewSignup: user.isNewSignup,
     );
     final jsonString = jsonEncode(profileOnly.toJson());
     await secureStorage.write(key: _userKey, value: jsonString);
@@ -67,6 +68,7 @@ class SecureLocalAuthDataSourceImpl implements ILocalAuthDataSource {
         status: profile.status,
         organizations: profile.organizations,
         pendingInvites: profile.pendingInvites,
+        isNewSignup: profile.isNewSignup,
         token: token,
         refreshToken: refreshToken,
       );

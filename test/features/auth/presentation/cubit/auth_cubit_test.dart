@@ -557,6 +557,149 @@ void main() {
         act: (cubit) => cubit.refreshSessionSilently(),
         expect: () => <AuthState>[],
       );
+
+      blocTest<AuthCubit, AuthState>(
+        'el merge preserva isNewSignup del user en memoria (§71 — el '
+        'flag no viaja en /me; sin esto un refresh apagaba el nombrado)',
+        build: () {
+          // /me devuelve el perfil fresco (nombre actualizado) SIN el
+          // flag — llega con el default false.
+          when(() => mockCheckAuthStatusUseCase()).thenAnswer(
+            (_) async => const Right(
+              User(id: '1', email: tEmail, name: 'John Fresco', token: 'token'),
+            ),
+          );
+          return cubit;
+        },
+        seed: () => const AuthSuccess(
+          User(
+            id: '1',
+            email: tEmail,
+            name: 'John Doe',
+            token: 'token',
+            isNewSignup: true,
+          ),
+          enteredOrg: true,
+        ),
+        act: (cubit) => cubit.refreshSessionSilently(),
+        expect: () => [
+          // Perfil fresco + flag preservado del user vivo.
+          const AuthSuccess(
+            User(
+              id: '1',
+              email: tEmail,
+              name: 'John Fresco',
+              token: 'token',
+              isNewSignup: true,
+            ),
+            enteredOrg: true,
+          ),
+        ],
+      );
     },
   );
+
+  group('applyOrganizationRenamed / skipOrgNameSetup (§71 — backend 087)', () {
+    // Sesión post-signup Google: org recién creada con el nombre de la
+    // cuenta y flag prendido tras entrar a ella.
+    const tSignupUser = User(
+      id: '1',
+      email: tEmail,
+      name: 'Duver Cobos',
+      token: 'token-org',
+      organizationId: 'org-1',
+      organizationName: 'Duver Cobos',
+      roles: ['ADMIN'],
+      organizations: [
+        OrganizationSummary(id: 'org-1', name: 'Duver Cobos', role: 'ADMIN'),
+        OrganizationSummary(id: 'org-2', name: 'Otra', role: 'OPERATOR'),
+      ],
+      isNewSignup: true,
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'applyOrganizationRenamed: renombra organizationName + la entrada '
+      'del JWT en organizations (la otra intacta), limpia el flag y '
+      'preserva enteredOrg — el guard suelta a /home',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tSignupUser, enteredOrg: true),
+      act: (cubit) => cubit.applyOrganizationRenamed('Quesera Los Alpes'),
+      expect: () => [
+        const AuthSuccess(
+          User(
+            id: '1',
+            email: tEmail,
+            name: 'Duver Cobos',
+            token: 'token-org',
+            organizationId: 'org-1',
+            organizationName: 'Quesera Los Alpes',
+            roles: ['ADMIN'],
+            organizations: [
+              OrganizationSummary(
+                id: 'org-1',
+                name: 'Quesera Los Alpes',
+                role: 'ADMIN',
+              ),
+              OrganizationSummary(id: 'org-2', name: 'Otra', role: 'OPERATOR'),
+            ],
+            isNewSignup: false,
+          ),
+          enteredOrg: true,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => mockCheckAuthStatusUseCase());
+      },
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'applyOrganizationRenamed fuera de AuthSuccess no hace nada',
+      build: () => cubit,
+      seed: () => const AuthInitial(),
+      act: (cubit) => cubit.applyOrganizationRenamed('Quesera Los Alpes'),
+      expect: () => <AuthState>[],
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'skipOrgNameSetup: limpia el flag sin tocar el nombre ni la org '
+      '(la sesión persistida ya quedó limpia por el repository)',
+      build: () => cubit,
+      seed: () => const AuthSuccess(tSignupUser, enteredOrg: true),
+      act: (cubit) => cubit.skipOrgNameSetup(),
+      expect: () => [
+        const AuthSuccess(
+          User(
+            id: '1',
+            email: tEmail,
+            name: 'Duver Cobos',
+            token: 'token-org',
+            organizationId: 'org-1',
+            organizationName: 'Duver Cobos',
+            roles: ['ADMIN'],
+            organizations: [
+              OrganizationSummary(
+                id: 'org-1',
+                name: 'Duver Cobos',
+                role: 'ADMIN',
+              ),
+              OrganizationSummary(id: 'org-2', name: 'Otra', role: 'OPERATOR'),
+            ],
+            isNewSignup: false,
+          ),
+          enteredOrg: true,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => mockCheckAuthStatusUseCase());
+      },
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'skipOrgNameSetup fuera de AuthSuccess no hace nada',
+      build: () => cubit,
+      seed: () => const AuthInitial(),
+      act: (cubit) => cubit.skipOrgNameSetup(),
+      expect: () => <AuthState>[],
+    );
+  });
 }

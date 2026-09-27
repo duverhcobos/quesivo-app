@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quesivo/l10n/app_localizations.dart';
 
@@ -17,6 +18,8 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
+import '../../features/organization/presentation/cubit/org_name_setup_cubit.dart';
+import '../../features/organization/presentation/screens/org_name_setup_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/data/datasources/interfaces/i_onboarding_status_store.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -158,6 +161,21 @@ class AppRouter {
               param1: state.uri.queryParameters['token'] ?? '',
               param2: state.uri.queryParameters['email'] ?? '',
             ),
+          ),
+        ),
+      ),
+      // §71 — nombrar la quesera post-signup Google: GoRoute TOP-LEVEL
+      // fuera del StatefulShellRoute (pantalla de setup sin chrome del
+      // shell) y NO pública — el AuthGuard la fuerza mientras
+      // `user.isNewSignup` siga true tras entrar a la org.
+      GoRoute(
+        path: AuthGuard.orgNameSetupRoute,
+        pageBuilder: (context, state) => CustomTransitions.slideUp(
+          context: context,
+          state: state,
+          child: BlocProvider(
+            create: (_) => locator<OrgNameSetupCubit>(),
+            child: const OrgNameSetupScreen(),
           ),
         ),
       ),

@@ -724,4 +724,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inviteCancelledFeedback => 'Invitation cancelled';
+
+  @override
+  String get orgNameSetupTitle => 'What\'s your cheese factory called?';
+
+  @override
+  String get orgNameSetupDescription =>
+      'We created it with your Google account name — change it to whatever you want.';
+
+  @override
+  String get orgNameSetupFieldLabel => 'Cheese factory name';
+
+  @override
+  String get orgNameSetupSubmit => 'Save';
+
+  @override
+  String get orgNameSetupSkip => 'Not now';
+
+  @override
+  String get orgNameSetupErrorGeneric =>
+      'We couldn\'t save the name. Try again later.';
+
+  @override
+  String get orgNameSetupErrorOffline =>
+      'Couldn\'t connect to the server — check your connection';
 }

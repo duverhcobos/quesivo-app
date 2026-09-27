@@ -44,6 +44,10 @@ class AuthGuard {
   // y el guard ya bota al login si no hay sesión.
   static const String orgInvitesRoute = '/org-invites';
   static const String onboardingRoute = '/onboarding';
+  // Nombrado post-signup Google (propuesta 71 — backend 087): GoRoute
+  // TOP-LEVEL fuera del shell y fuera de publicRoutes — protegida por
+  // defecto; el guard la fuerza mientras `user.isNewSignup` siga true.
+  static const String orgNameSetupRoute = '/organizacion/nombrar';
 
   // Rutas de los 17 módulos del drawer (propuesta §26-modulos-placeholder,
   // corregida por §27-modulos-dentro-del-shell y reagrupada por
@@ -134,6 +138,24 @@ class AuthGuard {
           return homeRoute;
         }
         return null;
+      }
+
+      // Propuesta 71 — signup por Google: la org nació con el nombre de
+      // la cuenta; forzar el nombrado una vez entrado a la org
+      // (persistente: reaparece tras restart hasta completar u omitir).
+      if (hasOrgContext && authState.user.isNewSignup) {
+        if (location != orgNameSetupRoute) return orgNameSetupRoute;
+        return null;
+      }
+
+      // Regla de salida (revisión 71): con el flag ya limpio, parado en
+      // la pantalla de nombrado se suelta al home — sin esto evaluate
+      // devolvía null y el usuario quedaba atrapado tras Guardar/skip.
+      if (location == orgNameSetupRoute) {
+        logger.info(
+          'AuthGuard -> Acción: $homeRoute (nombrado completado/omitido)',
+        );
+        return homeRoute;
       }
 
       // Si está logueado, no tiene por qué estar merodeando en Login o Recuprar Contraseña

@@ -24,6 +24,7 @@ class UserModel extends User {
     super.status,
     super.organizations,
     super.pendingInvites,
+    super.isNewSignup,
   });
 
   /// Factory Data constructor — shape real de AuthResponseDto.
@@ -65,6 +66,10 @@ class UserModel extends User {
               )
               .toList() ??
           const [],
+      // Backend 087 — `isNewSignup` solo llega `true` en la respuesta
+      // de POST /auth/google cuando fue signup (ausente en login/
+      // linked/me → false, compatible con backend viejo).
+      isNewSignup: json['isNewSignup'] == true,
     );
   }
 
@@ -92,6 +97,9 @@ class UserModel extends User {
             },
           )
           .toList(),
+      // Se persiste para que el flag sobreviva a un restart entre el
+      // signup y el nombrado de la quesera (propuesta 71).
+      'isNewSignup': isNewSignup,
     };
   }
 }

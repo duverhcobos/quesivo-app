@@ -724,4 +724,28 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get inviteCancelledFeedback => 'Convite cancelado';
+
+  @override
+  String get orgNameSetupTitle => 'Como se chama a sua queijaria?';
+
+  @override
+  String get orgNameSetupDescription =>
+      'Nós a criamos com o nome da sua conta Google — mude para o que quiser.';
+
+  @override
+  String get orgNameSetupFieldLabel => 'Nome da queijaria';
+
+  @override
+  String get orgNameSetupSubmit => 'Salvar';
+
+  @override
+  String get orgNameSetupSkip => 'Agora não';
+
+  @override
+  String get orgNameSetupErrorGeneric =>
+      'Não foi possível salvar o nome. Tente mais tarde.';
+
+  @override
+  String get orgNameSetupErrorOffline =>
+      'Não foi possível conectar ao servidor — verifique sua conexão';
 }

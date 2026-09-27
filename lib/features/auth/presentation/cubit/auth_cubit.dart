@@ -90,8 +90,20 @@ class AuthCubit extends Cubit<AuthState> {
     result.fold((_) {}, (user) {
       // El state pudo cambiar mientras el /me estaba en vuelo (logout,
       // sesión expirada, otra respuesta): solo pisamos si sigue Success.
-      if (state is AuthSuccess) {
-        emit(AuthSuccess(user, enteredOrg: current.enteredOrg));
+      // El flag y enteredOrg se toman del state FRESCO, no del snapshot
+      // pre-await — si corrió applyOrganizationRenamed/skipOrgNameSetup/
+      // exitOrganization en el medio, resucitar los valores viejos
+      // volvería a forzar la pantalla de nombrado ya completada.
+      final fresh = state;
+      if (fresh is AuthSuccess) {
+        emit(
+          AuthSuccess(
+            // Propuesta 71 — `isNewSignup` no viaja en /me: se preserva
+            // del user vivo igual que enteredOrg.
+            user.copyWith(isNewSignup: fresh.user.isNewSignup),
+            enteredOrg: fresh.enteredOrg,
+          ),
+        );
       }
     });
   }
@@ -198,13 +210,64 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// PATCH /organizations/me exitoso (propuesta 71): actualiza el nombre
+  /// de la org en el user (selector + header) y limpia el flag — el guard
+  /// suelta al home en la próxima evaluación.
+  void applyOrganizationRenamed(String newName) {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    emit(
+      AuthSuccess(
+        current.user.copyWith(
+          organizationName: newName,
+          isNewSignup: false,
+          organizations: [
+            for (final o in current.user.organizations)
+              o.id == current.user.organizationId
+                  ? OrganizationSummary(id: o.id, name: newName, role: o.role)
+                  : o,
+          ],
+        ),
+        enteredOrg: current.enteredOrg,
+      ),
+    );
+  }
+
+  /// "Por ahora no" en la pantalla de nombrado: limpia el flag sin PATCH —
+  /// la org conserva el nombre generado (renombrable después con el mismo
+  /// endpoint). El repositorio ya persistió el flag limpio en la sesión
+  /// local (skipNameSetup del OrgNameSetupCubit).
+  void skipOrgNameSetup() {
+    final current = state;
+    if (current is! AuthSuccess) return;
+    emit(
+      AuthSuccess(
+        current.user.copyWith(isNewSignup: false),
+        enteredOrg: current.enteredOrg,
+      ),
+    );
+  }
+
   Future<void> _loadSession() async {
     final result = await _checkAuthStatusUseCase();
     result.fold(
       (failure) => emit(
         const AuthInitial(),
       ), // Si falla, vuelve al estado inicial (Login Screen)
-      (user) => emit(AuthSuccess(user)),
+      (user) {
+        // Propuesta 71 — el `isNewSignup` de /auth/google no viaja en
+        // /me: si hay un Success vivo que lo tenga prendido se preserva
+        // (igual que enteredOrg en los otros emits); el resto del tiempo
+        // llega ya seteado desde la sesión persistida.
+        final current = state;
+        emit(
+          AuthSuccess(
+            current is AuthSuccess
+                ? user.copyWith(isNewSignup: current.user.isNewSignup)
+                : user,
+          ),
+        );
+      },
     );
   }
 

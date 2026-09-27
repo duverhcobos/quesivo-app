@@ -243,6 +243,12 @@ class AuthRepositoryImpl implements IAuthRepository {
       // que el backend revoque TODAS las sesiones — ver doc 003).
       final liveToken = await localDataSource.getToken();
       final liveRefreshToken = await localDataSource.getRefreshToken();
+      // Propuesta 71 — mismo motivo que los tokens: re-leer la sesión
+      // DESPUÉS de getMe. Un PATCH /organizations/me concurrente ya pudo
+      // escribir isNewSignup:false + el nombre nuevo; `local` (leído
+      // antes del await) resucitaría el flag en storage y la pantalla
+      // de nombrado reaparecería tras restart (revisión 71).
+      final live = await localDataSource.getUserSession() ?? local;
       final merged = UserModel(
         id: fresh.id,
         email: fresh.email,
@@ -250,13 +256,20 @@ class AuthRepositoryImpl implements IAuthRepository {
         token: liveToken,
         refreshToken: liveRefreshToken,
         organizationId: fresh.organizationId,
-        organizationName: fresh.organizationName,
+        // La sesión local gana sobre /me para los campos que el PATCH de
+        // nombrado pudo actualizar en la ventana del await.
+        organizationName: live.organizationName ?? fresh.organizationName,
         roles: fresh.roles,
         status: fresh.status,
-        organizations: fresh.organizations,
+        organizations: live.organizations.isNotEmpty
+            ? live.organizations
+            : fresh.organizations,
         // Backend 072: sin esto el merge tira las invitaciones que
         // /me sí devolvió — la sección OrgInvites jamás aparecería.
         pendingInvites: fresh.pendingInvites,
+        // Propuesta 71: `isNewSignup` no viaja en /me — nace en la
+        // respuesta de /auth/google y solo vive en la sesión local.
+        isNewSignup: live.isNewSignup,
       );
       await localDataSource.saveUserSession(merged);
       return Right(merged);
@@ -330,6 +343,10 @@ class AuthRepositoryImpl implements IAuthRepository {
             status: cached.status,
             organizations: cached.organizations,
             pendingInvites: cached.pendingInvites,
+            // Propuesta 71: el flag de signup por Google sobrevive al
+            // swap de tokens — la pantalla de nombrado sigue pendiente
+            // hasta que el usuario la complete u omita.
+            isNewSignup: cached.isNewSignup,
           ),
         );
       }

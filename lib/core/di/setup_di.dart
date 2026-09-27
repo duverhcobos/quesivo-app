@@ -74,6 +74,13 @@ import '../../features/users/presentation/cubit/link_user_cubit.dart';
 import '../../features/users/presentation/cubit/reset_password_cubit.dart'
     as users_reset_password;
 import '../../features/users/presentation/cubit/users_list_cubit.dart';
+import '../../features/organization/data/datasources/implementations/remote_organization_datasource_impl.dart';
+import '../../features/organization/data/datasources/interfaces/i_remote_organization_datasource.dart';
+import '../../features/organization/data/repositories/organization_repository_impl.dart';
+import '../../features/organization/domain/repositories/i_organization_repository.dart';
+import '../../features/organization/domain/use_cases/skip_org_name_setup_use_case.dart';
+import '../../features/organization/domain/use_cases/update_organization_name_use_case.dart';
+import '../../features/organization/presentation/cubit/org_name_setup_cubit.dart';
 import '../../features/queseras/presentation/cubit/org_invites_cubit.dart';
 import '../../features/queseras/presentation/cubit/quesera_selection_cubit.dart';
 import '../localization/cubit/locale_cubit.dart';
@@ -344,6 +351,34 @@ void setupDI() {
       locator<UpdateUserRoleUseCase>(),
       locator<ResendInviteUseCase>(),
       locator<RemoveOrgMemberUseCase>(),
+    ),
+  );
+
+  // ── Módulo Organization (§71 — backend 087: PATCH /organizations/me) ──
+  locator.registerLazySingleton<IRemoteOrganizationDataSource>(
+    () => RemoteOrganizationDataSourceImpl(locator<INetworkService>()),
+  );
+  locator.registerLazySingleton<IOrganizationRepository>(
+    () => OrganizationRepositoryImpl(
+      locator<IRemoteOrganizationDataSource>(),
+      locator<ILocalAuthDataSource>(),
+      locator<INetworkInfo>(),
+      locator<ILoggerService>(),
+    ),
+  );
+  locator.registerFactory(
+    () => UpdateOrganizationNameUseCase(locator<IOrganizationRepository>()),
+  );
+  locator.registerFactory(
+    () => SkipOrgNameSetupUseCase(locator<IOrganizationRepository>()),
+  );
+  // Factory — nace y muere con la pantalla de nombrado; el AuthCubit
+  // global se inyecta para aplicar el rename/limpiar el flag sin /me.
+  locator.registerFactory(
+    () => OrgNameSetupCubit(
+      locator<UpdateOrganizationNameUseCase>(),
+      locator<SkipOrgNameSetupUseCase>(),
+      locator<AuthCubit>(),
     ),
   );
 

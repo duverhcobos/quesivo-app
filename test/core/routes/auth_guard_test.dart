@@ -288,5 +288,101 @@ void main() {
         expect(result, AuthGuard.homeRoute);
       });
     });
+
+    group('nombrado post-signup Google (§71 — backend 087)', () {
+      // Signup por Google: la org nació con el nombre de la cuenta —
+      // la pantalla de nombrado se impone tras entrar a la org y
+      // reaparece tras restart hasta completar u omitir.
+      const tNewSignupUser = User(
+        id: '1',
+        email: 'ana@test.com',
+        name: 'Ana',
+        organizationId: 'org-1',
+        isNewSignup: true,
+      );
+
+      test('enteredOrg + isNewSignup en /home → redirige a '
+          '/organizacion/nombrar', () {
+        final result = authGuard.evaluate(
+          AuthGuard.homeRoute,
+          const AuthSuccess(tNewSignupUser, enteredOrg: true),
+        );
+
+        expect(result, AuthGuard.orgNameSetupRoute);
+      });
+
+      test('enteredOrg + isNewSignup intentando ir a un módulo → '
+          'redirige a /organizacion/nombrar (cubre cualquier ruta '
+          'protegida)', () {
+        final result = authGuard.evaluate(
+          AuthGuard.receptionsRoute,
+          const AuthSuccess(tNewSignupUser, enteredOrg: true),
+        );
+
+        expect(result, AuthGuard.orgNameSetupRoute);
+      });
+
+      test('enteredOrg + isNewSignup ya parado en '
+          '/organizacion/nombrar → no redirige (evita loop)', () {
+        final result = authGuard.evaluate(
+          AuthGuard.orgNameSetupRoute,
+          const AuthSuccess(tNewSignupUser, enteredOrg: true),
+        );
+
+        expect(result, isNull);
+      });
+
+      test('enteredOrg + isNewSignup en ruta pública → redirige al '
+          'nombrado (el flag corre ANTES que el barrido de públicas)', () {
+        final result = authGuard.evaluate(
+          AuthGuard.loginRoute,
+          const AuthSuccess(tNewSignupUser, enteredOrg: true),
+        );
+
+        expect(result, AuthGuard.orgNameSetupRoute);
+      });
+
+      test('isNewSignup SIN enteredOrg (todavía eligiendo quesera) → '
+          'cae al /home del selector, no al nombrado — la pantalla '
+          'aparece recién tras entrar a la org', () {
+        final result = authGuard.evaluate(
+          AuthGuard.receptionsRoute,
+          const AuthSuccess(tNewSignupUser),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+
+      test('isNewSignup:false + enteredOrg → comportamiento normal '
+          '(en /home no redirige)', () {
+        final result = authGuard.evaluate(
+          AuthGuard.homeRoute,
+          const AuthSuccess(tUser, enteredOrg: true),
+        );
+
+        expect(result, isNull);
+      });
+
+      test('flag limpio + enteredOrg parado en /organizacion/nombrar → '
+          'sale a /home (regla de salida — tras Guardar o "Por ahora no" '
+          'la pantalla suelta; sin esto el usuario quedaba atrapado)', () {
+        final result = authGuard.evaluate(
+          AuthGuard.orgNameSetupRoute,
+          const AuthSuccess(tUser, enteredOrg: true),
+        );
+
+        expect(result, AuthGuard.homeRoute);
+      });
+
+      test('sin sesión (AuthInitial) en /organizacion/nombrar → '
+          'redirige a /welcome — la ruta es protegida, no pública', () {
+        final result = authGuard.evaluate(
+          AuthGuard.orgNameSetupRoute,
+          const AuthInitial(),
+        );
+
+        expect(result, AuthGuard.welcomeRoute);
+      });
+    });
   });
 }

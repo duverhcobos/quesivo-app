@@ -42,6 +42,11 @@ class User extends Equatable {
   /// `organizations`.
   final List<OrgInvite> pendingInvites;
 
+  /// `true` solo en la respuesta de POST /auth/google cuando fue signup
+  /// (backend 087): la org recién creada lleva el nombre de la cuenta
+  /// Google y la app muestra la pantalla de nombrado tras entrar a ella.
+  final bool isNewSignup;
+
   const User({
     required this.id,
     required this.email,
@@ -54,6 +59,7 @@ class User extends Equatable {
     this.status,
     this.organizations = const [],
     this.pendingInvites = const [],
+    this.isNewSignup = false,
   });
 
   /// Update en el lugar (§63): tras un select-organization exitoso el
@@ -71,6 +77,7 @@ class User extends Equatable {
     String? status,
     List<OrganizationSummary>? organizations,
     List<OrgInvite>? pendingInvites,
+    bool? isNewSignup,
   }) {
     return User(
       id: id ?? this.id,
@@ -84,6 +91,7 @@ class User extends Equatable {
       status: status ?? this.status,
       organizations: organizations ?? this.organizations,
       pendingInvites: pendingInvites ?? this.pendingInvites,
+      isNewSignup: isNewSignup ?? this.isNewSignup,
     );
   }
 
@@ -100,5 +108,6 @@ class User extends Equatable {
     status,
     organizations,
     pendingInvites,
+    isNewSignup,
   ];
 }
