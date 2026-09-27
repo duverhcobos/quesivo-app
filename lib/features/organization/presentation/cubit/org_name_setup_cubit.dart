@@ -1,6 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/domain/use_cases/select_organization_use_case.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../../auth/presentation/cubit/auth_state.dart';
+import '../../domain/failures/organization_failure.dart';
 import '../../domain/use_cases/skip_org_name_setup_use_case.dart';
 import '../../domain/use_cases/update_organization_name_use_case.dart';
 import 'org_name_setup_state.dart';
@@ -14,18 +17,55 @@ import 'org_name_setup_state.dart';
 class OrgNameSetupCubit extends Cubit<OrgNameSetupState> {
   final UpdateOrganizationNameUseCase _updateName;
   final SkipOrgNameSetupUseCase _skipNameSetup;
+  final SelectOrganizationUseCase _selectOrganization;
   final AuthCubit _authCubit;
 
-  OrgNameSetupCubit(this._updateName, this._skipNameSetup, this._authCubit)
-    : super(const OrgNameSetupState());
+  OrgNameSetupCubit(
+    this._updateName,
+    this._skipNameSetup,
+    this._selectOrganization,
+    this._authCubit,
+  ) : super(const OrgNameSetupState());
 
   /// PATCH /organizations/me → éxito: el AuthCubit aplica el nombre
   /// nuevo y limpia el flag → el guard suelta a /home solo.
+  ///
+  /// La pantalla va ANTES del home (corrección §71): con sesión personal
+  /// el PATCH no tiene org en el JWT — primero se entra a la org del
+  /// signup por debajo (`select-organization`), transparente para el
+  /// usuario; el signup siempre crea exactamente una (createWithAdmin).
   Future<void> submit(String name) async {
     // Anti doble-tap: un submit en vuelo ignora los siguientes.
     if (state.isSubmitting) return;
 
     emit(state.copyWith(isSubmitting: true, clearFailure: true));
+
+    final auth = _authCubit.state;
+    if (auth is AuthSuccess && !auth.enteredOrg) {
+      final orgs = auth.user.organizations;
+      if (orgs.isEmpty) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            failure: const OrganizationUpdateFailure(),
+          ),
+        );
+        return;
+      }
+      final selected = await _selectOrganization(orgs.first.id);
+      if (isClosed || _authCubit.isClosed) return;
+      final session = selected.fold((_) => null, (s) => s);
+      if (session == null) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            failure: const OrganizationUpdateFailure(),
+          ),
+        );
+        return;
+      }
+      _authCubit.enterOrganizationWithSession(session);
+    }
 
     final result = await _updateName(name);
     // Si la pantalla murió con el submit en vuelo, el BlocProvider ya

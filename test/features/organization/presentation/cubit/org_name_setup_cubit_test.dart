@@ -5,6 +5,11 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:quesivo/features/auth/domain/entities/organization_session.dart';
+import 'package:quesivo/features/auth/domain/entities/organization_summary.dart';
+import 'package:quesivo/features/auth/domain/entities/user.dart';
+import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
+import 'package:quesivo/features/auth/domain/use_cases/select_organization_use_case.dart';
 import 'package:quesivo/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:quesivo/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quesivo/features/organization/domain/failures/organization_failure.dart';
@@ -19,26 +24,47 @@ class MockUpdateOrganizationNameUseCase extends Mock
 class MockSkipOrgNameSetupUseCase extends Mock
     implements SkipOrgNameSetupUseCase {}
 
+class MockSelectOrganizationUseCase extends Mock
+    implements SelectOrganizationUseCase {}
+
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 void main() {
   late OrgNameSetupCubit cubit;
   late MockUpdateOrganizationNameUseCase mockUpdateName;
   late MockSkipOrgNameSetupUseCase mockSkipSetup;
+  late MockSelectOrganizationUseCase mockSelectOrg;
   late MockAuthCubit mockAuthCubit;
 
   const tName = 'Quesera Los Alpes';
 
+  setUpAll(() {
+    registerFallbackValue(
+      const OrganizationSession(
+        accessToken: '',
+        refreshToken: '',
+        organizationId: '',
+        organizationName: '',
+      ),
+    );
+  });
+
   setUp(() {
     mockUpdateName = MockUpdateOrganizationNameUseCase();
     mockSkipSetup = MockSkipOrgNameSetupUseCase();
+    mockSelectOrg = MockSelectOrganizationUseCase();
     mockAuthCubit = MockAuthCubit();
     when(() => mockAuthCubit.state).thenReturn(const AuthInitial());
     // MockCubit intercepta isClosed — sin el stub el getter lanza
     // MissingStubError en los guards post-await del cubit.
     when(() => mockAuthCubit.isClosed).thenReturn(false);
 
-    cubit = OrgNameSetupCubit(mockUpdateName, mockSkipSetup, mockAuthCubit);
+    cubit = OrgNameSetupCubit(
+      mockUpdateName,
+      mockSkipSetup,
+      mockSelectOrg,
+      mockAuthCubit,
+    );
   });
 
   tearDown(() {
@@ -144,6 +170,94 @@ void main() {
     expect: () => [const OrgNameSetupState(isSubmitting: true)],
     verify: (_) {
       verify(() => mockAuthCubit.skipOrgNameSetup()).called(1);
+    },
+  );
+
+  blocTest<OrgNameSetupCubit, OrgNameSetupState>(
+    'submit con sesión personal (isNewSignup sin entrar a la org): entra '
+    'por debajo vía select-organization y luego PATCH — la pantalla va '
+    'antes del home',
+    build: () {
+      when(() => mockAuthCubit.state).thenReturn(
+        const AuthSuccess(
+          User(
+            id: '1',
+            email: 'd@t.com',
+            name: 'D',
+            isNewSignup: true,
+            organizations: [
+              OrganizationSummary(
+                id: 'org-1',
+                name: 'Duver Cobos',
+                role: 'ADMIN',
+              ),
+            ],
+          ),
+        ),
+      );
+      when(() => mockSelectOrg('org-1')).thenAnswer(
+        (_) async => const Right<AuthFailure, OrganizationSession>(
+          OrganizationSession(
+            accessToken: 't',
+            refreshToken: 'r',
+            organizationId: 'org-1',
+            organizationName: 'Duver Cobos',
+          ),
+        ),
+      );
+      when(() => mockUpdateName(tName)).thenAnswer(
+        (_) async => const Right<OrganizationFailure, String>(tName),
+      );
+      return cubit;
+    },
+    act: (cubit) => cubit.submit(tName),
+    expect: () => [const OrgNameSetupState(isSubmitting: true)],
+    verify: (_) {
+      verify(() => mockSelectOrg('org-1')).called(1);
+      verify(() => mockAuthCubit.enterOrganizationWithSession(any())).called(1);
+      verify(() => mockUpdateName(tName)).called(1);
+      verify(() => mockAuthCubit.applyOrganizationRenamed(tName)).called(1);
+    },
+  );
+
+  blocTest<OrgNameSetupCubit, OrgNameSetupState>(
+    'submit con sesión personal y falla en select-organization → '
+    'failure genérico, sin PATCH',
+    build: () {
+      when(() => mockAuthCubit.state).thenReturn(
+        const AuthSuccess(
+          User(
+            id: '1',
+            email: 'd@t.com',
+            name: 'D',
+            isNewSignup: true,
+            organizations: [
+              OrganizationSummary(
+                id: 'org-1',
+                name: 'Duver Cobos',
+                role: 'ADMIN',
+              ),
+            ],
+          ),
+        ),
+      );
+      when(() => mockSelectOrg('org-1')).thenAnswer(
+        (_) async =>
+            const Left<AuthFailure, OrganizationSession>(ServerFailure('boom')),
+      );
+      return cubit;
+    },
+    act: (cubit) => cubit.submit(tName),
+    expect: () => [
+      const OrgNameSetupState(isSubmitting: true),
+      const OrgNameSetupState(
+        isSubmitting: false,
+        failure: OrganizationUpdateFailure(),
+      ),
+    ],
+    verify: (_) {
+      verifyNever(() => mockUpdateName(any()));
+      verifyNever(() => mockAuthCubit.applyOrganizationRenamed(any()));
     },
   );
 }

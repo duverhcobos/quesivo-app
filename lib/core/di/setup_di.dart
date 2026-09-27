@@ -378,6 +378,10 @@ void setupDI() {
     () => OrgNameSetupCubit(
       locator<UpdateOrganizationNameUseCase>(),
       locator<SkipOrgNameSetupUseCase>(),
+      // La pantalla va antes del home: con sesión personal el submit
+      // entra a la org del signup por debajo (select-organization) antes
+      // del PATCH — el endpoint pide token org-scoped.
+      locator<SelectOrganizationUseCase>(),
       locator<AuthCubit>(),
     ),
   );

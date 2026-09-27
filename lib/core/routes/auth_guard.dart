@@ -127,23 +127,13 @@ class AuthGuard {
       // JWT: con token restaurado sin entrar, solo /home es alcanzable.
       final hasOrgContext = authState.enteredOrg;
 
-      // Token personal (sin org): el usuario puede existir solo en el
-      // Inicio — el carousel de queseras ES la puerta de entrada a los
-      // módulos (§56); cualquier otra ruta redirige acá.
-      if (!hasOrgContext) {
-        if (location != homeRoute) {
-          logger.info(
-            'AuthGuard -> Acción: $homeRoute (token sin org, selector en home)',
-          );
-          return homeRoute;
-        }
-        return null;
-      }
-
       // Propuesta 71 — signup por Google: la org nació con el nombre de
-      // la cuenta; forzar el nombrado una vez entrado a la org
-      // (persistente: reaparece tras restart hasta completar u omitir).
-      if (hasOrgContext && authState.user.isNewSignup) {
+      // la cuenta; forzar el nombrado ANTES del home — gana con sesión
+      // personal o ya entrado a la org (persistente: reaparece tras
+      // restart hasta completar u omitir). El PATCH pide token
+      // org-scoped: el submit hace select-organization por debajo cuando
+      // aún no entró.
+      if (authState.user.isNewSignup) {
         if (location != orgNameSetupRoute) return orgNameSetupRoute;
         return null;
       }
@@ -156,6 +146,19 @@ class AuthGuard {
           'AuthGuard -> Acción: $homeRoute (nombrado completado/omitido)',
         );
         return homeRoute;
+      }
+
+      // Token personal (sin org): el usuario puede existir solo en el
+      // Inicio — el carousel de queseras ES la puerta de entrada a los
+      // módulos (§56); cualquier otra ruta redirige acá.
+      if (!hasOrgContext) {
+        if (location != homeRoute) {
+          logger.info(
+            'AuthGuard -> Acción: $homeRoute (token sin org, selector en home)',
+          );
+          return homeRoute;
+        }
+        return null;
       }
 
       // Si está logueado, no tiene por qué estar merodeando en Login o Recuprar Contraseña

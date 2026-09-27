@@ -342,15 +342,15 @@ void main() {
         expect(result, AuthGuard.orgNameSetupRoute);
       });
 
-      test('isNewSignup SIN enteredOrg (todavía eligiendo quesera) → '
-          'cae al /home del selector, no al nombrado — la pantalla '
-          'aparece recién tras entrar a la org', () {
+      test('isNewSignup SIN enteredOrg (sesión personal recién creada) '
+          '→ también al nombrado: la pantalla va ANTES del home/selector '
+          '(el submit entra a la org por debajo antes del PATCH)', () {
         final result = authGuard.evaluate(
-          AuthGuard.receptionsRoute,
+          AuthGuard.homeRoute,
           const AuthSuccess(tNewSignupUser),
         );
 
-        expect(result, AuthGuard.homeRoute);
+        expect(result, AuthGuard.orgNameSetupRoute);
       });
 
       test('isNewSignup:false + enteredOrg → comportamiento normal '
