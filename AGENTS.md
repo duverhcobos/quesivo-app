@@ -7,6 +7,7 @@ El detalle de convenciones, arquitectura y workflows de este proyecto vive en sk
 ## Reglas mínimas siempre vigentes
 
 - **Framework:** Flutter (SDK `^3.8.1`), Clean Architecture + S.O.L.I.D.
+- **Commits sin trailer de herramienta** — pedido del usuario 2026-03-19: no agregar `Generated with ...` ni `Co-Authored-By` al mensaje; solo el texto del commit.
 - **Nunca editar archivos fuente directamente** para implementar funcionalidad o lógica de negocio: ver skill `code-proposals` antes de escribir/modificar código (excepción: correcciones triviales de un solo archivo).
 - **OS de desarrollo**: Windows / PowerShell.
 - **Producto: Quesivo — app móvil** (Android/iOS), único cliente del MVP del backend Quesera — la UI del MVP cubre roles `ADMIN` y `OPERATOR` (decisiones en `../planeaciones/003-decision-plataforma-frontend-movil.md` y `../planeaciones/004-decision-identidad-global-membresias.md`); el modelo backend soporta 4 roles y multi-org vía `memberships`. App real camino a producción, no un repositorio de prueba/plantilla. Todo cambio se trata con el mismo rigor que código productivo — ver skill `environments-secrets` **siempre** que se toquen entornos, URLs, tokens o certificados.
