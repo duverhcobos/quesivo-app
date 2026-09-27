@@ -29,12 +29,16 @@ class OrgNameSetupCubit extends Cubit<OrgNameSetupState> {
   /// el PATCH no tiene org en el JWT — primero se entra a la org del
   /// signup por debajo (`select-organization`), transparente para el
   /// usuario; el signup siempre crea exactamente una (createWithAdmin).
+  /// Esa entrada es instrumental: al terminar se revierte
+  /// (`exitOrganization`) para que el aterrizaje sea el SELECTOR de
+  /// queseras, no el interior — igual que tras login/registro por email.
   Future<void> submit(String name) async {
     // Anti doble-tap: un submit en vuelo ignora los siguientes.
     if (state.isSubmitting) return;
 
     emit(state.copyWith(isSubmitting: true, clearFailure: true));
 
+    var enteredForPatch = false;
     final auth = _authCubit.state;
     if (auth is AuthSuccess && !auth.enteredOrg) {
       final orgs = auth.user.organizations;
@@ -60,6 +64,7 @@ class OrgNameSetupCubit extends Cubit<OrgNameSetupState> {
         return;
       }
       _authCubit.enterOrganizationWithSession(session);
+      enteredForPatch = true;
     }
 
     final result = await _updateName(name);
@@ -74,6 +79,9 @@ class OrgNameSetupCubit extends Cubit<OrgNameSetupState> {
         // de la app) — emitir sobre él lanzaría StateError.
         if (_authCubit.isClosed) return;
         _authCubit.applyOrganizationRenamed(newName);
+        // Solo se sale si la entrada fue instrumental (sesión personal):
+        // quien ya estaba dentro de su org conserva ese contexto.
+        if (enteredForPatch) _authCubit.exitOrganization();
       },
     );
   }

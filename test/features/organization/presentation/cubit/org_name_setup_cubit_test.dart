@@ -127,8 +127,8 @@ void main() {
 
   blocTest<OrgNameSetupCubit, OrgNameSetupState>(
     'submit con sesión personal (isNewSignup sin entrar a la org): entra '
-    'por debajo vía select-organization y luego PATCH — la pantalla va '
-    'antes del home',
+    'por debajo vía select-organization, PATCH, y SALE de nuevo — el '
+    'aterrizaje es el selector, no el interior de la quesera',
     build: () {
       when(() => mockAuthCubit.state).thenReturn(
         const AuthSuccess(
@@ -169,6 +169,9 @@ void main() {
       verify(() => mockAuthCubit.enterOrganizationWithSession(any())).called(1);
       verify(() => mockUpdateName(tName)).called(1);
       verify(() => mockAuthCubit.applyOrganizationRenamed(tName)).called(1);
+      // La entrada fue instrumental (necesaria para el PATCH org-scoped)
+      // — tras nombrar, el usuario aterriza en el selector limpio.
+      verify(() => mockAuthCubit.exitOrganization()).called(1);
     },
   );
 
