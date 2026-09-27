@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:quesivo/core/logging/interfaces/i_logger_service.dart';
 import 'package:quesivo/core/network/interfaces/i_network_info.dart';
+import 'package:quesivo/features/auth/data/datasources/interfaces/i_google_auth_datasource.dart';
 import 'package:quesivo/features/auth/data/datasources/interfaces/i_local_auth_datasource.dart';
 import 'package:quesivo/features/auth/data/datasources/interfaces/i_remote_auth_datasource.dart';
 import 'package:quesivo/features/auth/data/exceptions/auth_exceptions.dart';
@@ -16,6 +17,8 @@ import 'package:quesivo/features/auth/domain/failures/auth_failure.dart';
 
 class MockRemoteAuthDataSource extends Mock implements IRemoteAuthDataSource {}
 
+class MockGoogleAuthDataSource extends Mock implements IGoogleAuthDataSource {}
+
 class MockLocalAuthDataSource extends Mock implements ILocalAuthDataSource {}
 
 class MockNetworkInfo extends Mock implements INetworkInfo {}
@@ -25,6 +28,7 @@ class MockLoggerService extends Mock implements ILoggerService {}
 void main() {
   late AuthRepositoryImpl repository;
   late MockRemoteAuthDataSource mockRemoteDataSource;
+  late MockGoogleAuthDataSource mockGoogleAuthDataSource;
   late MockLocalAuthDataSource mockLocalDataSource;
   late MockNetworkInfo mockNetworkInfo;
   late MockLoggerService mockLogger;
@@ -46,6 +50,7 @@ void main() {
 
   setUp(() {
     mockRemoteDataSource = MockRemoteAuthDataSource();
+    mockGoogleAuthDataSource = MockGoogleAuthDataSource();
     mockLocalDataSource = MockLocalAuthDataSource();
     mockNetworkInfo = MockNetworkInfo();
     mockLogger = MockLoggerService();
@@ -66,8 +71,13 @@ void main() {
       ),
     ).thenReturn(null);
 
+    // El sign-out de Google es best-effort dentro de logout: stub default
+    // para que nunca rompa un test por falta de stub.
+    when(() => mockGoogleAuthDataSource.signOut()).thenAnswer((_) async {});
+
     repository = AuthRepositoryImpl(
       mockRemoteDataSource,
+      mockGoogleAuthDataSource,
       mockLocalDataSource,
       mockNetworkInfo,
       mockLogger,
@@ -278,20 +288,49 @@ void main() {
     });
   });
 
-  group('loginWithGoogle', () {
+  group('loginWithGoogle (propuesta 70 — SDK → POST /auth/google)', () {
+    const tIdToken = 'google-id-token.jwt.firmado';
+
     test('retorna NetworkFailure si no hay conexión a internet', () async {
       mockConnected(false);
 
       final result = await repository.loginWithGoogle();
 
       expect(result, const Left(NetworkFailure()));
-      verifyNever(() => mockRemoteDataSource.loginWithGoogle());
+      verifyNever(() => mockGoogleAuthDataSource.getIdToken());
+      verifyNever(
+        () => mockRemoteDataSource.loginWithGoogle(
+          idToken: any(named: 'idToken'),
+        ),
+      );
     });
 
-    test('retorna Right(user) y persiste la sesión en éxito', () async {
+    test('idToken null (usuario cerró el picker) → '
+        'GoogleSignInCancelledFailure, sin pegarle al backend', () async {
       mockConnected(true);
       when(
-        () => mockRemoteDataSource.loginWithGoogle(),
+        () => mockGoogleAuthDataSource.getIdToken(),
+      ).thenAnswer((_) async => null);
+
+      final result = await repository.loginWithGoogle();
+
+      expect(result, const Left(GoogleSignInCancelledFailure()));
+      verifyNever(
+        () => mockRemoteDataSource.loginWithGoogle(
+          idToken: any(named: 'idToken'),
+        ),
+      );
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
+    });
+
+    test('retorna Right(user), pasa el idToken al remoto y persiste la '
+        'sesión en éxito', () async {
+      mockConnected(true);
+      when(
+        () => mockGoogleAuthDataSource.getIdToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockRemoteDataSource.loginWithGoogle(idToken: tIdToken),
       ).thenAnswer((_) async => tUserModel);
       when(
         () => mockLocalDataSource.saveUserSession(tUserModel),
@@ -300,18 +339,109 @@ void main() {
       final result = await repository.loginWithGoogle();
 
       expect(result, const Right(tUserModel));
+      verify(
+        () => mockRemoteDataSource.loginWithGoogle(idToken: tIdToken),
+      ).called(1);
+      verify(() => mockLocalDataSource.saveUserSession(tUserModel)).called(1);
     });
 
-    test('retorna ServerFailure ante cualquier excepción', () async {
+    test('403 → AccountSuspendedFailure (misma semántica que login)', () async {
       mockConnected(true);
       when(
-        () => mockRemoteDataSource.loginWithGoogle(),
-      ).thenThrow(UnimplementedError('no disponible'));
+        () => mockGoogleAuthDataSource.getIdToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockRemoteDataSource.loginWithGoogle(idToken: tIdToken),
+      ).thenThrow(RestApiException(statusCode: 403, message: 'Suspended'));
 
       final result = await repository.loginWithGoogle();
 
-      expect(result.isLeft(), true);
+      expect(result, const Left(AccountSuspendedFailure()));
+      verifyNever(() => mockLocalDataSource.saveUserSession(any()));
     });
+
+    test('429 → TooManyAttemptsFailure', () async {
+      mockConnected(true);
+      when(
+        () => mockGoogleAuthDataSource.getIdToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockRemoteDataSource.loginWithGoogle(idToken: tIdToken),
+      ).thenThrow(RestApiException(statusCode: 429, message: 'Throttled'));
+
+      final result = await repository.loginWithGoogle();
+
+      expect(result, const Left(TooManyAttemptsFailure()));
+    });
+
+    test('errorCode GOOGLE_EMAIL_UNVERIFIED → GoogleAuthFailure con '
+        'mensaje de correo no verificado (backend 085)', () async {
+      mockConnected(true);
+      when(
+        () => mockGoogleAuthDataSource.getIdToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockRemoteDataSource.loginWithGoogle(idToken: tIdToken),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 401,
+          message: 'Email not verified',
+          errorCode: 'GOOGLE_EMAIL_UNVERIFIED',
+        ),
+      );
+
+      final result = await repository.loginWithGoogle();
+
+      expect(
+        result,
+        const Left(
+          GoogleAuthFailure(
+            'Tu cuenta de Google no tiene el correo verificado.',
+          ),
+        ),
+      );
+    });
+
+    test('RestApiException no mapeada (ej. 401 GOOGLE_TOKEN_INVALID) → '
+        'GoogleAuthFailure genérico', () async {
+      mockConnected(true);
+      when(
+        () => mockGoogleAuthDataSource.getIdToken(),
+      ).thenAnswer((_) async => tIdToken);
+      when(
+        () => mockRemoteDataSource.loginWithGoogle(idToken: tIdToken),
+      ).thenThrow(
+        RestApiException(
+          statusCode: 401,
+          message: 'Invalid token',
+          errorCode: 'GOOGLE_TOKEN_INVALID',
+        ),
+      );
+
+      final result = await repository.loginWithGoogle();
+
+      expect(result, const Left(GoogleAuthFailure()));
+    });
+
+    test(
+      'excepción del SDK de Google (getIdToken lanza — config '
+      'ausente, plataforma sin soporte) → GoogleAuthFailure genérico',
+      () async {
+        mockConnected(true);
+        when(
+          () => mockGoogleAuthDataSource.getIdToken(),
+        ).thenThrow(Exception('Google Sign-In no configurado'));
+
+        final result = await repository.loginWithGoogle();
+
+        expect(result, const Left(GoogleAuthFailure()));
+        verifyNever(
+          () => mockRemoteDataSource.loginWithGoogle(
+            idToken: any(named: 'idToken'),
+          ),
+        );
+      },
+    );
   });
 
   group('checkAuthStatus', () {
@@ -608,6 +738,40 @@ void main() {
 
       expect(result, const Right(null));
       verifyNever(() => mockRemoteDataSource.logout(any()));
+      verify(() => mockLocalDataSource.clearSession()).called(1);
+    });
+
+    test(
+      'cierra la sesión de Google del dispositivo tras el borrado '
+      'local (propuesta 70 — el próximo sign-in muestra el picker)',
+      () async {
+        when(
+          () => mockLocalDataSource.getRefreshToken(),
+        ).thenAnswer((_) async => null);
+        when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+
+        final result = await repository.logout();
+
+        expect(result, const Right(null));
+        verifyInOrder([
+          () => mockLocalDataSource.clearSession(),
+          () => mockGoogleAuthDataSource.signOut(),
+        ]);
+      },
+    );
+
+    test('un fallo del signOut de Google no impide el logout', () async {
+      when(
+        () => mockLocalDataSource.getRefreshToken(),
+      ).thenAnswer((_) async => null);
+      when(() => mockLocalDataSource.clearSession()).thenAnswer((_) async {});
+      when(
+        () => mockGoogleAuthDataSource.signOut(),
+      ).thenThrow(Exception('SDK de Google falló'));
+
+      final result = await repository.logout();
+
+      expect(result, const Right(null));
       verify(() => mockLocalDataSource.clearSession()).called(1);
     });
 

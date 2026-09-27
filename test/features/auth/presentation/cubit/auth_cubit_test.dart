@@ -126,33 +126,59 @@ void main() {
   );
 
   blocTest<AuthCubit, AuthState>(
-    'loginWithGoogle emite [AuthLoading, AuthSuccess] en éxito',
+    'loginWithGoogle en éxito hidrata vía refreshSession — '
+    '[AuthLoading, AuthSuccess] con el user de /me',
     build: () {
       when(
         () => mockLoginWithGoogleUseCase(),
+      ).thenAnswer((_) async => const Right(tUser));
+      // El response de /auth/google no trae organizations: el éxito
+      // llama refreshSession() → checkAuthStatus → /me (misma
+      // hidratación que los otros auto-logins).
+      when(
+        () => mockCheckAuthStatusUseCase(),
       ).thenAnswer((_) async => const Right(tUser));
       return cubit;
     },
     seed: () => const AuthInitial(),
     act: (cubit) => cubit.loginWithGoogle(),
     expect: () => [const AuthLoading(), const AuthSuccess(tUser)],
+    verify: (_) {
+      verify(() => mockCheckAuthStatusUseCase()).called(1);
+    },
   );
 
   blocTest<AuthCubit, AuthState>(
     'loginWithGoogle emite [AuthLoading, AuthError] cuando falla',
     build: () {
-      when(() => mockLoginWithGoogleUseCase()).thenAnswer(
-        (_) async =>
-            const Left(ServerFailure('No se pudo iniciar sesión con Google.')),
-      );
+      when(
+        () => mockLoginWithGoogleUseCase(),
+      ).thenAnswer((_) async => const Left(GoogleAuthFailure()));
       return cubit;
     },
     seed: () => const AuthInitial(),
     act: (cubit) => cubit.loginWithGoogle(),
     expect: () => [
       const AuthLoading(),
-      const AuthError('No se pudo iniciar sesión con Google.'),
+      const AuthError(
+        'No se pudo iniciar sesión con Google. Inténtalo más tarde.',
+      ),
     ],
+  );
+
+  blocTest<AuthCubit, AuthState>(
+    'loginWithGoogle con GoogleSignInCancelledFailure vuelve a '
+    'AuthInitial SIN mensaje de error (el usuario cerró el picker — '
+    'propuesta 70)',
+    build: () {
+      when(
+        () => mockLoginWithGoogleUseCase(),
+      ).thenAnswer((_) async => const Left(GoogleSignInCancelledFailure()));
+      return cubit;
+    },
+    seed: () => const AuthInitial(),
+    act: (cubit) => cubit.loginWithGoogle(),
+    expect: () => [const AuthLoading(), const AuthInitial()],
   );
 
   blocTest<AuthCubit, AuthState>(

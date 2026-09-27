@@ -14,7 +14,9 @@ abstract class IRemoteAuthDataSource {
     required String password,
   });
 
-  Future<UserModel> loginWithGoogle();
+  /// El idToken de Google ES la credencial (backend 085) — el
+  /// repository la obtiene del SDK antes de llamar acá.
+  Future<UserModel> loginWithGoogle({required String idToken});
 
   /// Registra organización + usuario nuevo contra `POST /auth/register`.
   /// Desde la propuesta backend 069 el 201 viene con body vacío: la

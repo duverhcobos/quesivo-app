@@ -59,7 +59,12 @@ class DioNetworkServiceImpl implements INetworkService {
     if (e.response != null) {
       final statusCode = e.response!.statusCode ?? 500;
       if (statusCode == 401) {
-        throw UnauthorizedException();
+        // El errorCode también viaja en un 401 (GOOGLE_EMAIL_UNVERIFIED,
+        // GOOGLE_TOKEN_INVALID del backend) — sin él el repository no
+        // puede distinguir qué falló en el token.
+        throw UnauthorizedException(
+          errorCode: _extractErrorCode(e.response!.data),
+        );
       }
       throw RestApiException(
         statusCode: statusCode,

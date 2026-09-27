@@ -39,15 +39,17 @@ fallaba con "No se pudo conectar al servidor" (el permiso solo existía en
   reglas ProGuard).
 - [ ] **`flutter analyze` + `flutter test` limpios** antes de buildear.
 
-## Qué es mock en `dev` (no pegar a un servidor para probarlo)
+## Qué es real vs. mock en `dev`
 
-- `register`, `forgotPassword`, `resetPassword`, `loginWithGoogle` →
-  `Future.delayed` + modelo fake (gate `EnvType.dev` en
-  `remote_auth_datasource_impl.dart`).
-- `loginWithEmailPassword` **sí pega de verdad** a DummyJSON
-  (`/auth/login`, convierte email→username antes del `@`; credenciales de
-  prueba: `emilys` / `emilyspass`).
-- En `stg`/`prod` TODO va a endpoints reales — no hay mocks.
+- Todos los endpoints de auth pegan al backend real (`API_URL`) en todo
+  entorno — los mocks dev-only de `remote_auth_datasource_impl.dart` ya
+  fueron retirados (login/register/verify/forgot/reset reales desde las
+  propuestas backend 068/069; `loginWithGoogle` real desde la propuesta
+  70 con `google_sign_in` + `POST /auth/google`).
+- Google sign-in requiere `GOOGLE_SERVER_CLIENT_ID` (dart-define) con el
+  Web OAuth client ID de Google Cloud — vacío = el botón falla con
+  `GoogleAuthFailure` visible, no silencioso. Incluirlo en el
+  `--dart-define-from-file` de release (`shorebird-stg.json`).
 
 Ojo: `networkInfo.isConnected` corre antes de cualquier llamada, incluso
 de los mocks — sin internet el flujo falla igual con "No se pudo conectar".

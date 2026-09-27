@@ -28,8 +28,10 @@ import '../network/implementations/network_info_impl.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../features/auth/domain/repositories/i_auth_repository.dart';
 import '../../features/onboarding/data/datasources/interfaces/i_onboarding_status_store.dart';
+import '../../features/auth/data/datasources/interfaces/i_google_auth_datasource.dart';
 import '../../features/auth/data/datasources/interfaces/i_remote_auth_datasource.dart';
 import '../../features/auth/data/datasources/interfaces/i_local_auth_datasource.dart';
+import '../../features/auth/data/datasources/implementations/google_auth_datasource_impl.dart';
 import '../../features/auth/data/datasources/implementations/remote_auth_datasource_impl.dart';
 import '../../features/auth/data/datasources/implementations/secure_local_auth_datasource_impl.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -163,11 +165,17 @@ void setupDI() {
   locator.registerLazySingleton<ILocalAuthDataSource>(
     () => SecureLocalAuthDataSourceImpl(locator<FlutterSecureStorage>()),
   );
+  // SDK de Google Sign-In (propuesta 70): wrapper fino del plugin —
+  // initialize() es lazy en el primer uso, no bloquea el arranque.
+  locator.registerLazySingleton<IGoogleAuthDataSource>(
+    () => GoogleAuthDataSourceImpl(),
+  );
 
   // 3. Repositories
   locator.registerLazySingleton<IAuthRepository>(
     () => AuthRepositoryImpl(
       locator<IRemoteAuthDataSource>(),
+      locator<IGoogleAuthDataSource>(),
       locator<ILocalAuthDataSource>(),
       locator<INetworkInfo>(),
       locator<ILoggerService>(),

@@ -23,6 +23,75 @@ void main() {
     );
   });
 
+  group('loginWithGoogle (propuesta 70 — doc 022, backend 085)', () {
+    const tIdToken = 'google-id-token.jwt.firmado';
+    const tResponse = {
+      'id': '1',
+      'email': 'user@google.com',
+      'name': 'Google User',
+      'accessToken': 'token-personal',
+      'refreshToken': 'refresh-personal',
+    };
+
+    test('POSTea a /auth/google con idToken + deviceId/deviceName (sesión '
+        'etiquetada, como login) y devuelve el UserModel de sesión '
+        'personal — mismo shape que /auth/login', () async {
+      when(
+        () => mockDeviceInfoService.getDeviceId(),
+      ).thenAnswer((_) async => 'device-1');
+      when(
+        () => mockDeviceInfoService.getDeviceName(),
+      ).thenAnswer((_) async => 'Pixel 8');
+      when(
+        () => mockNetworkService.post<Map<String, dynamic>>(
+          '/auth/google',
+          data: {
+            'idToken': tIdToken,
+            'deviceId': 'device-1',
+            'deviceName': 'Pixel 8',
+          },
+        ),
+      ).thenAnswer((_) async => tResponse);
+
+      final user = await dataSource.loginWithGoogle(idToken: tIdToken);
+
+      expect(user.id, '1');
+      expect(user.email, 'user@google.com');
+      expect(user.token, 'token-personal');
+      expect(user.refreshToken, 'refresh-personal');
+      verify(
+        () => mockNetworkService.post<Map<String, dynamic>>(
+          '/auth/google',
+          data: {
+            'idToken': tIdToken,
+            'deviceId': 'device-1',
+            'deviceName': 'Pixel 8',
+          },
+        ),
+      ).called(1);
+    });
+
+    test('propaga la excepción del network service (401 token inválido)', () {
+      when(
+        () => mockDeviceInfoService.getDeviceId(),
+      ).thenAnswer((_) async => 'device-1');
+      when(
+        () => mockDeviceInfoService.getDeviceName(),
+      ).thenAnswer((_) async => 'Pixel 8');
+      when(
+        () => mockNetworkService.post<Map<String, dynamic>>(
+          '/auth/google',
+          data: any(named: 'data'),
+        ),
+      ).thenThrow(Exception('401'));
+
+      expect(
+        () => dataSource.loginWithGoogle(idToken: tIdToken),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
   group('register (propuesta 67 — doc 001)', () {
     const tOrgName = 'Quesera Los Alpes';
     const tName = 'María Quesera';

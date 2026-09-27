@@ -15,7 +15,11 @@
             "type": "dart",
             "args": [
                 "--dart-define=ENV=dev",
-                "--dart-define=API_TOKEN=${env:API_TOKEN_DEV}"
+                "--dart-define=API_TOKEN=${env:API_TOKEN_DEV}",
+                // Web OAuth client ID de Google Cloud (propuesta 70) —
+                // misma convención que API_TOKEN: el valor vive en una
+                // variable de entorno del SO, no en el archivo.
+                "--dart-define=GOOGLE_SERVER_CLIENT_ID=${env:GOOGLE_SERVER_CLIENT_ID}"
             ]
         },
         {
@@ -28,7 +32,8 @@
                 // cambia por DHCP (ipconfig → IPv4 del adaptador Wi-Fi).
                 // El backend debe escuchar en 0.0.0.0 (NestJS default).
                 "--dart-define=API_URL=http://192.168.1.6:3000",
-                "--dart-define=API_TOKEN=${env:API_TOKEN_DEV}"
+                "--dart-define=API_TOKEN=${env:API_TOKEN_DEV}",
+                "--dart-define=GOOGLE_SERVER_CLIENT_ID=${env:GOOGLE_SERVER_CLIENT_ID}"
             ]
         },
         {
@@ -37,7 +42,8 @@
             "type": "dart",
             "args": [
                 "--dart-define=ENV=stg",
-                "--dart-define=API_TOKEN=${env:API_TOKEN_STG}"
+                "--dart-define=API_TOKEN=${env:API_TOKEN_STG}",
+                "--dart-define=GOOGLE_SERVER_CLIENT_ID=${env:GOOGLE_SERVER_CLIENT_ID}"
             ]
         },
         {
@@ -47,7 +53,8 @@
             "flutterMode": "release", // Simula entorno real optimizado compilado
             "args": [
                 "--dart-define=ENV=prod",
-                "--dart-define=API_TOKEN=${env:API_TOKEN_PROD}"
+                "--dart-define=API_TOKEN=${env:API_TOKEN_PROD}",
+                "--dart-define=GOOGLE_SERVER_CLIENT_ID=${env:GOOGLE_SERVER_CLIENT_ID}"
             ]
         }
     ]

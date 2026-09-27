@@ -5,6 +5,7 @@ import '../../domain/entities/organization_session.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/failures/auth_failure.dart';
 import '../../domain/repositories/i_auth_repository.dart';
+import '../datasources/interfaces/i_google_auth_datasource.dart';
 import '../datasources/interfaces/i_remote_auth_datasource.dart';
 import '../datasources/interfaces/i_local_auth_datasource.dart';
 import '../exceptions/auth_exceptions.dart';
@@ -18,12 +19,14 @@ import '../../../../core/logging/interfaces/i_logger_service.dart';
 /// SOLID (LSP): Esta clase puede sustituir a IAuthRepository en cualquier lugar.
 class AuthRepositoryImpl implements IAuthRepository {
   final IRemoteAuthDataSource remoteDataSource;
+  final IGoogleAuthDataSource googleAuthDataSource;
   final ILocalAuthDataSource localDataSource;
   final INetworkInfo networkInfo;
   final ILoggerService logger;
 
   AuthRepositoryImpl(
     this.remoteDataSource,
+    this.googleAuthDataSource,
     this.localDataSource,
     this.networkInfo,
     this.logger,
@@ -97,20 +100,55 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<AuthFailure, User>> loginWithGoogle() async {
-    // Misma verificación de red que el resto de los métodos que llaman
-    // a la capa remota (antes esta rama era inconsistente con el resto).
     final isConnected = await networkInfo.isConnected;
     if (!isConnected) {
       return const Left(NetworkFailure());
     }
 
     try {
-      final userModel = await remoteDataSource.loginWithGoogle();
+      // 1. SDK de Google → idToken; null = el usuario canceló el picker.
+      final idToken = await googleAuthDataSource.getIdToken();
+      if (idToken == null) {
+        return const Left(GoogleSignInCancelledFailure());
+      }
+
+      // 2. El backend verifica firma/aud/iss y emite sesión personal.
+      final userModel = await remoteDataSource.loginWithGoogle(
+        idToken: idToken,
+      );
       await localDataSource.saveUserSession(userModel);
       return Right(userModel);
+    } on RestApiException catch (e, stackTrace) {
+      // Contrato api/auth/022: 401 con errorCode distingue token
+      // inválido de email no verificado; 403 se distingue por errorCode
+      // igual que login — ROLE_NOT_ALLOWED (membresía solo OPERATOR,
+      // gate post-login compartido) vs cuenta suspendida; 429 = rate.
+      if (e.statusCode == 403) {
+        if (e.errorCode == 'ROLE_NOT_ALLOWED') {
+          return const Left(RoleNotAllowedFailure());
+        }
+        return const Left(AccountSuspendedFailure());
+      }
+      if (e.statusCode == 429) {
+        return const Left(TooManyAttemptsFailure());
+      }
+      if (e.errorCode == 'GOOGLE_EMAIL_UNVERIFIED') {
+        return const Left(
+          GoogleAuthFailure(
+            'Tu cuenta de Google no tiene el correo verificado.',
+          ),
+        );
+      }
+      logger.error(
+        'Error de API en Google Login',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const Left(GoogleAuthFailure());
     } catch (e, stackTrace) {
+      // Fallas del SDK (config de Google Cloud, plataforma sin soporte).
       logger.error('Error en Google Login', error: e, stackTrace: stackTrace);
-      return Left(ServerFailure('No se pudo iniciar sesión con Google.'));
+      return const Left(GoogleAuthFailure());
     }
   }
 
@@ -347,6 +385,21 @@ class AuthRepositoryImpl implements IAuthRepository {
     // 2. El cierre local es lo único obligatorio.
     try {
       await localDataSource.clearSession();
+
+      // Cerrar también la sesión de Google del dispositivo para que el
+      // próximo sign-in muestre el picker de cuentas (propuesta 70).
+      // Best-effort: un fallo del SDK no debe impedir el logout — la
+      // sesión local ya murió.
+      try {
+        await googleAuthDataSource.signOut();
+      } catch (e, stackTrace) {
+        logger.warning(
+          'Sign-out de Google falló; el logout local ya está hecho',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+
       return const Right(null);
     } catch (e, stackTrace) {
       logger.error(

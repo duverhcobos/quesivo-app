@@ -7,6 +7,7 @@ import '../../../../core/session/session_expired_notifier.dart';
 import '../../domain/entities/org_invite.dart';
 import '../../domain/entities/organization_session.dart';
 import '../../domain/entities/organization_summary.dart';
+import '../../domain/failures/auth_failure.dart';
 import '../../domain/use_cases/login_use_case.dart';
 import '../../domain/use_cases/login_with_google_use_case.dart';
 import '../../domain/use_cases/check_auth_status_use_case.dart';
@@ -236,9 +237,21 @@ class AuthCubit extends Cubit<AuthState> {
 
     final failureOrUser = await _loginWithGoogleUseCase();
 
-    failureOrUser.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthSuccess(user)),
+    await failureOrUser.fold(
+      (failure) async {
+        // Cancelar el picker no es un error: volver al estado inicial
+        // sin mensaje — el usuario simplemente desistió.
+        if (failure is GoogleSignInCancelledFailure) {
+          emit(const AuthInitial());
+          return;
+        }
+        emit(AuthError(failure.message));
+      },
+      // El AuthSuccess del response de /auth/google NO trae
+      // organizations (sesión personal) — el selector de queseras se
+      // llena con GET /auth/me. refreshSession() hidrata igual que los
+      // otros auto-logins (login, verify-email, accept-invite).
+      (_) => refreshSession(),
     );
   }
 }

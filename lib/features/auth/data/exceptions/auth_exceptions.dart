@@ -25,7 +25,7 @@ class RestApiException implements Exception {
 }
 
 class UnauthorizedException extends RestApiException {
-  UnauthorizedException()
+  UnauthorizedException({super.errorCode})
     : super(statusCode: 401, message: 'Invalid credentials');
 }
 

@@ -1,5 +1,4 @@
 // lib/features/auth/data/datasources/remote_auth_datasource_impl.dart
-import '../../../../../core/constants/environment/environment.dart';
 import '../../../../../core/device/i_device_info_service.dart';
 import '../../../../../core/network/interfaces/i_network_service.dart';
 import '../../models/organization_session_model.dart';
@@ -41,22 +40,22 @@ class RemoteAuthDataSourceImpl implements IRemoteAuthDataSource {
   }
 
   @override
-  Future<UserModel> loginWithGoogle() async {
-    // ⚠️ MOCK EXCLUSIVO DE DESARROLLO: todavía no existe integración real con
-    // Google Sign-In. Se bloquea explícitamente fuera de `dev` para que nunca
-    // llegue a producción un login "exitoso" falso.
-    if (Environment.currentEnvironment != EnvType.dev) {
-      throw UnimplementedError(
-        'Login con Google no está implementado para este entorno todavía.',
-      );
-    }
-
-    await Future.delayed(const Duration(seconds: 1));
-    return const UserModel(
-      id: '2',
-      email: 'user@google.com',
-      name: 'Google User',
+  Future<UserModel> loginWithGoogle({required String idToken}) async {
+    // Backend real — contrato documentacion/api/auth/022 (propuesta 085).
+    // deviceId/deviceName son opcionales del DTO y etiquetan la sesión
+    // como en login — sin ellos la sesión Google queda sin nombre de
+    // dispositivo en la vista de sesiones.
+    final responseData = await networkService.post<Map<String, dynamic>>(
+      '/auth/google',
+      data: {
+        'idToken': idToken,
+        'deviceId': await deviceInfoService.getDeviceId(),
+        'deviceName': await deviceInfoService.getDeviceName(),
+      },
     );
+
+    // AuthResponseDto de sesión personal — mismo shape que /auth/login.
+    return UserModel.fromJson(responseData);
   }
 
   @override

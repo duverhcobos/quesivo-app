@@ -23,6 +23,7 @@ Si estás operando o diagnosticando la aplicación desde la terminal, jamás eje
   `flutter run --dart-define=ENV=dev`
   - Emulador Android: sin más — `API_URL` default `http://10.0.2.2:3000` apunta al localhost del host.
   - Dispositivo físico: `--dart-define=API_URL=http://<ip-lan-del-pc>:3000` (el backend debe escuchar en `0.0.0.0` o la LAN).
+  - Login con Google (propuesta 70): `--dart-define=GOOGLE_SERVER_CLIENT_ID=<web-client-id>` — el **Web** OAuth client ID de Google Cloud; es la audience que el backend valida en `POST /auth/google` (backend propuesta 085). Vacío = botón de Google falla con `GoogleAuthFailure` genérico, sin romper la app.
 
 - **Pruebas y QA (Staging):**
   `flutter run --dart-define=ENV=stg --dart-define=API_TOKEN=<tu-token-stg>`
@@ -53,6 +54,7 @@ Para no escribir la inyección completa en consola diariamente, automatizamos el
 | `API_TOKEN_DEV` | 🚀 Solid DEV (Entorno Local) |
 | `API_TOKEN_STG` | 🛠️ Solid STG (Servidor Pruebas) |
 | `API_TOKEN_PROD` | 🔥 Solid PROD (Modo Release) |
+| `GOOGLE_SERVER_CLIENT_ID` | Todos los perfiles (DEV/STG/PROD) — Web OAuth client ID de Google Cloud para `POST /auth/google` (propuesta 70). No es secreto, pero sigue la misma convención: el valor vive en el SO o en el `--dart-define-from-file` de release (`shorebird-stg.json`), no hardcodeado. Vacío = botón de Google falla con error claro, sin romper la app. |
 
 **Cómo crearlas en Windows (PowerShell, una sola vez por máquina):**
 

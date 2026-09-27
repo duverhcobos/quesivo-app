@@ -26,6 +26,16 @@ class Environment {
     defaultValue: 'http://10.0.2.2:3000',
   );
 
+  /// Web OAuth client ID de Google Cloud — audience que el backend
+  /// valida en `POST /auth/google` (backend propuesta 085). Se inyecta
+  /// con `--dart-define=GOOGLE_SERVER_CLIENT_ID=...`; vacío = Google
+  /// sign-in no configurado en este entorno (el datasource falla con
+  /// error claro, no silencioso).
+  static const String googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: '',
+  );
+
   /// Versión de la app mostrada en UI (pie del drawer) — mantener sincronizada
   /// con `version:` de pubspec.yaml (Dart no puede leer el pubspec en runtime).
   static const String appVersion = '0.2.0';

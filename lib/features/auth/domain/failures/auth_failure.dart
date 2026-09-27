@@ -112,3 +112,21 @@ class WeakPasswordFailure extends AuthFailure {
 class UnknownAuthFailure extends AuthFailure {
   const UnknownAuthFailure(super.message);
 }
+
+/// El usuario cerró el picker de Google sin elegir cuenta — no es un
+/// error: el cubit lo traduce a volver al estado inicial sin mostrar
+/// mensaje.
+class GoogleSignInCancelledFailure extends AuthFailure {
+  const GoogleSignInCancelledFailure()
+    : super('Inicio de sesión con Google cancelado.');
+}
+
+/// El idToken de Google fue rechazado por el backend (401
+/// GOOGLE_TOKEN_INVALID / GOOGLE_EMAIL_UNVERIFIED — propuesta 085) o el
+/// SDK falló (config, red de Google, plataforma sin soporte).
+class GoogleAuthFailure extends AuthFailure {
+  const GoogleAuthFailure([String? message])
+    : super(
+        message ?? 'No se pudo iniciar sesión con Google. Inténtalo más tarde.',
+      );
+}

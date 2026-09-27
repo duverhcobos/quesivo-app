@@ -78,7 +78,7 @@ class HttpNetworkServiceImpl implements INetworkService {
       if (response.body.isEmpty) return null as T;
       return jsonDecode(response.body) as T;
     } else if (response.statusCode == 401) {
-      throw UnauthorizedException();
+      throw UnauthorizedException(errorCode: _extractErrorCode(response.body));
     } else {
       throw RestApiException(
         statusCode: response.statusCode,
