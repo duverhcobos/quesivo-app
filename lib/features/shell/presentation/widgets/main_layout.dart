@@ -39,6 +39,12 @@ class _MainLayoutState extends State<MainLayout> {
   /// para la dirección del slide.
   int _previousIndex = 0;
 
+  /// Key del Scaffold para preguntar si el endDrawer está abierto: este
+  /// PopScope intercepta el back ANTES que el LocalHistoryEntry del drawer
+  /// (vive en el navigator interno del shell) — sin el check, back con el
+  /// drawer abierto salía de la app en vez de cerrarlo (bug reportado).
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     final navigationShell = widget.navigationShell;
@@ -63,6 +69,11 @@ class _MainLayoutState extends State<MainLayout> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        // Back con el drawer abierto lo cierra, no sale de la app.
+        if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
+          _scaffoldKey.currentState?.closeEndDrawer();
+          return;
+        }
         if (index != 0) {
           navigationShell.goBranch(0);
         } else if (enteredOrg) {
@@ -72,6 +83,7 @@ class _MainLayoutState extends State<MainLayout> {
         }
       },
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: AppColors.quesivoWhite,
         endDrawer: const QuesivoDrawer(),
         // El teclado NO desplaza el chrome: con el default (true) el body se
