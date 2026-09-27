@@ -44,7 +44,6 @@ void main() {
     when(() => mockOrgCubit.state).thenReturn(const OrgNameSetupState());
     when(() => mockOrgCubit.stream).thenAnswer((_) => const Stream.empty());
     when(() => mockOrgCubit.submit(any())).thenAnswer((_) async {});
-    when(() => mockOrgCubit.skip()).thenAnswer((_) async {});
     when(() => mockOrgCubit.close()).thenAnswer((_) async {});
 
     when(
@@ -70,7 +69,8 @@ void main() {
       tester.widget<QuesivoPrimaryButton>(find.byType(QuesivoPrimaryButton));
 
   testWidgets('renderiza título, campo PRE-LLENADO con el nombre '
-      'generado, Guardar deshabilitado (sin cambios) y el skip', (
+      'generado y Guardar habilitado — sin skip (§72: el paso es '
+      'obligatorio, confirmar el nombre generado también es válido)', (
     tester,
   ) async {
     await tester.pumpWidget(buildApp());
@@ -79,10 +79,11 @@ void main() {
     expect(find.text('¿Cómo se llama tu quesera?'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, tGeneratedName), findsOneWidget);
     expect(find.text('Guardar'), findsOneWidget);
-    expect(find.text('Por ahora no'), findsOneWidget);
+    expect(find.text('Por ahora no'), findsNothing);
 
-    // El nombre es el generado → no hay nada que guardar todavía.
-    expect(saveButton(tester).onPressed, isNull);
+    // Con el nombre generado pre-llenado ya se puede guardar — el PATCH
+    // con el mismo nombre es idempotente y limpia el flag igual.
+    expect(saveButton(tester).onPressed, isNotNull);
   });
 
   testWidgets('Guardar se habilita al cambiar el nombre y el submit '
@@ -113,22 +114,6 @@ void main() {
     await tester.pump();
 
     expect(saveButton(tester).onPressed, isNull);
-    verifyNever(() => mockOrgCubit.submit(any()));
-  });
-
-  testWidgets('"Por ahora no" llama skip() del cubit (limpia el flag '
-      'sin PATCH)', (tester) async {
-    await tester.pumpWidget(buildApp());
-    await tester.pump();
-
-    // El link vive al pie del form — en el viewport de 800x600 del
-    // test queda bajo el fold del SingleChildScrollView.
-    await tester.ensureVisible(find.text('Por ahora no'));
-    await tester.pump();
-    await tester.tap(find.text('Por ahora no'));
-    await tester.pump();
-
-    verify(() => mockOrgCubit.skip()).called(1);
     verifyNever(() => mockOrgCubit.submit(any()));
   });
 
@@ -168,6 +153,5 @@ void main() {
     final field = tester.widget<TextFormField>(find.byType(TextFormField));
     expect(field.enabled, isFalse);
     expect(find.byType(QuesivoPrimaryButton), findsNothing);
-    expect(find.text('Por ahora no'), findsNothing);
   });
 }

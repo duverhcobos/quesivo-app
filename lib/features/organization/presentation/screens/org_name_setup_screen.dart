@@ -16,14 +16,14 @@ import '../../domain/failures/organization_failure.dart';
 import '../cubit/org_name_setup_cubit.dart';
 import '../cubit/org_name_setup_state.dart';
 
-/// Pantalla "¿Cómo se llama tu quesera?" (propuesta 71 — backend 087).
+/// Pantalla "¿Cómo se llama tu quesera?" (propuesta 71 — backend 087;
+/// obligatoria desde propuesta 72 — sin opción de omitir).
 ///
 /// Post-signup por Google la org nació con el nombre de la cuenta: el
 /// `AuthGuard` fuerza esta ruta mientras `user.isNewSignup` sea true
-/// (persistente — reaparece tras restart hasta completar u omitir).
-/// "Guardar" hace `PATCH /organizations/me` y "Por ahora no" omite el
-/// paso; en ambos casos el flag se limpia y el guard rutea a /home
-/// solo — la pantalla no navega.
+/// (persistente — reaparece tras restart hasta completar). "Guardar"
+/// hace `PATCH /organizations/me`, el flag se limpia y el guard rutea
+/// a /home solo — la pantalla no navega.
 ///
 /// El `OrgNameSetupCubit` lo provee la GoRoute (factory DI) — esta vista
 /// es dumb: lee estado y repinta.
@@ -50,12 +50,11 @@ class _OrgNameSetupScreenState extends State<OrgNameSetupScreen> {
     _name = _originalName;
   }
 
-  /// Guardar queda disabled con el campo vacío o sin cambios — un PATCH
-  /// con el mismo nombre no aporta nada.
-  bool get _canSubmit {
-    final trimmed = _name.trim();
-    return trimmed.isNotEmpty && trimmed != _originalName.trim();
-  }
+  /// Guardar queda disabled solo con el campo vacío — desde §72 el
+  /// paso es obligatorio (no hay skip): confirmar el nombre generado
+  /// también debe ser válido, un PATCH con el mismo nombre es
+  /// idempotente y limpia el flag igual.
+  bool get _canSubmit => _name.trim().isNotEmpty;
 
   void _submit() {
     FocusScope.of(context).unfocus();
@@ -72,8 +71,8 @@ class _OrgNameSetupScreenState extends State<OrgNameSetupScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final size = MediaQuery.sizeOf(context);
-    // Form congelado durante el submit: el campo no acepta edición y el
-    // skip tampoco — los args ya fueron capturados.
+    // Form congelado durante el submit: el campo no acepta edición —
+    // los args ya fueron capturados.
     final isSubmitting = context.select<OrgNameSetupCubit, bool>(
       (c) => c.state.isSubmitting,
     );
@@ -137,29 +136,9 @@ class _OrgNameSetupScreenState extends State<OrgNameSetupScreen> {
                       ),
                     )
                   else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        QuesivoPrimaryButton(
-                          label: l10n.orgNameSetupSubmit,
-                          onPressed: _canSubmit ? _submit : null,
-                        ),
-                        const SizedBox(height: 24),
-                        Center(
-                          child: GestureDetector(
-                            onTap: () =>
-                                context.read<OrgNameSetupCubit>().skip(),
-                            child: Text(
-                              l10n.orgNameSetupSkip,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.quesivoYellow,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                    QuesivoPrimaryButton(
+                      label: l10n.orgNameSetupSubmit,
+                      onPressed: _canSubmit ? _submit : null,
                     ),
                   const SizedBox(height: 20),
                 ],

@@ -321,7 +321,6 @@
   "orgNameSetupDescription": "La creamos con el nombre de tu cuenta de Google — cámbialo por el que quieras.",
   "orgNameSetupFieldLabel": "Nombre de la quesera",
   "orgNameSetupSubmit": "Guardar",
-  "orgNameSetupSkip": "Por ahora no",
   "orgNameSetupErrorGeneric": "No se pudo guardar el nombre. Inténtalo más tarde.",
   "orgNameSetupErrorOffline": "No se pudo conectar al servidor — revisa tu conexión"
 }

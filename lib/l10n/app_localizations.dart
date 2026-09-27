@@ -1396,12 +1396,6 @@ abstract class AppLocalizations {
   /// **'Guardar'**
   String get orgNameSetupSubmit;
 
-  /// No description provided for @orgNameSetupSkip.
-  ///
-  /// In es, this message translates to:
-  /// **'Por ahora no'**
-  String get orgNameSetupSkip;
-
   /// No description provided for @orgNameSetupErrorGeneric.
   ///
   /// In es, this message translates to:

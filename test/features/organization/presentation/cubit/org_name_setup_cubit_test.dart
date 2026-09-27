@@ -13,16 +13,12 @@ import 'package:quesivo/features/auth/domain/use_cases/select_organization_use_c
 import 'package:quesivo/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:quesivo/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quesivo/features/organization/domain/failures/organization_failure.dart';
-import 'package:quesivo/features/organization/domain/use_cases/skip_org_name_setup_use_case.dart';
 import 'package:quesivo/features/organization/domain/use_cases/update_organization_name_use_case.dart';
 import 'package:quesivo/features/organization/presentation/cubit/org_name_setup_cubit.dart';
 import 'package:quesivo/features/organization/presentation/cubit/org_name_setup_state.dart';
 
 class MockUpdateOrganizationNameUseCase extends Mock
     implements UpdateOrganizationNameUseCase {}
-
-class MockSkipOrgNameSetupUseCase extends Mock
-    implements SkipOrgNameSetupUseCase {}
 
 class MockSelectOrganizationUseCase extends Mock
     implements SelectOrganizationUseCase {}
@@ -32,7 +28,6 @@ class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 void main() {
   late OrgNameSetupCubit cubit;
   late MockUpdateOrganizationNameUseCase mockUpdateName;
-  late MockSkipOrgNameSetupUseCase mockSkipSetup;
   late MockSelectOrganizationUseCase mockSelectOrg;
   late MockAuthCubit mockAuthCubit;
 
@@ -51,7 +46,6 @@ void main() {
 
   setUp(() {
     mockUpdateName = MockUpdateOrganizationNameUseCase();
-    mockSkipSetup = MockSkipOrgNameSetupUseCase();
     mockSelectOrg = MockSelectOrganizationUseCase();
     mockAuthCubit = MockAuthCubit();
     when(() => mockAuthCubit.state).thenReturn(const AuthInitial());
@@ -59,12 +53,7 @@ void main() {
     // MissingStubError en los guards post-await del cubit.
     when(() => mockAuthCubit.isClosed).thenReturn(false);
 
-    cubit = OrgNameSetupCubit(
-      mockUpdateName,
-      mockSkipSetup,
-      mockSelectOrg,
-      mockAuthCubit,
-    );
+    cubit = OrgNameSetupCubit(mockUpdateName, mockSelectOrg, mockAuthCubit);
   });
 
   tearDown(() {
@@ -92,7 +81,6 @@ void main() {
     verify: (_) {
       verify(() => mockUpdateName(tName)).called(1);
       verify(() => mockAuthCubit.applyOrganizationRenamed(tName)).called(1);
-      verifyNever(() => mockAuthCubit.skipOrgNameSetup());
     },
   );
 
@@ -136,42 +124,6 @@ void main() {
     completer.complete(const Right<OrganizationFailure, String>(tName));
     await first;
   });
-
-  blocTest<OrgNameSetupCubit, OrgNameSetupState>(
-    'skip: emite submitting (anti doble-tap), persiste el flag limpio '
-    'vía use case y luego limpia el flag en memoria — sin PATCH',
-    build: () {
-      when(
-        () => mockSkipSetup(),
-      ).thenAnswer((_) async => const Right<OrganizationFailure, void>(null));
-      return cubit;
-    },
-    act: (cubit) => cubit.skip(),
-    expect: () => [const OrgNameSetupState(isSubmitting: true)],
-    verify: (_) {
-      verify(() => mockSkipSetup()).called(1);
-      verify(() => mockAuthCubit.skipOrgNameSetup()).called(1);
-      verifyNever(() => mockUpdateName(any()));
-      verifyNever(() => mockAuthCubit.applyOrganizationRenamed(any()));
-    },
-  );
-
-  blocTest<OrgNameSetupCubit, OrgNameSetupState>(
-    'skip con falla de persistencia limpia el flag en memoria igual '
-    '(best-effort — peor caso: la pantalla reaparece tras un restart)',
-    build: () {
-      when(() => mockSkipSetup()).thenAnswer(
-        (_) async =>
-            const Left<OrganizationFailure, void>(OrganizationUpdateFailure()),
-      );
-      return cubit;
-    },
-    act: (cubit) => cubit.skip(),
-    expect: () => [const OrgNameSetupState(isSubmitting: true)],
-    verify: (_) {
-      verify(() => mockAuthCubit.skipOrgNameSetup()).called(1);
-    },
-  );
 
   blocTest<OrgNameSetupCubit, OrgNameSetupState>(
     'submit con sesión personal (isNewSignup sin entrar a la org): entra '

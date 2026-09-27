@@ -42,7 +42,7 @@ class OrganizationRepositoryImpl implements IOrganizationRepository {
 
     try {
       final newName = await remoteDataSource.updateCurrentName(name.trim());
-      await _updateCachedSession(newName: newName);
+      await _updateCachedSession(newName);
       return Right(newName);
     } on RestApiException catch (e, stackTrace) {
       return Left(_mapError(e, stackTrace));
@@ -56,29 +56,11 @@ class OrganizationRepositoryImpl implements IOrganizationRepository {
     }
   }
 
-  /// "Por ahora no": mismo rebuild de la sesión cacheada pero sin PATCH
-  /// ni cambio de nombre — solo `isNewSignup: false` (el flag no debe
-  /// reaparecer tras un restart).
-  @override
-  Future<Either<OrganizationFailure, void>> skipNameSetup() async {
-    try {
-      await _updateCachedSession();
-      return const Right(null);
-    } catch (e, stackTrace) {
-      logger.warning(
-        'No se pudo limpiar isNewSignup de la sesión cacheada',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return const Left(OrganizationUpdateFailure());
-    }
-  }
-
   /// Reconstruye el `UserModel` cacheado campo a campo — el `copyWith`
   /// de `User` devuelve la entity base (no `UserModel`), mismo motivo
   /// por el que `AuthRepositoryImpl.selectOrganization` hace un rebuild
-  /// explícito. `newName == null` = solo limpiar el flag (skip).
-  Future<void> _updateCachedSession({String? newName}) async {
+  /// explícito.
+  Future<void> _updateCachedSession(String newName) async {
     final session = await localAuthDataSource.getUserSession();
     if (session == null) return;
 
@@ -90,12 +72,12 @@ class OrganizationRepositoryImpl implements IOrganizationRepository {
         token: session.token,
         refreshToken: session.refreshToken,
         organizationId: session.organizationId,
-        organizationName: newName ?? session.organizationName,
+        organizationName: newName,
         roles: session.roles,
         status: session.status,
         organizations: [
           for (final o in session.organizations)
-            newName != null && o.id == session.organizationId
+            o.id == session.organizationId
                 ? OrganizationSummary(id: o.id, name: newName, role: o.role)
                 : o,
         ],

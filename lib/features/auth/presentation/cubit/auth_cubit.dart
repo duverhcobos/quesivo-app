@@ -91,9 +91,9 @@ class AuthCubit extends Cubit<AuthState> {
       // El state pudo cambiar mientras el /me estaba en vuelo (logout,
       // sesión expirada, otra respuesta): solo pisamos si sigue Success.
       // El flag y enteredOrg se toman del state FRESCO, no del snapshot
-      // pre-await — si corrió applyOrganizationRenamed/skipOrgNameSetup/
-      // exitOrganization en el medio, resucitar los valores viejos
-      // volvería a forzar la pantalla de nombrado ya completada.
+      // pre-await — si corrió applyOrganizationRenamed/exitOrganization
+      // en el medio, resucitar los valores viejos volvería a forzar la
+      // pantalla de nombrado ya completada.
       final fresh = state;
       if (fresh is AuthSuccess) {
         emit(
@@ -228,21 +228,6 @@ class AuthCubit extends Cubit<AuthState> {
                   : o,
           ],
         ),
-        enteredOrg: current.enteredOrg,
-      ),
-    );
-  }
-
-  /// "Por ahora no" en la pantalla de nombrado: limpia el flag sin PATCH —
-  /// la org conserva el nombre generado (renombrable después con el mismo
-  /// endpoint). El repositorio ya persistió el flag limpio en la sesión
-  /// local (skipNameSetup del OrgNameSetupCubit).
-  void skipOrgNameSetup() {
-    final current = state;
-    if (current is! AuthSuccess) return;
-    emit(
-      AuthSuccess(
-        current.user.copyWith(isNewSignup: false),
         enteredOrg: current.enteredOrg,
       ),
     );

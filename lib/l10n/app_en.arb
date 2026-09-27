@@ -321,7 +321,6 @@
   "orgNameSetupDescription": "We created it with your Google account name — change it to whatever you want.",
   "orgNameSetupFieldLabel": "Cheese factory name",
   "orgNameSetupSubmit": "Save",
-  "orgNameSetupSkip": "Not now",
   "orgNameSetupErrorGeneric": "We couldn't save the name. Try again later.",
   "orgNameSetupErrorOffline": "Couldn't connect to the server — check your connection"
 }

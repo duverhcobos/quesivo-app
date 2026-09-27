@@ -739,9 +739,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orgNameSetupSubmit => 'Save';
 
   @override
-  String get orgNameSetupSkip => 'Not now';
-
-  @override
   String get orgNameSetupErrorGeneric =>
       'We couldn\'t save the name. Try again later.';
 

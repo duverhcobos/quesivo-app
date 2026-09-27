@@ -12,9 +12,4 @@ abstract class IOrganizationRepository {
   /// (organizationName + la entrada en `organizations` + limpia
   /// `isNewSignup`). Devuelve el nombre confirmado por el backend.
   Future<Either<OrganizationFailure, String>> updateCurrentName(String name);
-
-  /// "Por ahora no" en la pantalla de nombrado: limpia `isNewSignup` de
-  /// la sesión cacheada SIN llamar al backend — la org conserva el
-  /// nombre generado (renombrable después con `updateCurrentName`).
-  Future<Either<OrganizationFailure, void>> skipNameSetup();
 }

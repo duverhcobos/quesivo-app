@@ -599,7 +599,7 @@ void main() {
     },
   );
 
-  group('applyOrganizationRenamed / skipOrgNameSetup (§71 — backend 087)', () {
+  group('applyOrganizationRenamed (§71 — backend 087)', () {
     // Sesión post-signup Google: org recién creada con el nombre de la
     // cuenta y flag prendido tras entrar a ella.
     const tSignupUser = User(
@@ -657,48 +657,6 @@ void main() {
       build: () => cubit,
       seed: () => const AuthInitial(),
       act: (cubit) => cubit.applyOrganizationRenamed('Quesera Los Alpes'),
-      expect: () => <AuthState>[],
-    );
-
-    blocTest<AuthCubit, AuthState>(
-      'skipOrgNameSetup: limpia el flag sin tocar el nombre ni la org '
-      '(la sesión persistida ya quedó limpia por el repository)',
-      build: () => cubit,
-      seed: () => const AuthSuccess(tSignupUser, enteredOrg: true),
-      act: (cubit) => cubit.skipOrgNameSetup(),
-      expect: () => [
-        const AuthSuccess(
-          User(
-            id: '1',
-            email: tEmail,
-            name: 'Duver Cobos',
-            token: 'token-org',
-            organizationId: 'org-1',
-            organizationName: 'Duver Cobos',
-            roles: ['ADMIN'],
-            organizations: [
-              OrganizationSummary(
-                id: 'org-1',
-                name: 'Duver Cobos',
-                role: 'ADMIN',
-              ),
-              OrganizationSummary(id: 'org-2', name: 'Otra', role: 'OPERATOR'),
-            ],
-            isNewSignup: false,
-          ),
-          enteredOrg: true,
-        ),
-      ],
-      verify: (_) {
-        verifyNever(() => mockCheckAuthStatusUseCase());
-      },
-    );
-
-    blocTest<AuthCubit, AuthState>(
-      'skipOrgNameSetup fuera de AuthSuccess no hace nada',
-      build: () => cubit,
-      seed: () => const AuthInitial(),
-      act: (cubit) => cubit.skipOrgNameSetup(),
       expect: () => <AuthState>[],
     );
   });
